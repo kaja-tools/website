@@ -17,7 +17,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v3
         with:
-          context: .
+          context: ./apps/home
           push: true
           tags: |
-            kajatools/website:latest
+            kajatools/website-home:latest
