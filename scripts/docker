@@ -1,34 +1,10 @@
-#!/bin/sh
+#!/bin/bash
 set -e
-
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-ORANGE='\033[0;33m'
-NC='\033[0m' # No Color
-
 cd "$(dirname "$0")/.."
 
-# Stop and remove the container if it already exists
-docker rm -f website &> /dev/null || true
+docker build -t kajatools/website-home:latest ./apps/home
 
-docker build . -t website:latest
+kubectl apply -f apps/home/deployment.yaml
+kubectl apply -f apps/home/service.yaml
 
-mkfifo pipe
-
-docker run --name website -a STDOUT -p 8080:8080 website:latest > pipe &
-
-while IFS= read -r line
-do
-  echo "$line"
-  if [[ "$line" == *"Server starting"* ]]; then
-    break
-  fi
-done < pipe
-
-rm pipe
-
-# Open kaja in a default web browser
-echo -e "${GREEN}Opening kaja URL http://localhost:8080/ in your default web browser${NC}"
-python3 -m webbrowser http://localhost:8080/
-
-cat
+kubectl get pods
