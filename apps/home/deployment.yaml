@@ -16,8 +16,8 @@ spec:
     spec:
       containers:
       - name: home
-        image: kajatools/website-home:latest
-        imagePullPolicy: Never
+        image: kajatools/website:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 8080
         resources:
