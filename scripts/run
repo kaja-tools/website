@@ -33,6 +33,9 @@ then
     fi
 fi
 
+# Kill background apps when the script exits
+trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM EXIT
+
 cd "$(dirname "$0")/.."
 export GOBIN=$PWD/build
 export PATH=$GOBIN:$PATH
@@ -41,8 +44,8 @@ go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
 
 cd "apps/users"
 protoc --proto_path=. --plugin=protoc-gen-go=../../build/protoc-gen-go --go_out=. --plugin=protoc-gen-twirp=../../build/protoc-gen-twirp --twirp_out=. -Iproto/ $(find . -iname "*.proto")
-#go build -o /tmp/demo-app ./cmd/demo-app
-#/tmp/demo-app &
+go build -o ../../build/users ./cmd/server/main.go
+../../build/users &
 
 cd "../.."
 
