@@ -1,3 +1,4 @@
+# Cluster Issuer
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
@@ -5,10 +6,10 @@ metadata:
 spec:
   acme:
     server: https://acme-v02.api.letsencrypt.org/directory
-    email: tomves@outlook.com
+    email: #Use your mail id
     privateKeySecretRef:
       name: letsencrypt-production
     solvers:
       - http01:
           ingress:
-            class: nginx
+            class: public
