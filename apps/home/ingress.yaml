@@ -2,14 +2,8 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: ingress
-  annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-production
 spec:
-  ingressClassName: nginx-ingress
-  tls:
-  - hosts:
-    - kaja.tools
-    secretName: tls-secret
+  ingressClassName: nginx
   rules:
   - host: kaja.tools
     http:
