@@ -19,7 +19,7 @@ spec:
         image: kajatools/website-users:latest
         imagePullPolicy: Always
         ports:
-        - containerPort: 8080
+        - containerPort: 41521
         resources:
           limits:
             cpu: "0.2"
@@ -37,5 +37,5 @@ spec:
     app: users
   ports:
     - port: 80
-      targetPort: 8080
+      targetPort: 41521
   type: ClusterIP
