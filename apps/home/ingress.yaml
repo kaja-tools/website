@@ -16,6 +16,13 @@ spec:
   - host: kaja.tools
     http:
       paths:
+      - path: /demo
+        pathType: Prefix
+        backend:
+          service:
+            name: kaja-service
+            port:
+              number: 80
       - path: /users
         pathType: Prefix
         backend:

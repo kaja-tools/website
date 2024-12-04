@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kaja-deployment
+  labels:
+    app: kaja
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kaja
+  template:
+    metadata:
+      labels:
+        app: kaja
+    spec:
+      containers:
+      - name: kaja
+        image: kajatools/kaja:latest
+        imagePullPolicy: Always
+        env:
+        - name: BASE_URL
+          value: "http://users-service"
+        ports:
+        - containerPort: 41520
+        resources:
+          limits:
+            cpu: "0.2"
+            memory: "256Mi"
+          requests:
+            cpu: "0.1" 
+            memory: "128Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kaja-service
+spec:
+  selector:
+    app: kaja
+  ports:
+    - port: 80
+      targetPort: 41520
+  type: ClusterIP
