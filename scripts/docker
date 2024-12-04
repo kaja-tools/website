@@ -3,8 +3,9 @@ set -e
 cd "$(dirname "$0")/.."
 
 docker build -t kajatools/website-home:latest ./apps/home
+docker build -t kajatools/website-users:latest ./apps/users
 
-kubectl apply -f apps/home/deployment.yaml
-kubectl apply -f apps/home/service.yaml
+#kubectl apply -f apps/home/deployment.yaml
+#kubectl apply -f apps/home/service.yaml
 
-kubectl get pods
+#kubectl get pods

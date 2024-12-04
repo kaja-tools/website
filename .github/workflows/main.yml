@@ -14,10 +14,17 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-      - name: Build and push
+      - name: Build and push website-home
         uses: docker/build-push-action@v3
         with:
           context: ./apps/home
           push: true
           tags: |
             kajatools/website-home:latest
+      - name: Build and push website-users
+        uses: docker/build-push-action@v3
+        with:
+          context: ./apps/users
+          push: true
+          tags: |
+            kajatools/website-users:latest
