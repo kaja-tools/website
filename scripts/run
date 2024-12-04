@@ -1,6 +1,52 @@
 #!/bin/bash
 set -e
 
+# Check if Go is installed, if not ask for user confirmation to install it using Homebrew
+if ! command -v go &> /dev/null
+then
+    echo "Go is not installed."
+    read -p "Would you like to install Go using Homebrew? (y/n) " -n 1 -r
+    echo    # Move to a new line
+    if [[ $REPLY =~ ^[Yy]$ ]]
+    then
+        echo "Installing Go using Homebrew..."
+        brew install go
+    else
+        echo "Go installation skipped. Exiting script."
+        exit 1
+    fi
+fi
+
+# Check if protoc is installed, if not ask for user confirmation to install it using Homebrew
+if ! command -v protoc &> /dev/null
+then
+    echo "protoc is not installed."
+    read -p "Would you like to install protoc using Homebrew? (y/n) " -n 1 -r
+    echo    # Move to a new line
+    if [[ $REPLY =~ ^[Yy]$ ]]
+    then
+        echo "Installing protoc using Homebrew..."
+        brew install protobuf
+    else
+        echo "protoc installation skipped. Exiting script."
+        exit 1
+    fi
+fi
+
+# Kill background apps when the script exits
+trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM EXIT
+
 cd "$(dirname "$0")/.."
+export GOBIN=$PWD/build
+export PATH=$GOBIN:$PATH
+go install github.com/twitchtv/twirp/protoc-gen-twirp@latest
+go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+
+cd "apps/users"
+protoc --proto_path=. --plugin=protoc-gen-go=../../build/protoc-gen-go --go_out=. --plugin=protoc-gen-twirp=../../build/protoc-gen-twirp --twirp_out=. -Iproto/ $(find . -iname "*.proto")
+go build -o ../../build/users ./cmd/server/main.go
+../../build/users &
+
+cd "../.."
 
 go run apps/home/cmd/server/main.go
