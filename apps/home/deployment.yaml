@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: home
-        image: kajatools/website:latest
+        image: kajatools/website-home:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
@@ -27,3 +27,15 @@ spec:
           requests:
             cpu: "0.1" 
             memory: "128Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: home-service
+spec:
+  selector:
+    app: home
+  ports:
+    - port: 80
+      targetPort: 8080
+  type: ClusterIP
