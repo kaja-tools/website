@@ -18,6 +18,9 @@ spec:
       - name: kaja
         image: kajatools/kaja:latest
         imagePullPolicy: Always
+        volumeMounts:
+        - name: workspace-volume
+          mountPath: /workspace
         env:
         - name: BASE_URL
           value: "http://users-service"
@@ -30,6 +33,10 @@ spec:
           requests:
             cpu: "0.1" 
             memory: "128Mi"
+      volumes:
+      - name: workspace-volume
+        persistentVolumeClaim:
+          claimName: workspace-claim
 ---
 apiVersion: v1
 kind: Service
