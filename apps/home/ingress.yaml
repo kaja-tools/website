@@ -4,7 +4,7 @@ metadata:
   name: ingress
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-production
-    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
     nginx.ingress.kubernetes.io/use-regex: "true"
 spec:
   ingressClassName: public
@@ -16,6 +16,13 @@ spec:
   - host: kaja.tools
     http:
       paths:
+      - path: /demo(/|$)(.*)
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: kaja-service
+            port:
+              number: 80
       - path: /users
         pathType: Prefix
         backend:
