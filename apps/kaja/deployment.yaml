@@ -24,6 +24,8 @@ spec:
         env:
         - name: BASE_URL
           value: "http://users-service"
+        - name: PATH_PREFIX
+          value: "/demo"
         ports:
         - containerPort: 41520
         resources:
