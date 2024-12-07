@@ -33,6 +33,8 @@ const _ = twirp.TwirpPackageMinVersion_8_1_0
 
 type Users interface {
 	GetUser(context.Context, *GetUserRequest) (*GetUserResponse, error)
+
+	CreateUser(context.Context, *CreateUserRequest) (*CreateUserResponse, error)
 }
 
 // =====================
@@ -41,7 +43,7 @@ type Users interface {
 
 type usersProtobufClient struct {
 	client      HTTPClient
-	urls        [1]string
+	urls        [2]string
 	interceptor twirp.Interceptor
 	opts        twirp.ClientOptions
 }
@@ -69,8 +71,9 @@ func NewUsersProtobufClient(baseURL string, client HTTPClient, opts ...twirp.Cli
 	// Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>
 	serviceURL := sanitizeBaseURL(baseURL)
 	serviceURL += baseServicePath(pathPrefix, "", "Users")
-	urls := [1]string{
+	urls := [2]string{
 		serviceURL + "GetUser",
+		serviceURL + "CreateUser",
 	}
 
 	return &usersProtobufClient{
@@ -127,13 +130,59 @@ func (c *usersProtobufClient) callGetUser(ctx context.Context, in *GetUserReques
 	return out, nil
 }
 
+func (c *usersProtobufClient) CreateUser(ctx context.Context, in *CreateUserRequest) (*CreateUserResponse, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "")
+	ctx = ctxsetters.WithServiceName(ctx, "Users")
+	ctx = ctxsetters.WithMethodName(ctx, "CreateUser")
+	caller := c.callCreateUser
+	if c.interceptor != nil {
+		caller = func(ctx context.Context, req *CreateUserRequest) (*CreateUserResponse, error) {
+			resp, err := c.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*CreateUserRequest)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*CreateUserRequest) when calling interceptor")
+					}
+					return c.callCreateUser(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*CreateUserResponse)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*CreateUserResponse) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+	return caller(ctx, in)
+}
+
+func (c *usersProtobufClient) callCreateUser(ctx context.Context, in *CreateUserRequest) (*CreateUserResponse, error) {
+	out := new(CreateUserResponse)
+	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[1], in, out)
+	if err != nil {
+		twerr, ok := err.(twirp.Error)
+		if !ok {
+			twerr = twirp.InternalErrorWith(err)
+		}
+		callClientError(ctx, c.opts.Hooks, twerr)
+		return nil, err
+	}
+
+	callClientResponseReceived(ctx, c.opts.Hooks)
+
+	return out, nil
+}
+
 // =================
 // Users JSON Client
 // =================
 
 type usersJSONClient struct {
 	client      HTTPClient
-	urls        [1]string
+	urls        [2]string
 	interceptor twirp.Interceptor
 	opts        twirp.ClientOptions
 }
@@ -161,8 +210,9 @@ func NewUsersJSONClient(baseURL string, client HTTPClient, opts ...twirp.ClientO
 	// Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>
 	serviceURL := sanitizeBaseURL(baseURL)
 	serviceURL += baseServicePath(pathPrefix, "", "Users")
-	urls := [1]string{
+	urls := [2]string{
 		serviceURL + "GetUser",
+		serviceURL + "CreateUser",
 	}
 
 	return &usersJSONClient{
@@ -205,6 +255,52 @@ func (c *usersJSONClient) GetUser(ctx context.Context, in *GetUserRequest) (*Get
 func (c *usersJSONClient) callGetUser(ctx context.Context, in *GetUserRequest) (*GetUserResponse, error) {
 	out := new(GetUserResponse)
 	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
+	if err != nil {
+		twerr, ok := err.(twirp.Error)
+		if !ok {
+			twerr = twirp.InternalErrorWith(err)
+		}
+		callClientError(ctx, c.opts.Hooks, twerr)
+		return nil, err
+	}
+
+	callClientResponseReceived(ctx, c.opts.Hooks)
+
+	return out, nil
+}
+
+func (c *usersJSONClient) CreateUser(ctx context.Context, in *CreateUserRequest) (*CreateUserResponse, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "")
+	ctx = ctxsetters.WithServiceName(ctx, "Users")
+	ctx = ctxsetters.WithMethodName(ctx, "CreateUser")
+	caller := c.callCreateUser
+	if c.interceptor != nil {
+		caller = func(ctx context.Context, req *CreateUserRequest) (*CreateUserResponse, error) {
+			resp, err := c.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*CreateUserRequest)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*CreateUserRequest) when calling interceptor")
+					}
+					return c.callCreateUser(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*CreateUserResponse)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*CreateUserResponse) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+	return caller(ctx, in)
+}
+
+func (c *usersJSONClient) callCreateUser(ctx context.Context, in *CreateUserRequest) (*CreateUserResponse, error) {
+	out := new(CreateUserResponse)
+	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[1], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
@@ -318,6 +414,9 @@ func (s *usersServer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	switch method {
 	case "GetUser":
 		s.serveGetUser(ctx, resp, req)
+		return
+	case "CreateUser":
+		s.serveCreateUser(ctx, resp, req)
 		return
 	default:
 		msg := fmt.Sprintf("no handler for path %q", req.URL.Path)
@@ -483,6 +582,186 @@ func (s *usersServer) serveGetUserProtobuf(ctx context.Context, resp http.Respon
 	}
 	if respContent == nil {
 		s.writeError(ctx, resp, twirp.InternalError("received a nil *GetUserResponse and nil error while calling GetUser. nil responses are not supported"))
+		return
+	}
+
+	ctx = callResponsePrepared(ctx, s.hooks)
+
+	respBytes, err := proto.Marshal(respContent)
+	if err != nil {
+		s.writeError(ctx, resp, wrapInternal(err, "failed to marshal proto response"))
+		return
+	}
+
+	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
+	resp.Header().Set("Content-Type", "application/protobuf")
+	resp.Header().Set("Content-Length", strconv.Itoa(len(respBytes)))
+	resp.WriteHeader(http.StatusOK)
+	if n, err := resp.Write(respBytes); err != nil {
+		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
+		twerr := twirp.NewError(twirp.Unknown, msg)
+		ctx = callError(ctx, s.hooks, twerr)
+	}
+	callResponseSent(ctx, s.hooks)
+}
+
+func (s *usersServer) serveCreateUser(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	header := req.Header.Get("Content-Type")
+	i := strings.Index(header, ";")
+	if i == -1 {
+		i = len(header)
+	}
+	switch strings.TrimSpace(strings.ToLower(header[:i])) {
+	case "application/json":
+		s.serveCreateUserJSON(ctx, resp, req)
+	case "application/protobuf":
+		s.serveCreateUserProtobuf(ctx, resp, req)
+	default:
+		msg := fmt.Sprintf("unexpected Content-Type: %q", req.Header.Get("Content-Type"))
+		twerr := badRouteError(msg, req.Method, req.URL.Path)
+		s.writeError(ctx, resp, twerr)
+	}
+}
+
+func (s *usersServer) serveCreateUserJSON(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	var err error
+	ctx = ctxsetters.WithMethodName(ctx, "CreateUser")
+	ctx, err = callRequestRouted(ctx, s.hooks)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
+	d := json.NewDecoder(req.Body)
+	rawReqBody := json.RawMessage{}
+	if err := d.Decode(&rawReqBody); err != nil {
+		s.handleRequestBodyError(ctx, resp, "the json request could not be decoded", err)
+		return
+	}
+	reqContent := new(CreateUserRequest)
+	unmarshaler := protojson.UnmarshalOptions{DiscardUnknown: true}
+	if err = unmarshaler.Unmarshal(rawReqBody, reqContent); err != nil {
+		s.handleRequestBodyError(ctx, resp, "the json request could not be decoded", err)
+		return
+	}
+
+	handler := s.Users.CreateUser
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *CreateUserRequest) (*CreateUserResponse, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*CreateUserRequest)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*CreateUserRequest) when calling interceptor")
+					}
+					return s.Users.CreateUser(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*CreateUserResponse)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*CreateUserResponse) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
+	// Call service method
+	var respContent *CreateUserResponse
+	func() {
+		defer ensurePanicResponses(ctx, resp, s.hooks)
+		respContent, err = handler(ctx, reqContent)
+	}()
+
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+	if respContent == nil {
+		s.writeError(ctx, resp, twirp.InternalError("received a nil *CreateUserResponse and nil error while calling CreateUser. nil responses are not supported"))
+		return
+	}
+
+	ctx = callResponsePrepared(ctx, s.hooks)
+
+	marshaler := &protojson.MarshalOptions{UseProtoNames: !s.jsonCamelCase, EmitUnpopulated: !s.jsonSkipDefaults}
+	respBytes, err := marshaler.Marshal(respContent)
+	if err != nil {
+		s.writeError(ctx, resp, wrapInternal(err, "failed to marshal json response"))
+		return
+	}
+
+	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
+	resp.Header().Set("Content-Type", "application/json")
+	resp.Header().Set("Content-Length", strconv.Itoa(len(respBytes)))
+	resp.WriteHeader(http.StatusOK)
+
+	if n, err := resp.Write(respBytes); err != nil {
+		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
+		twerr := twirp.NewError(twirp.Unknown, msg)
+		ctx = callError(ctx, s.hooks, twerr)
+	}
+	callResponseSent(ctx, s.hooks)
+}
+
+func (s *usersServer) serveCreateUserProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	var err error
+	ctx = ctxsetters.WithMethodName(ctx, "CreateUser")
+	ctx, err = callRequestRouted(ctx, s.hooks)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
+	buf, err := io.ReadAll(req.Body)
+	if err != nil {
+		s.handleRequestBodyError(ctx, resp, "failed to read request body", err)
+		return
+	}
+	reqContent := new(CreateUserRequest)
+	if err = proto.Unmarshal(buf, reqContent); err != nil {
+		s.writeError(ctx, resp, malformedRequestError("the protobuf request could not be decoded"))
+		return
+	}
+
+	handler := s.Users.CreateUser
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *CreateUserRequest) (*CreateUserResponse, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*CreateUserRequest)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*CreateUserRequest) when calling interceptor")
+					}
+					return s.Users.CreateUser(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*CreateUserResponse)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*CreateUserResponse) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
+	// Call service method
+	var respContent *CreateUserResponse
+	func() {
+		defer ensurePanicResponses(ctx, resp, s.hooks)
+		respContent, err = handler(ctx, reqContent)
+	}()
+
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+	if respContent == nil {
+		s.writeError(ctx, resp, twirp.InternalError("received a nil *CreateUserResponse and nil error while calling CreateUser. nil responses are not supported"))
 		return
 	}
 
@@ -1087,15 +1366,17 @@ func callClientError(ctx context.Context, h *twirp.ClientHooks, err twirp.Error)
 }
 
 var twirpFileDescriptor0 = []byte{
-	// 145 bytes of a gzipped FileDescriptorProto
+	// 186 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0x2c, 0x28, 0xca, 0x2f,
 	0xc9, 0xd7, 0x2f, 0x2d, 0x4e, 0x2d, 0x2a, 0xd6, 0x03, 0xb3, 0x95, 0x14, 0xb8, 0xf8, 0xdc, 0x53,
 	0x4b, 0x42, 0x8b, 0x53, 0x8b, 0x82, 0x52, 0x0b, 0x4b, 0x53, 0x8b, 0x4b, 0x84, 0xf8, 0xb8, 0x98,
 	0x32, 0x53, 0x24, 0x18, 0x15, 0x18, 0x35, 0x38, 0x83, 0x98, 0x32, 0x53, 0x94, 0x4c, 0xb9, 0xf8,
 	0xe1, 0x2a, 0x8a, 0x0b, 0xf2, 0xf3, 0x8a, 0x53, 0xd1, 0x95, 0x08, 0x09, 0x71, 0xb1, 0xe4, 0x25,
-	0xe6, 0xa6, 0x4a, 0x30, 0x81, 0x45, 0xc0, 0x6c, 0x23, 0x53, 0x2e, 0x56, 0x90, 0x9e, 0x62, 0x21,
-	0x1d, 0x2e, 0x76, 0xa8, 0x7e, 0x21, 0x7e, 0x3d, 0x54, 0xbb, 0xa4, 0x04, 0xf4, 0xd0, 0x8c, 0x76,
-	0x12, 0x88, 0xe2, 0xcb, 0xcc, 0x2b, 0x49, 0x2d, 0xca, 0x4b, 0xcc, 0x81, 0xb8, 0x33, 0x89, 0x0d,
-	0xec, 0x50, 0x63, 0x40, 0x00, 0x00, 0x00, 0xff, 0xff, 0x5a, 0xd4, 0xfa, 0x1c, 0xbd, 0x00, 0x00,
-	0x00,
+	0xe6, 0xa6, 0x4a, 0x30, 0x81, 0x45, 0xc0, 0x6c, 0x25, 0x75, 0x2e, 0x41, 0xe7, 0xa2, 0xd4, 0xc4,
+	0x92, 0x54, 0x64, 0xb3, 0x61, 0x0a, 0x19, 0x91, 0x14, 0x5a, 0x70, 0x09, 0x21, 0x2b, 0x24, 0xde,
+	0x0a, 0xa3, 0x1c, 0x2e, 0x56, 0x90, 0x9e, 0x62, 0x21, 0x1d, 0x2e, 0x76, 0xa8, 0x13, 0x85, 0xf8,
+	0xf5, 0x50, 0xbd, 0x23, 0x25, 0xa0, 0x87, 0xee, 0x7a, 0x53, 0x2e, 0x2e, 0x84, 0x85, 0x42, 0x42,
+	0x7a, 0x18, 0xce, 0x94, 0x12, 0xd6, 0xc3, 0x74, 0x91, 0x93, 0x40, 0x14, 0x5f, 0x66, 0x5e, 0x49,
+	0x6a, 0x51, 0x5e, 0x62, 0x0e, 0x24, 0x04, 0x93, 0xd8, 0xc0, 0x41, 0x68, 0x0c, 0x08, 0x00, 0x00,
+	0xff, 0xff, 0x15, 0x73, 0x26, 0xac, 0x57, 0x01, 0x00, 0x00,
 }

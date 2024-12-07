@@ -47,6 +47,30 @@ protoc --proto_path=. --plugin=protoc-gen-go=../../build/protoc-gen-go --go_out=
 go build -o ../../build/users ./cmd/server/main.go
 ../../build/users &
 
+# Stop and remove the container if it already exists
+docker rm -f kaja &> /dev/null || true
+
+rm pipe &> /dev/null || true
+mkfifo pipe
+
+docker run --name kaja -a STDOUT -p 41520:41520 \
+    -v $PWD/../users/proto:/workspace --pull=always \
+    -e BASE_URL="http://host.docker.internal:41521" --add-host=host.docker.internal:host-gateway kajatools/kaja:latest > pipe &
+
+while IFS= read -r line
+do
+  echo "$line"
+  if [[ "$line" == *"Server started"* ]]; then
+    break
+  fi
+done < pipe
+
+rm pipe
+
+# Open kaja in a default web browser
+echo -e "${GREEN}Opening kaja URL http://localhost:41520/ in your default web browser${NC}"
+python3 -m webbrowser http://localhost:41520/
+
 cd "../.."
 
 go run apps/home/cmd/server/main.go

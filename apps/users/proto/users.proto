@@ -4,6 +4,7 @@ option go_package = "internal/users";
 
 service Users {
     rpc GetUser(GetUserRequest) returns (GetUserResponse);
+    rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
 }
 
 message GetUserRequest {
@@ -11,6 +12,15 @@ message GetUserRequest {
 }
 
 message GetUserResponse {
+    string id = 1;
+    string name = 2;
+}
+
+message CreateUserRequest {
+    string name = 1;
+}
+
+message CreateUserResponse {
     string id = 1;
     string name = 2;
 }
