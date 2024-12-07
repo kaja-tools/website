@@ -6,12 +6,19 @@ import (
 	"github.com/google/uuid"
 )
 
+var users = make(map[string]string, 100)
+
 type UsersServer struct{}
 
 func (s *UsersServer) GetUser(ctx context.Context, req *GetUserRequest) (*GetUserResponse, error) {
-	return &GetUserResponse{Id: req.Id, Name: "John Doe"}, nil
+	name := users[req.Id]
+
+	return &GetUserResponse{Id: req.Id, Name: name}, nil
 }
 
 func (s *UsersServer) CreateUser(ctx context.Context, req *CreateUserRequest) (*CreateUserResponse, error) {
-	return &CreateUserResponse{Id: uuid.New().String(), Name: req.Name}, nil
+	id := uuid.New().String()
+	users[id] = req.Name
+
+	return &CreateUserResponse{Id: id, Name: users[id]}, nil
 }
