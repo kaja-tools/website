@@ -4,9 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 
 	"github.com/cockroachdb/pebble"
 	"github.com/google/uuid"
+	"github.com/twitchtv/twirp"
 )
 
 // Internal domain type
@@ -21,12 +23,13 @@ type UsersServer struct {
 }
 
 // New constructor function
-func NewUsersServerPebble(dbPath string) (*UsersServer, error) {
+func NewUsersServerPebble(dbPath string) *UsersServer {
 	db, err := pebble.Open(dbPath, &pebble.Options{})
 	if err != nil {
-		return nil, fmt.Errorf("failed to open pebble db: %w", err)
+		panic(fmt.Errorf("failed to open pebble db: %w", err))
+		//return nil, fmt.Errorf("failed to open pebble db: %w", err)
 	}
-	return &UsersServer{db: db}, nil
+	return &UsersServer{db: db}
 }
 
 func (s *UsersServer) CreateUser(ctx context.Context, req *CreateUserRequest) (*CreateUserResponse, error) {
@@ -54,16 +57,16 @@ func (s *UsersServer) GetUser(ctx context.Context, req *GetUserRequest) (*GetUse
 	// Get from Pebble DB
 	value, closer, err := s.db.Get([]byte(req.Id))
 	if err == pebble.ErrNotFound {
-		return nil, fmt.Errorf("user not found")
+		return nil, twirp.NotFound.Error("user not found")
 	}
 	if err != nil {
-		return nil, fmt.Errorf("failed to get user: %w", err)
+		return nil, twirp.InternalErrorWith(err)
 	}
 	defer closer.Close()
 
 	var user UserDB
 	if err := json.Unmarshal(value, &user); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal user: %w", err)
+		return nil, twirp.InternalErrorWith(err)
 	}
 
 	return &GetUserResponse{
@@ -106,4 +109,21 @@ func (s *UsersServer) DeleteUser(ctx context.Context, req *DeleteUserRequest) (*
 		return nil, fmt.Errorf("failed to delete user: %w", err)
 	}
 	return &DeleteUserResponse{}, nil
+}
+
+func NewLoggingServerHooks() *twirp.ServerHooks {
+	return &twirp.ServerHooks{
+		RequestRouted: func(ctx context.Context) (context.Context, error) {
+			method, _ := twirp.MethodName(ctx)
+			log.Println("Method: " + method)
+			return ctx, nil
+		},
+		Error: func(ctx context.Context, twerr twirp.Error) context.Context {
+			log.Println("Error: " + string(twerr.Code()))
+			return ctx
+		},
+		ResponseSent: func(ctx context.Context) {
+			log.Println("Response Sent (error or success)")
+		},
+	}
 }

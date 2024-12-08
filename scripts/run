@@ -44,8 +44,8 @@ go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
 
 cd "apps/users"
 protoc --proto_path=. --plugin=protoc-gen-go=../../build/protoc-gen-go --go_out=. --plugin=protoc-gen-twirp=../../build/protoc-gen-twirp --twirp_out=. -Iproto/ $(find . -iname "*.proto")
-go build -o ../../build/users ./cmd/server/main.go
-../../build/users &
+# go build -o ../../build/users ./cmd/server/main.go
+#../../build/users > users.log 2>&1 &
 
 # Stop and remove the container if it already exists
 docker rm -f kaja &> /dev/null || true
@@ -71,6 +71,7 @@ rm pipe
 echo -e "${GREEN}Opening kaja URL http://localhost:41520/ in your default web browser${NC}"
 python3 -m webbrowser http://localhost:41520/
 
-cd "../.."
+#cd "../.."
+go run cmd/server/main.go
 
-go run apps/home/cmd/server/main.go
+#go run apps/home/cmd/server/main.go
