@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
+	"path/filepath"
 
 	"github.com/cockroachdb/pebble"
 	"github.com/google/uuid"
@@ -24,10 +26,14 @@ type UsersServer struct {
 
 // New constructor function
 func NewUsersServerPebble(dbPath string) *UsersServer {
+	// Create directory if it doesn't exist
+	if err := os.MkdirAll(filepath.Dir(dbPath), 0755); err != nil {
+		panic(fmt.Errorf("failed to create database directory: %w", err))
+	}
+
 	db, err := pebble.Open(dbPath, &pebble.Options{})
 	if err != nil {
 		panic(fmt.Errorf("failed to open pebble db: %w", err))
-		//return nil, fmt.Errorf("failed to open pebble db: %w", err)
 	}
 	return &UsersServer{db: db}
 }
