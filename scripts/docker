@@ -2,6 +2,13 @@
 set -e
 cd "$(dirname "$0")/.."
 
+# Check if kubectl context is docker-desktop
+if [[ $(kubectl config current-context) != "docker-desktop" ]]; then
+    echo "Error: kubectl must be using docker-desktop context"
+    echo "Current context: $(kubectl config current-context)"
+    exit 1
+fi
+
 docker build -t kajatools/website-home:latest ./apps/home
 docker build -t kajatools/website-users:latest ./apps/users
 

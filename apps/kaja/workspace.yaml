@@ -1,3 +1,14 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: azurefile
+provisioner: kubernetes.io/azure-file
+parameters:
+  skuName: Standard_LRS
+mountOptions:
+  - dir_mode=0777
+  - file_mode=0777
+---
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -9,7 +20,7 @@ spec:
   accessModes:
     - ReadWriteMany
   persistentVolumeReclaimPolicy: Retain
-  storageClassName: standard
+  storageClassName: azurefile
   hostPath:
     path: /workspace
     type: DirectoryOrCreate
@@ -24,4 +35,4 @@ spec:
   resources:
     requests:
       storage: 1Gi
-  storageClassName: standard 
+  storageClassName: azurefile 
