@@ -26,13 +26,6 @@ spec:
           value: "/workspace/users_db"
         ports:
         - containerPort: 41521
-        resources:
-          limits:
-            cpu: "0.2"
-            memory: "256Mi"
-          requests:
-            cpu: "0.1" 
-            memory: "128Mi"
       volumes:
       - name: workspace-volume
         persistentVolumeClaim:
