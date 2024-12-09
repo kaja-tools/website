@@ -1,0 +1,18 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: development
+
+resources:
+- ../../base
+
+patches:
+- path: home-patch.yaml
+- path: ingress-patch.yaml
+- path: users-patch.yaml
+
+images:
+- name: kajatools/website-home
+  newTag: dev
+- name: kajatools/website-users
+  newTag: dev
