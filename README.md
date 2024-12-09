@@ -6,4 +6,5 @@ kubectl cp apps/users/proto/users.proto kaja-deployment-7b86f6458-bnfjf:/workspa
 
 kubectl kustomize k8s/overlays/production
 kubectl apply -k k8s/overlays/production
+kubectl apply -k k8s/overlays/development
 ```
