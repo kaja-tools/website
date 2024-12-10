@@ -1,0 +1,57 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+- ../../base
+
+patches:
+  - patch: |
+      $patch: delete
+      apiVersion: cert-manager.io/v1
+      kind: ClusterIssuer
+      metadata:
+        name: letsencrypt-production
+  - patch: |
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: ingress
+        annotations:
+          cert-manager.io/cluster-issuer: null
+      spec:
+        tls: []
+  - patch: |
+      - op: replace
+        path: /spec/rules/0/host
+        value: localhost
+    target:
+      kind: Ingress
+      name: ingress
+  - patch: |
+      apiVersion: v1
+      kind: PersistentVolume
+      metadata:
+        name: workspace
+      spec:
+        storageClassName: manual
+  - patch: |
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: workspace-claim
+      spec:
+        storageClassName: manual
+  - patch: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: users-deployment
+      spec:
+        template:
+          spec:
+            containers:
+            - name: users
+              imagePullPolicy: Never
+    target:
+      kind: Deployment
+      name: users-deployment

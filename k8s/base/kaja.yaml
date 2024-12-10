@@ -1,38 +1,33 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: users-deployment
+  name: kaja-deployment
   labels:
-    app: users
+    app: kaja
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: users
+      app: kaja
   template:
     metadata:
       labels:
-        app: users
+        app: kaja
     spec:
       containers:
-      - name: users
-        image: kajatools/website-users:latest
+      - name: kaja
+        image: kajatools/kaja:latest
         imagePullPolicy: Always
         volumeMounts:
         - name: workspace-volume
           mountPath: /workspace
         env:
-        - name: DB_DIR
-          value: "/workspace/users_db"
+        - name: BASE_URL
+          value: "http://users-service"
+        - name: PATH_PREFIX
+          value: "/demo"
         ports:
-        - containerPort: 41521
-        resources:
-          limits:
-            cpu: "0.2"
-            memory: "256Mi"
-          requests:
-            cpu: "0.1" 
-            memory: "128Mi"
+        - containerPort: 41520
       volumes:
       - name: workspace-volume
         persistentVolumeClaim:
@@ -41,11 +36,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: users-service
+  name: kaja-service
 spec:
   selector:
-    app: users
+    app: kaja
   ports:
     - port: 80
-      targetPort: 41521
+      targetPort: 41520
   type: ClusterIP

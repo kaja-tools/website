@@ -1,53 +1,47 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: kaja-deployment
+  name: users-deployment
   labels:
-    app: kaja
+    app: users
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: kaja
+      app: users
   template:
     metadata:
       labels:
-        app: kaja
+        app: users
     spec:
       containers:
-      - name: kaja
-        image: kajatools/kaja:latest
+      - name: users
+        image: kajatools/website-users:latest
         imagePullPolicy: Always
         volumeMounts:
         - name: workspace-volume
           mountPath: /workspace
         env:
-        - name: BASE_URL
-          value: "http://users-service"
-        - name: PATH_PREFIX
-          value: "/demo"
+        - name: DB_DIR
+          value: "/workspace/users_db"
         ports:
-        - containerPort: 41520
-        resources:
-          limits:
-            cpu: "0.2"
-            memory: "256Mi"
-          requests:
-            cpu: "0.1" 
-            memory: "128Mi"
+        - containerPort: 41521
       volumes:
       - name: workspace-volume
         persistentVolumeClaim:
           claimName: workspace-claim
+  strategy:
+    # Pebble DB only works with one pod accessible the files at a time
+    type: Recreate
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: kaja-service
+  name: users-service
 spec:
   selector:
-    app: kaja
+    app: users
   ports:
     - port: 80
-      targetPort: 41520
+      targetPort: 41521
   type: ClusterIP
