@@ -17,9 +17,13 @@ patches:
       metadata:
         name: ingress
         annotations:
-          $patch: delete
-          cert-manager.io/cluster-issuer: letsencrypt-production
+          cert-manager.io/cluster-issuer: null
       spec:
         tls: []
-        rules:
-        - host: localhost
+  - patch: |
+      - op: replace
+        path: /spec/rules/0/host
+        value: localhost
+    target:
+      kind: Ingress
+      name: ingress
