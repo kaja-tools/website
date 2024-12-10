@@ -15,19 +15,24 @@ if ! kubectl get namespace public-ingress >/dev/null 2>&1; then
     kubectl create namespace public-ingress
 fi
 
-echo "Installing or upgrading ingress-nginx"
-helm upgrade --install ingress-nginx ingress-nginx \
-  --repo https://kubernetes.github.io/ingress-nginx \
-  --namespace public-ingress \
-  --set controller.config.http2=true \
-  --set controller.config.http2-push="on" \
-  --set controller.config.http2-push-preload="on" \
-  --set controller.ingressClassByName=true \
-  --set controller.ingressClassResource.controllerValue=k8s.io/ingress-nginx \
-  --set controller.ingressClassResource.enabled=true \
-  --set controller.ingressClassResource.name=public \
-  --set controller.service.externalTrafficPolicy=Local \
-  --set controller.setAsDefaultIngress=true
+# Quick check if ingress-nginx is already installed
+if ! kubectl get deployment ingress-nginx-controller -n public-ingress >/dev/null 2>&1; then
+    echo "Installing ingress-nginx"
+    helm upgrade --install ingress-nginx ingress-nginx \
+      --repo https://kubernetes.github.io/ingress-nginx \
+      --namespace public-ingress \
+      --set controller.config.http2=true \
+      --set controller.config.http2-push="on" \
+      --set controller.config.http2-push-preload="on" \
+      --set controller.ingressClassByName=true \
+      --set controller.ingressClassResource.controllerValue=k8s.io/ingress-nginx \
+      --set controller.ingressClassResource.enabled=true \
+      --set controller.ingressClassResource.name=public \
+      --set controller.service.externalTrafficPolicy=Local \
+      --set controller.setAsDefaultIngress=true
+else
+    echo "ingress-nginx already installed, skipping..."
+fi
 
 echo "Waiting for ingress-nginx webhook to be ready..."
 kubectl wait --namespace public-ingress \
@@ -41,3 +46,13 @@ kubectl apply -k k8s/overlays/development
 POD_NAME=$(kubectl get pods -l app=kaja -o jsonpath='{.items[0].metadata.name}')
 echo "Copying proto files to $POD_NAME"
 kubectl cp apps/users/proto/users.proto $POD_NAME:/workspace/users.proto
+
+# Rebuild and update users service
+echo "Rebuilding users service Docker image..."
+docker build -t kajatools/website-users:latest ./apps/users
+
+echo "Updating users-deployment in cluster..."
+kubectl rollout restart deployment users-deployment
+kubectl rollout status deployment users-deployment
+
+echo "Done"

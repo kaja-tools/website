@@ -30,6 +30,9 @@ spec:
       - name: workspace-volume
         persistentVolumeClaim:
           claimName: workspace-claim
+  strategy:
+    # Pebble DB only works with one pod accessible the files at a time
+    type: Recreate
 ---
 apiVersion: v1
 kind: Service

@@ -41,3 +41,17 @@ patches:
         name: workspace-claim
       spec:
         storageClassName: manual
+  - patch: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: users-deployment
+      spec:
+        template:
+          spec:
+            containers:
+            - name: users
+              imagePullPolicy: Never
+    target:
+      kind: Deployment
+      name: users-deployment
