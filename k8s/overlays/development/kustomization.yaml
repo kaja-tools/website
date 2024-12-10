@@ -27,3 +27,17 @@ patches:
     target:
       kind: Ingress
       name: ingress
+  - patch: |
+      apiVersion: v1
+      kind: PersistentVolume
+      metadata:
+        name: workspace
+      spec:
+        storageClassName: manual
+  - patch: |
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: workspace-claim
+      spec:
+        storageClassName: manual
