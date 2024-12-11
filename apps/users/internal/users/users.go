@@ -2,118 +2,68 @@ package users
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	"log"
-	"os"
-	"path/filepath"
 
-	"github.com/cockroachdb/pebble"
 	"github.com/google/uuid"
+	"github.com/kaja-tools/website/v2/internal/model"
 	"github.com/twitchtv/twirp"
 )
 
-// Internal domain type
-type UserDB struct {
-	ID   string
-	Name string
-	// Add other relevant fields
+type UsersHandler struct {
+	model *model.Users
 }
 
-type UsersServer struct {
-	db *pebble.DB
+func NewUsersHandler(model *model.Users) *UsersHandler {
+	return &UsersHandler{model: model}
 }
 
-// New constructor function
-func NewUsersServerPebble(dbPath string) *UsersServer {
-	// Create directory if it doesn't exist
-	if err := os.MkdirAll(filepath.Dir(dbPath), 0755); err != nil {
-		panic(fmt.Errorf("failed to create database directory: %w", err))
-	}
-
-	db, err := pebble.Open(dbPath, &pebble.Options{})
-	if err != nil {
-		panic(fmt.Errorf("failed to open pebble db: %w", err))
-	}
-	return &UsersServer{db: db}
-}
-
-func (s *UsersServer) CreateUser(ctx context.Context, req *CreateUserRequest) (*CreateUserResponse, error) {
+func (h *UsersHandler) CreateUser(ctx context.Context, req *CreateUserRequest) (*CreateUserResponse, error) {
 	id := uuid.New().String()
-	user := UserDB{
+	user := model.User{
 		ID:   id,
-		Name: req.User.Name,
+		Name: req.Name,
 	}
 
-	// Serialize user to JSON
-	userData, err := json.Marshal(user)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal user: %w", err)
-	}
-
-	// Store in Pebble DB
-	if err := s.db.Set([]byte(id), userData, pebble.Sync); err != nil {
-		return nil, fmt.Errorf("failed to store user: %w", err)
-	}
-
-	return &CreateUserResponse{Id: id}, nil
-}
-
-func (s *UsersServer) GetUser(ctx context.Context, req *GetUserRequest) (*GetUserResponse, error) {
-	// Get from Pebble DB
-	value, closer, err := s.db.Get([]byte(req.Id))
-	if err == pebble.ErrNotFound {
-		return nil, twirp.NotFound.Error("user not found")
-	}
-	if err != nil {
+	if err := h.model.Set(&user); err != nil {
 		return nil, twirp.InternalErrorWith(err)
 	}
-	defer closer.Close()
 
-	var user UserDB
-	if err := json.Unmarshal(value, &user); err != nil {
+	return &CreateUserResponse{User: modelUserToApiUser(&user)}, nil
+}
+
+func (h *UsersHandler) GetUser(ctx context.Context, req *GetUserRequest) (*GetUserResponse, error) {
+	user, err := h.model.Get(req.Id)
+
+	if err != nil {
 		return nil, twirp.InternalErrorWith(err)
 	}
 
 	return &GetUserResponse{
-		User: &User{Name: user.Name},
+		User: modelUserToApiUser(user),
 	}, nil
 }
 
-func (s *UsersServer) UpdateUser(ctx context.Context, req *UpdateUserRequest) (*UpdateUserResponse, error) {
-	// Get existing user
-	value, closer, err := s.db.Get([]byte(req.Id))
-	if err == pebble.ErrNotFound {
-		return nil, fmt.Errorf("user not found")
-	}
+func (u *UsersHandler) UpdateUser(ctx context.Context, req *UpdateUserRequest) (*UpdateUserResponse, error) {
+	user, err := u.model.Get(req.Id)
+
 	if err != nil {
-		return nil, fmt.Errorf("failed to get user: %w", err)
-	}
-	closer.Close()
-
-	var user UserDB
-	if err := json.Unmarshal(value, &user); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal user: %w", err)
+		return nil, twirp.InternalErrorWith(err)
 	}
 
-	// Update user
-	user.Name = req.User.Name
-	userData, err := json.Marshal(user)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal user: %w", err)
+	user.Name = req.Name
+
+	if err := u.model.Set(user); err != nil {
+		return nil, twirp.InternalErrorWith(err)
 	}
 
-	if err := s.db.Set([]byte(req.Id), userData, pebble.Sync); err != nil {
-		return nil, fmt.Errorf("failed to update user: %w", err)
-	}
-
-	return &UpdateUserResponse{}, nil
+	return &UpdateUserResponse{User: modelUserToApiUser(user)}, nil
 }
 
-func (s *UsersServer) DeleteUser(ctx context.Context, req *DeleteUserRequest) (*DeleteUserResponse, error) {
-	if err := s.db.Delete([]byte(req.Id), pebble.Sync); err != nil {
-		return nil, fmt.Errorf("failed to delete user: %w", err)
+func (u *UsersHandler) DeleteUser(ctx context.Context, req *DeleteUserRequest) (*DeleteUserResponse, error) {
+	if err := u.model.Delete(req.Id); err != nil {
+		return nil, twirp.InternalErrorWith(err)
 	}
+
 	return &DeleteUserResponse{}, nil
 }
 
@@ -131,5 +81,12 @@ func NewLoggingServerHooks() *twirp.ServerHooks {
 		ResponseSent: func(ctx context.Context) {
 			log.Println("Response Sent (error or success)")
 		},
+	}
+}
+
+func modelUserToApiUser(user *model.User) *User {
+	return &User{
+		Id:   user.ID,
+		Name: user.Name,
 	}
 }
