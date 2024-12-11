@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = "internal/users";
+option go_package = "internal/api";
 
 service Users {
     rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
@@ -10,11 +10,11 @@ service Users {
 }
 
 message CreateUserRequest {
-    User user = 1;
+    string name = 1;    
 }
 
 message CreateUserResponse {
-    string id = 1;
+    User user = 1;
 }
 
 message GetUserRequest {
@@ -27,10 +27,11 @@ message GetUserResponse {
 
 message UpdateUserRequest {
     string id = 1;
-    User user = 2;
+    string name = 2;
 }
 
 message UpdateUserResponse {
+    User user = 1;
 }
 
 message DeleteUserRequest {
@@ -41,5 +42,6 @@ message DeleteUserResponse {
 }
 
 message User {
-    string name = 1;
+    string id = 1;
+    string name = 2;
 }
