@@ -1,4 +1,4 @@
-package users
+package api
 
 import (
 	"context"
@@ -32,34 +32,52 @@ func (h *UsersHandler) CreateUser(ctx context.Context, req *CreateUserRequest) (
 }
 
 func (h *UsersHandler) GetUser(ctx context.Context, req *GetUserRequest) (*GetUserResponse, error) {
-	user, err := h.model.Get(req.Id)
+	userResult, err := h.model.Get(req.Id)
 
 	if err != nil {
 		return nil, twirp.InternalErrorWith(err)
 	}
 
+	if !userResult.Found {
+		return nil, twirp.NotFoundError("user not found")
+	}
+
 	return &GetUserResponse{
-		User: modelUserToApiUser(user),
+		User: modelUserToApiUser(userResult.User),
 	}, nil
 }
 
 func (u *UsersHandler) UpdateUser(ctx context.Context, req *UpdateUserRequest) (*UpdateUserResponse, error) {
-	user, err := u.model.Get(req.Id)
+	userResult, err := u.model.Get(req.Id)
 
 	if err != nil {
 		return nil, twirp.InternalErrorWith(err)
 	}
 
-	user.Name = req.Name
+	if !userResult.Found {
+		return nil, twirp.NotFoundError("user not found")
+	}
 
-	if err := u.model.Set(user); err != nil {
+	userResult.User.Name = req.Name
+
+	if err := u.model.Set(userResult.User); err != nil {
 		return nil, twirp.InternalErrorWith(err)
 	}
 
-	return &UpdateUserResponse{User: modelUserToApiUser(user)}, nil
+	return &UpdateUserResponse{User: modelUserToApiUser(userResult.User)}, nil
 }
 
 func (u *UsersHandler) DeleteUser(ctx context.Context, req *DeleteUserRequest) (*DeleteUserResponse, error) {
+	userResult, err := u.model.Get(req.Id)
+
+	if err != nil {
+		return nil, twirp.InternalErrorWith(err)
+	}
+
+	if !userResult.Found {
+		return nil, twirp.NotFoundError("user not found")
+	}
+
 	if err := u.model.Delete(req.Id); err != nil {
 		return nil, twirp.InternalErrorWith(err)
 	}
