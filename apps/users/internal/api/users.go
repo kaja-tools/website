@@ -28,7 +28,7 @@ func (h *UsersHandler) CreateUser(ctx context.Context, req *CreateUserRequest) (
 		return nil, twirp.InternalErrorWith(err)
 	}
 
-	return &CreateUserResponse{User: modelUserToApiUser(&user)}, nil
+	return &CreateUserResponse{Message: "User created. Next, you can retrieve it with GetUser().", User: modelUserToApiUser(&user)}, nil
 }
 
 func (h *UsersHandler) GetUser(ctx context.Context, req *GetUserRequest) (*GetUserResponse, error) {
@@ -83,6 +83,29 @@ func (u *UsersHandler) DeleteUser(ctx context.Context, req *DeleteUserRequest) (
 	}
 
 	return &DeleteUserResponse{}, nil
+}
+
+func (u *UsersHandler) GetAllUsers(ctx context.Context, req *GetAllUsersRequest) (*GetAllUsersResponse, error) {
+	users, err := u.model.GetAll()
+
+	if err != nil {
+		return nil, twirp.InternalErrorWith(err)
+	}
+
+	apiUsers := make([]*User, len(users))
+	for i, user := range users {
+		apiUsers[i] = modelUserToApiUser(user)
+	}
+
+	return &GetAllUsersResponse{Users: apiUsers}, nil
+}
+
+func (u *UsersHandler) DeleteAllUsers(ctx context.Context, req *DeleteAllUsersRequest) (*DeleteAllUsersResponse, error) {
+	if err := u.model.DeleteAll(); err != nil {
+		return nil, twirp.InternalErrorWith(err)
+	}
+
+	return &DeleteAllUsersResponse{Message: "All users deleted. You can create new user with CreateUser()."}, nil
 }
 
 func NewLoggingServerHooks() *twirp.ServerHooks {

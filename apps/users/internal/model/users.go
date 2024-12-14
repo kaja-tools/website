@@ -13,7 +13,7 @@ type User struct {
 }
 
 type UserResult struct {
-	User *User
+	User  *User
 	Found bool
 }
 
@@ -52,4 +52,51 @@ func (u *Users) Get(id string) (*UserResult, error) {
 
 func (u *Users) Delete(id string) error {
 	return u.db.Delete([]byte(id), pebble.Sync)
+}
+
+func (u *Users) GetAll() ([]*User, error) {
+	iter, err := u.db.NewIter(nil)
+	defer iter.Close()
+
+	if err != nil {
+		return nil, err
+	}
+
+	var users []*User
+	for iter.First(); iter.Valid(); iter.Next() {
+		var user User
+		if err := json.Unmarshal(iter.Value(), &user); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal user: %w", err)
+		}
+		users = append(users, &user)
+	}
+	if err := iter.Error(); err != nil {
+		return nil, fmt.Errorf("failed to iterate users: %w", err)
+	}
+	return users, nil
+}
+
+func (u *Users) DeleteAll() error {
+	iter, err := u.db.NewIter(nil)
+	defer iter.Close()
+
+	if err != nil {
+		return err
+	}
+
+	batch := u.db.NewIndexedBatch()
+	defer batch.Close()
+
+	for iter.First(); iter.Valid(); iter.Next() {
+		if err := batch.Delete(iter.Key(), pebble.Sync); err != nil {
+			return fmt.Errorf("failed to delete user: %w", err)
+		}
+	}
+	if err := iter.Error(); err != nil {
+		return fmt.Errorf("failed to iterate users: %w", err)
+	}
+	if err := batch.Commit(pebble.Sync); err != nil {
+		return fmt.Errorf("failed to commit batch: %w", err)
+	}
+	return nil
 }
