@@ -1,0 +1,10 @@
+{
+  "projects": [
+    {
+      "name": "teams",
+      "protocol": "RPC_PROTOCOL_TWIRP",
+      "url": "http://users-service",
+      "workspace": ""
+    }
+  ]
+}
