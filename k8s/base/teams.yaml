@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: teams-deployment
+  labels:
+    app: teams
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: teams
+  template:
+    metadata:
+      labels:
+        app: teams
+    spec:
+      containers:
+      - name: teams
+        image: kajatools/website-teams:latest
+        imagePullPolicy: Always
+        volumeMounts:
+        - name: workspace-volume
+          mountPath: /workspace
+        env:
+        - name: DB_DIR
+          value: "/workspace/teams_db"
+        ports:
+        - containerPort: 50052
+      volumes:
+      - name: workspace-volume
+        persistentVolumeClaim:
+          claimName: workspace-claim
+  strategy:
+    # Pebble DB only works with one pod accessible the files at a time
+    type: Recreate
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: teams-service
+spec:
+  selector:
+    app: teams
+  ports:
+    - port: 80
+      targetPort: 50052
+  type: ClusterIP 

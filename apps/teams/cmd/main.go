@@ -5,18 +5,22 @@ import (
 	"net"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"syscall"
 
+	"github.com/joho/godotenv"
 	"github.com/kaja-tools/website/v2/internal/api"
 	"github.com/kaja-tools/website/v2/internal/model"
 	"google.golang.org/grpc"
 )
 
 func main() {
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Printf(".env file not loaded: %v", err)
+	}
+
 	// Create PebbleDB storage
-	dbPath := filepath.Join("data", "teams.db")
-	db, err := model.OpenDB(dbPath)
+	db, err := model.OpenDB(os.Getenv("DB_DIR"))
 	if err != nil {
 		log.Fatalf("Failed to create storage: %v", err)
 	}

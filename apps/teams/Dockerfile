@@ -12,6 +12,10 @@ RUN apk add --no-cache ca-certificates
 
 WORKDIR /app
 COPY --from=builder /teams .
+COPY .env .
+
+# Create data directory
+RUN mkdir -p data
 
 EXPOSE 50052
 CMD ["./teams"] 
