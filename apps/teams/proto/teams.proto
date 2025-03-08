@@ -1,0 +1,92 @@
+syntax = "proto3";
+
+package teams;
+
+option go_package = "github.com/wham/website/apps/teams/internal/api";
+
+service Teams {
+    rpc CreateTeam(CreateTeamRequest) returns (CreateTeamResponse);
+    rpc GetTeam(GetTeamRequest) returns (GetTeamResponse);
+    rpc DeleteTeam(DeleteTeamRequest) returns (DeleteTeamResponse);
+    rpc ListTeams(ListTeamsRequest) returns (ListTeamsResponse);
+    rpc AddTeamMember(AddTeamMemberRequest) returns (AddTeamMemberResponse);
+    rpc RemoveTeamMember(RemoveTeamMemberRequest) returns (RemoveTeamMemberResponse);
+    rpc UpdateTeamMemberRole(UpdateTeamMemberRoleRequest) returns (UpdateTeamMemberRoleResponse);
+}
+
+message TeamMember {
+    string user_id = 1;
+    bool is_admin = 2;
+}
+
+message Team {
+    string id = 1;
+    string name = 2;
+    repeated TeamMember members = 3;
+    string created_at = 4;
+    string updated_at = 5;
+}
+
+message CreateTeamRequest {
+    string name = 1;
+    string admin_user_id = 2;  // The user creating the team becomes the first admin
+}
+
+message CreateTeamResponse {
+    Team team = 1;
+}
+
+message GetTeamRequest {
+    string id = 1;
+}
+
+message GetTeamResponse {
+    Team team = 1;
+}
+
+message DeleteTeamRequest {
+    string id = 1;
+}
+
+message DeleteTeamResponse {
+    bool success = 1;
+}
+
+message ListTeamsRequest {
+    int32 page_size = 1;
+    string page_token = 2;
+}
+
+message ListTeamsResponse {
+    repeated Team teams = 1;
+    string next_page_token = 2;
+}
+
+message AddTeamMemberRequest {
+    string team_id = 1;
+    string user_id = 2;
+    bool is_admin = 3;
+}
+
+message AddTeamMemberResponse {
+    Team team = 1;
+}
+
+message RemoveTeamMemberRequest {
+    string team_id = 1;
+    string user_id = 2;
+}
+
+message RemoveTeamMemberResponse {
+    Team team = 1;
+}
+
+message UpdateTeamMemberRoleRequest {
+    string team_id = 1;
+    string user_id = 2;
+    bool is_admin = 3;
+}
+
+message UpdateTeamMemberRoleResponse {
+    Team team = 1;
+} 
