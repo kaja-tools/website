@@ -2,7 +2,17 @@
 
 This repo is the source for the [kaja.tools](https://kaja.tools) website.
 
-## Commands
+## Development
+
+```
+# Re-generate gRPC and Twirp code for all apps. Commit when done.
+scripts/protoc
+
+# Run the whole thing in local Docker
+scripts/docker
+```
+
+## Deployment
 
 ```
 kubectl cp apps/users/proto/users.proto kaja-deployment-7c99d757c4-6sjgq:/workspace/users.proto

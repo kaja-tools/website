@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/wham/website/apps/teams/internal/model"
+	"github.com/kaja-tools/website/v2/internal/model"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

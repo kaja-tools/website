@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package teams;
 
-option go_package = "github.com/wham/website/apps/teams/internal/api";
+option go_package = "internal/api";
 
 service Teams {
     rpc CreateTeam(CreateTeamRequest) returns (CreateTeamResponse);

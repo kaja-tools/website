@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"syscall"
 
-	"github.com/wham/website/apps/teams/internal/api"
-	"github.com/wham/website/apps/teams/internal/model"
+	"github.com/kaja-tools/website/v2/internal/api"
+	"github.com/kaja-tools/website/v2/internal/model"
 	"google.golang.org/grpc"
 )
 

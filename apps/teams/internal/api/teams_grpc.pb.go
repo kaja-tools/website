@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v5.29.3
-// source: teams.proto
+// source: proto/teams.proto
 
 package api
 
@@ -16,7 +16,7 @@ import (
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
 // Requires gRPC-Go v1.64.0 or later.
-const _ = grpc.SupportPackageIsVersion9
+const _ = grpc.SupportPackageIsVersion7
 
 const (
 	Teams_CreateTeam_FullMethodName           = "/teams.Teams/CreateTeam"
@@ -120,7 +120,7 @@ func (c *teamsClient) UpdateTeamMemberRole(ctx context.Context, in *UpdateTeamMe
 }
 
 // TeamsServer is the server API for Teams service.
-// All implementations should embed UnimplementedTeamsServer
+// All implementations must embed UnimplementedTeamsServer
 // for forward compatibility.
 type TeamsServer interface {
 	CreateTeam(context.Context, *CreateTeamRequest) (*CreateTeamResponse, error)
@@ -130,9 +130,10 @@ type TeamsServer interface {
 	AddTeamMember(context.Context, *AddTeamMemberRequest) (*AddTeamMemberResponse, error)
 	RemoveTeamMember(context.Context, *RemoveTeamMemberRequest) (*RemoveTeamMemberResponse, error)
 	UpdateTeamMemberRole(context.Context, *UpdateTeamMemberRoleRequest) (*UpdateTeamMemberRoleResponse, error)
+	mustEmbedUnimplementedTeamsServer()
 }
 
-// UnimplementedTeamsServer should be embedded to have
+// UnimplementedTeamsServer must be embedded to have
 // forward compatible implementations.
 //
 // NOTE: this should be embedded by value instead of pointer to avoid a nil
@@ -160,7 +161,8 @@ func (UnimplementedTeamsServer) RemoveTeamMember(context.Context, *RemoveTeamMem
 func (UnimplementedTeamsServer) UpdateTeamMemberRole(context.Context, *UpdateTeamMemberRoleRequest) (*UpdateTeamMemberRoleResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateTeamMemberRole not implemented")
 }
-func (UnimplementedTeamsServer) testEmbeddedByValue() {}
+func (UnimplementedTeamsServer) mustEmbedUnimplementedTeamsServer() {}
+func (UnimplementedTeamsServer) testEmbeddedByValue()               {}
 
 // UnsafeTeamsServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to TeamsServer will
@@ -343,5 +345,5 @@ var Teams_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "teams.proto",
+	Metadata: "proto/teams.proto",
 }
