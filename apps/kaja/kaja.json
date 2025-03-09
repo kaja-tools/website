@@ -2,9 +2,15 @@
   "projects": [
     {
       "name": "teams",
+      "protocol": "RPC_PROTOCOL_GRPC",
+      "url": "http://teams-service",
+      "workspace": "teams"
+    },
+    {
+      "name": "users",
       "protocol": "RPC_PROTOCOL_TWIRP",
       "url": "http://users-service",
-      "workspace": ""
+      "workspace": "users"
     }
   ]
 }
