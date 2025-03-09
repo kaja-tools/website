@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v5.29.3
-// source: teams.proto
+// source: proto/teams.proto
 
 package api
 
@@ -16,7 +16,7 @@ import (
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
 // Requires gRPC-Go v1.64.0 or later.
-const _ = grpc.SupportPackageIsVersion9
+const _ = grpc.SupportPackageIsVersion7
 
 const (
 	Teams_CreateTeam_FullMethodName           = "/teams.Teams/CreateTeam"
@@ -345,5 +345,5 @@ var Teams_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "teams.proto",
+	Metadata: "proto/teams.proto",
 }

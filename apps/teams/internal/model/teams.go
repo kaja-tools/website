@@ -77,24 +77,46 @@ func (t *Teams) Delete(id string) error {
 func (t *Teams) GetAll() ([]*Team, error) {
 	var teams []*Team
 
-	iter, _ := t.db.NewIter(nil)
+	iter, err := t.db.NewIter(nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create iterator: %w", err)
+	}
 	defer iter.Close()
 
 	for iter.First(); iter.Valid(); iter.Next() {
+		value := iter.Value()
+		if value == nil {
+			continue
+		}
+
 		team := &Team{}
-		if err := json.Unmarshal(iter.Value(), team); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal team: %v", err)
+		if err := json.Unmarshal(value, team); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal team: %w", err)
 		}
 		teams = append(teams, team)
+	}
+
+	if err := iter.Error(); err != nil {
+		return nil, fmt.Errorf("iterator error: %w", err)
 	}
 
 	return teams, nil
 }
 
 func (t *Teams) AddMember(teamID string, member TeamMember) error {
+	if teamID == "" {
+		return fmt.Errorf("team ID cannot be empty")
+	}
+	if member.UserID == "" {
+		return fmt.Errorf("user ID cannot be empty")
+	}
+	if member.Role < RoleUnknown || member.Role > RoleAdmin {
+		return fmt.Errorf("invalid role value")
+	}
+
 	result, err := t.Get(teamID)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get team: %w", err)
 	}
 	if !result.Found {
 		return fmt.Errorf("team not found")
@@ -114,9 +136,16 @@ func (t *Teams) AddMember(teamID string, member TeamMember) error {
 }
 
 func (t *Teams) RemoveMember(teamID string, userID string) error {
+	if teamID == "" {
+		return fmt.Errorf("team ID cannot be empty")
+	}
+	if userID == "" {
+		return fmt.Errorf("user ID cannot be empty")
+	}
+
 	result, err := t.Get(teamID)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get team: %w", err)
 	}
 	if !result.Found {
 		return fmt.Errorf("team not found")
@@ -142,9 +171,19 @@ func (t *Teams) RemoveMember(teamID string, userID string) error {
 }
 
 func (t *Teams) UpdateMemberRole(teamID string, userID string, role Role) error {
+	if teamID == "" {
+		return fmt.Errorf("team ID cannot be empty")
+	}
+	if userID == "" {
+		return fmt.Errorf("user ID cannot be empty")
+	}
+	if role < RoleUnknown || role > RoleAdmin {
+		return fmt.Errorf("invalid role value")
+	}
+
 	result, err := t.Get(teamID)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get team: %w", err)
 	}
 	if !result.Found {
 		return fmt.Errorf("team not found")
