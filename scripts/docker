@@ -45,9 +45,13 @@ kubectl apply -k k8s/overlays/development
 # Get the first pod with a volume mount and copy proto files
 POD_NAME=$(kubectl get pods -l app=kaja -o jsonpath='{.items[0].metadata.name}')
 echo "Copying configuration and proto files to $POD_NAME"
+kubectl exec $POD_NAME -- rm -rf /workspace/teams
+kubectl exec $POD_NAME -- rm -rf /workspace/users
+kubectl exec $POD_NAME -- mkdir /workspace/teams
+kubectl exec $POD_NAME -- mkdir /workspace/users
 kubectl cp apps/kaja/kaja.json $POD_NAME:/workspace/kaja.json
-kubectl cp apps/teams/proto $POD_NAME:/workspace/teams
-kubectl cp apps/users/proto $POD_NAME:/workspace/users
+kubectl cp apps/teams/proto/teams.proto $POD_NAME:/workspace/teams/teams.proto
+kubectl cp apps/users/proto/users.proto $POD_NAME:/workspace/users/users.proto
 # Rebuild and update teams service
 echo "Rebuilding teams service Docker image..."
 docker build -t kajatools/website-teams:latest ./apps/teams

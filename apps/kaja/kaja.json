@@ -3,7 +3,7 @@
     {
       "name": "teams",
       "protocol": "RPC_PROTOCOL_GRPC",
-      "url": "http://teams-service",
+      "url": "dns:teams-service:80",
       "workspace": "teams"
     },
     {
