@@ -19,8 +19,19 @@ func main() {
 		log.Printf(".env file not loaded: %v", err)
 	}
 
+	// Get DB_DIR from environment
+	dbDir := os.Getenv("DB_DIR")
+	if dbDir == "" {
+		log.Fatal("DB_DIR environment variable is required")
+	}
+
+	// Create data directory if it doesn't exist
+	if err := os.MkdirAll(dbDir, 0755); err != nil {
+		log.Fatalf("Failed to create data directory: %v", err)
+	}
+
 	// Create PebbleDB storage
-	db, err := model.OpenDB(os.Getenv("DB_DIR"))
+	db, err := model.OpenDB(dbDir)
 	if err != nil {
 		log.Fatalf("Failed to create storage: %v", err)
 	}

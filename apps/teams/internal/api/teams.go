@@ -21,16 +21,9 @@ func NewTeamsServer(model *model.Teams) TeamsServer {
 
 func (s *teamsServer) CreateTeam(ctx context.Context, req *CreateTeamRequest) (*CreateTeamResponse, error) {
 	team := &model.Team{
-		ID:   uuid.New().String(),
-		Name: req.Name,
-		Members: []model.TeamMember{
-			{
-				UserID:  req.AdminUserId,
-				IsAdmin: true,
-			},
-		},
+		ID:        uuid.New().String(),
+		Name:      req.Name,
 		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
 	}
 
 	if err := s.model.Set(team); err != nil {
@@ -69,15 +62,13 @@ func (s *teamsServer) DeleteTeam(ctx context.Context, req *DeleteTeamRequest) (*
 		return nil, status.Errorf(codes.Internal, "failed to delete team: %v", err)
 	}
 
-	return &DeleteTeamResponse{
-		Success: true,
-	}, nil
+	return &DeleteTeamResponse{}, nil
 }
 
-func (s *teamsServer) ListTeams(ctx context.Context, req *ListTeamsRequest) (*ListTeamsResponse, error) {
-	teams, nextPageToken, err := s.model.List(req.PageSize, req.PageToken)
+func (s *teamsServer) GetAllTeams(ctx context.Context, req *GetAllTeamsRequest) (*GetAllTeamsResponse, error) {
+	teams, err := s.model.GetAll()
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to list teams: %v", err)
+		return nil, status.Errorf(codes.Internal, "failed to get all teams: %v", err)
 	}
 
 	protoTeams := make([]*Team, len(teams))
@@ -85,30 +76,22 @@ func (s *teamsServer) ListTeams(ctx context.Context, req *ListTeamsRequest) (*Li
 		protoTeams[i] = convertTeamToProto(team)
 	}
 
-	return &ListTeamsResponse{
-		Teams:         protoTeams,
-		NextPageToken: nextPageToken,
+	return &GetAllTeamsResponse{
+		Teams: protoTeams,
 	}, nil
 }
 
 func (s *teamsServer) AddTeamMember(ctx context.Context, req *AddTeamMemberRequest) (*AddTeamMemberResponse, error) {
 	member := model.TeamMember{
-		UserID:  req.UserId,
-		IsAdmin: req.IsAdmin,
+		UserID: req.UserId,
+		Role:   model.Role(req.Role),
 	}
 
 	if err := s.model.AddMember(req.TeamId, member); err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to add team member: %v", err)
 	}
 
-	result, err := s.model.Get(req.TeamId)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to get updated team: %v", err)
-	}
-
-	return &AddTeamMemberResponse{
-		Team: convertTeamToProto(result.Team),
-	}, nil
+	return &AddTeamMemberResponse{}, nil
 }
 
 func (s *teamsServer) RemoveTeamMember(ctx context.Context, req *RemoveTeamMemberRequest) (*RemoveTeamMemberResponse, error) {
@@ -116,37 +99,23 @@ func (s *teamsServer) RemoveTeamMember(ctx context.Context, req *RemoveTeamMembe
 		return nil, status.Errorf(codes.Internal, "failed to remove team member: %v", err)
 	}
 
-	result, err := s.model.Get(req.TeamId)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to get updated team: %v", err)
-	}
-
-	return &RemoveTeamMemberResponse{
-		Team: convertTeamToProto(result.Team),
-	}, nil
+	return &RemoveTeamMemberResponse{}, nil
 }
 
 func (s *teamsServer) UpdateTeamMemberRole(ctx context.Context, req *UpdateTeamMemberRoleRequest) (*UpdateTeamMemberRoleResponse, error) {
-	if err := s.model.UpdateMemberRole(req.TeamId, req.UserId, req.IsAdmin); err != nil {
+	if err := s.model.UpdateMemberRole(req.TeamId, req.UserId, model.Role(req.Role)); err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to update team member role: %v", err)
 	}
 
-	result, err := s.model.Get(req.TeamId)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to get updated team: %v", err)
-	}
-
-	return &UpdateTeamMemberRoleResponse{
-		Team: convertTeamToProto(result.Team),
-	}, nil
+	return &UpdateTeamMemberRoleResponse{}, nil
 }
 
 func convertTeamToProto(team *model.Team) *Team {
 	members := make([]*TeamMember, len(team.Members))
 	for i, member := range team.Members {
 		members[i] = &TeamMember{
-			UserId:  member.UserID,
-			IsAdmin: member.IsAdmin,
+			UserId: member.UserID,
+			Role:   Role(member.Role),
 		}
 	}
 
@@ -155,6 +124,5 @@ func convertTeamToProto(team *model.Team) *Team {
 		Name:      team.Name,
 		Members:   members,
 		CreatedAt: team.CreatedAt.Format(time.RFC3339),
-		UpdatedAt: team.UpdatedAt.Format(time.RFC3339),
 	}
 }

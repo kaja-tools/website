@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v5.29.3
-// source: proto/teams.proto
+// source: teams.proto
 
 package api
 
@@ -16,13 +16,13 @@ import (
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
 // Requires gRPC-Go v1.64.0 or later.
-const _ = grpc.SupportPackageIsVersion7
+const _ = grpc.SupportPackageIsVersion9
 
 const (
 	Teams_CreateTeam_FullMethodName           = "/teams.Teams/CreateTeam"
 	Teams_GetTeam_FullMethodName              = "/teams.Teams/GetTeam"
 	Teams_DeleteTeam_FullMethodName           = "/teams.Teams/DeleteTeam"
-	Teams_ListTeams_FullMethodName            = "/teams.Teams/ListTeams"
+	Teams_GetAllTeams_FullMethodName          = "/teams.Teams/GetAllTeams"
 	Teams_AddTeamMember_FullMethodName        = "/teams.Teams/AddTeamMember"
 	Teams_RemoveTeamMember_FullMethodName     = "/teams.Teams/RemoveTeamMember"
 	Teams_UpdateTeamMemberRole_FullMethodName = "/teams.Teams/UpdateTeamMemberRole"
@@ -35,7 +35,7 @@ type TeamsClient interface {
 	CreateTeam(ctx context.Context, in *CreateTeamRequest, opts ...grpc.CallOption) (*CreateTeamResponse, error)
 	GetTeam(ctx context.Context, in *GetTeamRequest, opts ...grpc.CallOption) (*GetTeamResponse, error)
 	DeleteTeam(ctx context.Context, in *DeleteTeamRequest, opts ...grpc.CallOption) (*DeleteTeamResponse, error)
-	ListTeams(ctx context.Context, in *ListTeamsRequest, opts ...grpc.CallOption) (*ListTeamsResponse, error)
+	GetAllTeams(ctx context.Context, in *GetAllTeamsRequest, opts ...grpc.CallOption) (*GetAllTeamsResponse, error)
 	AddTeamMember(ctx context.Context, in *AddTeamMemberRequest, opts ...grpc.CallOption) (*AddTeamMemberResponse, error)
 	RemoveTeamMember(ctx context.Context, in *RemoveTeamMemberRequest, opts ...grpc.CallOption) (*RemoveTeamMemberResponse, error)
 	UpdateTeamMemberRole(ctx context.Context, in *UpdateTeamMemberRoleRequest, opts ...grpc.CallOption) (*UpdateTeamMemberRoleResponse, error)
@@ -79,10 +79,10 @@ func (c *teamsClient) DeleteTeam(ctx context.Context, in *DeleteTeamRequest, opt
 	return out, nil
 }
 
-func (c *teamsClient) ListTeams(ctx context.Context, in *ListTeamsRequest, opts ...grpc.CallOption) (*ListTeamsResponse, error) {
+func (c *teamsClient) GetAllTeams(ctx context.Context, in *GetAllTeamsRequest, opts ...grpc.CallOption) (*GetAllTeamsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListTeamsResponse)
-	err := c.cc.Invoke(ctx, Teams_ListTeams_FullMethodName, in, out, cOpts...)
+	out := new(GetAllTeamsResponse)
+	err := c.cc.Invoke(ctx, Teams_GetAllTeams_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +126,7 @@ type TeamsServer interface {
 	CreateTeam(context.Context, *CreateTeamRequest) (*CreateTeamResponse, error)
 	GetTeam(context.Context, *GetTeamRequest) (*GetTeamResponse, error)
 	DeleteTeam(context.Context, *DeleteTeamRequest) (*DeleteTeamResponse, error)
-	ListTeams(context.Context, *ListTeamsRequest) (*ListTeamsResponse, error)
+	GetAllTeams(context.Context, *GetAllTeamsRequest) (*GetAllTeamsResponse, error)
 	AddTeamMember(context.Context, *AddTeamMemberRequest) (*AddTeamMemberResponse, error)
 	RemoveTeamMember(context.Context, *RemoveTeamMemberRequest) (*RemoveTeamMemberResponse, error)
 	UpdateTeamMemberRole(context.Context, *UpdateTeamMemberRoleRequest) (*UpdateTeamMemberRoleResponse, error)
@@ -149,8 +149,8 @@ func (UnimplementedTeamsServer) GetTeam(context.Context, *GetTeamRequest) (*GetT
 func (UnimplementedTeamsServer) DeleteTeam(context.Context, *DeleteTeamRequest) (*DeleteTeamResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteTeam not implemented")
 }
-func (UnimplementedTeamsServer) ListTeams(context.Context, *ListTeamsRequest) (*ListTeamsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListTeams not implemented")
+func (UnimplementedTeamsServer) GetAllTeams(context.Context, *GetAllTeamsRequest) (*GetAllTeamsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAllTeams not implemented")
 }
 func (UnimplementedTeamsServer) AddTeamMember(context.Context, *AddTeamMemberRequest) (*AddTeamMemberResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddTeamMember not implemented")
@@ -236,20 +236,20 @@ func _Teams_DeleteTeam_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Teams_ListTeams_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListTeamsRequest)
+func _Teams_GetAllTeams_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAllTeamsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(TeamsServer).ListTeams(ctx, in)
+		return srv.(TeamsServer).GetAllTeams(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Teams_ListTeams_FullMethodName,
+		FullMethod: Teams_GetAllTeams_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TeamsServer).ListTeams(ctx, req.(*ListTeamsRequest))
+		return srv.(TeamsServer).GetAllTeams(ctx, req.(*GetAllTeamsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -328,8 +328,8 @@ var Teams_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Teams_DeleteTeam_Handler,
 		},
 		{
-			MethodName: "ListTeams",
-			Handler:    _Teams_ListTeams_Handler,
+			MethodName: "GetAllTeams",
+			Handler:    _Teams_GetAllTeams_Handler,
 		},
 		{
 			MethodName: "AddTeamMember",
@@ -345,5 +345,5 @@ var Teams_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "proto/teams.proto",
+	Metadata: "teams.proto",
 }

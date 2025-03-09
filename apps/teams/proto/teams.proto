@@ -8,7 +8,7 @@ service Teams {
     rpc CreateTeam(CreateTeamRequest) returns (CreateTeamResponse);
     rpc GetTeam(GetTeamRequest) returns (GetTeamResponse);
     rpc DeleteTeam(DeleteTeamRequest) returns (DeleteTeamResponse);
-    rpc ListTeams(ListTeamsRequest) returns (ListTeamsResponse);
+    rpc GetAllTeams(GetAllTeamsRequest) returns (GetAllTeamsResponse);
     rpc AddTeamMember(AddTeamMemberRequest) returns (AddTeamMemberResponse);
     rpc RemoveTeamMember(RemoveTeamMemberRequest) returns (RemoveTeamMemberResponse);
     rpc UpdateTeamMemberRole(UpdateTeamMemberRoleRequest) returns (UpdateTeamMemberRoleResponse);
@@ -16,7 +16,7 @@ service Teams {
 
 message TeamMember {
     string user_id = 1;
-    bool is_admin = 2;
+    Role role = 2;
 }
 
 message Team {
@@ -24,12 +24,10 @@ message Team {
     string name = 2;
     repeated TeamMember members = 3;
     string created_at = 4;
-    string updated_at = 5;
 }
 
 message CreateTeamRequest {
     string name = 1;
-    string admin_user_id = 2;  // The user creating the team becomes the first admin
 }
 
 message CreateTeamResponse {
@@ -49,27 +47,28 @@ message DeleteTeamRequest {
 }
 
 message DeleteTeamResponse {
-    bool success = 1;
 }
 
-message ListTeamsRequest {
-    int32 page_size = 1;
-    string page_token = 2;
+message GetAllTeamsRequest {
 }
 
-message ListTeamsResponse {
+message GetAllTeamsResponse {
     repeated Team teams = 1;
-    string next_page_token = 2;
+}
+
+enum Role {
+    ROLE_UNKNOWN = 0;
+    ROLE_MEMBER = 1;
+    ROLE_ADMIN = 2;
 }
 
 message AddTeamMemberRequest {
     string team_id = 1;
     string user_id = 2;
-    bool is_admin = 3;
+    Role role = 3;
 }
 
 message AddTeamMemberResponse {
-    Team team = 1;
 }
 
 message RemoveTeamMemberRequest {
@@ -78,15 +77,13 @@ message RemoveTeamMemberRequest {
 }
 
 message RemoveTeamMemberResponse {
-    Team team = 1;
 }
 
 message UpdateTeamMemberRoleRequest {
     string team_id = 1;
     string user_id = 2;
-    bool is_admin = 3;
+    Role role = 3;
 }
 
 message UpdateTeamMemberRoleResponse {
-    Team team = 1;
 } 

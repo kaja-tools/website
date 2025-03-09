@@ -1,0 +1,10 @@
+---
+description: Common rule for all files
+globs: 
+alwaysApply: false
+---
+
+# Your rule content
+
+- Avoid explanatory comments
+- Prefer no external dependencies

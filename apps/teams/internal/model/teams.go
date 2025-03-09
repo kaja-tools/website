@@ -8,9 +8,17 @@ import (
 	"github.com/cockroachdb/pebble"
 )
 
+type Role int
+
+const (
+	RoleUnknown Role = iota
+	RoleMember
+	RoleAdmin
+)
+
 type TeamMember struct {
-	UserID  string `json:"user_id"`
-	IsAdmin bool   `json:"is_admin"`
+	UserID string `json:"user_id"`
+	Role   Role   `json:"role"`
 }
 
 type Team struct {
@@ -18,7 +26,6 @@ type Team struct {
 	Name      string       `json:"name"`
 	Members   []TeamMember `json:"members"`
 	CreatedAt time.Time    `json:"created_at"`
-	UpdatedAt time.Time    `json:"updated_at"`
 }
 
 type TeamResult struct {
@@ -38,7 +45,6 @@ func (t *Teams) Set(team *Team) error {
 	if team.CreatedAt.IsZero() {
 		team.CreatedAt = time.Now()
 	}
-	team.UpdatedAt = time.Now()
 
 	value, err := json.Marshal(team)
 	if err != nil {
@@ -68,38 +74,21 @@ func (t *Teams) Delete(id string) error {
 	return t.db.Delete([]byte(id), pebble.Sync)
 }
 
-func (t *Teams) List(pageSize int32, pageToken string) ([]*Team, string, error) {
+func (t *Teams) GetAll() ([]*Team, error) {
 	var teams []*Team
-	var startKey []byte
-	if pageToken != "" {
-		startKey = []byte(pageToken)
-	}
 
-	iter, _ := t.db.NewIter(&pebble.IterOptions{
-		LowerBound: startKey,
-	})
+	iter, _ := t.db.NewIter(nil)
 	defer iter.Close()
 
-	count := int32(0)
-	var nextPageToken string
-
-	for iter.First(); iter.Valid() && count < pageSize; iter.Next() {
+	for iter.First(); iter.Valid(); iter.Next() {
 		team := &Team{}
 		if err := json.Unmarshal(iter.Value(), team); err != nil {
-			return nil, "", fmt.Errorf("failed to unmarshal team: %v", err)
+			return nil, fmt.Errorf("failed to unmarshal team: %v", err)
 		}
 		teams = append(teams, team)
-		count++
 	}
 
-	if iter.Valid() {
-		iter.Next()
-		if iter.Valid() {
-			nextPageToken = string(iter.Key())
-		}
-	}
-
-	return teams, nextPageToken, nil
+	return teams, nil
 }
 
 func (t *Teams) AddMember(teamID string, member TeamMember) error {
@@ -152,7 +141,7 @@ func (t *Teams) RemoveMember(teamID string, userID string) error {
 	return t.Set(team)
 }
 
-func (t *Teams) UpdateMemberRole(teamID string, userID string, isAdmin bool) error {
+func (t *Teams) UpdateMemberRole(teamID string, userID string, role Role) error {
 	result, err := t.Get(teamID)
 	if err != nil {
 		return err
@@ -165,7 +154,7 @@ func (t *Teams) UpdateMemberRole(teamID string, userID string, isAdmin bool) err
 	found := false
 	for i := range team.Members {
 		if team.Members[i].UserID == userID {
-			team.Members[i].IsAdmin = isAdmin
+			team.Members[i].Role = role
 			found = true
 			break
 		}
