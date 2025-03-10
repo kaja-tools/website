@@ -15,23 +15,21 @@ spec:
         app: kaja
     spec:
       containers:
-      - name: kaja
-        image: kajatools/kaja:latest
-        imagePullPolicy: Always
-        volumeMounts:
-        - name: workspace-volume
-          mountPath: /workspace
-        env:
-        - name: BASE_URL
-          value: "http://users-service"
-        - name: PATH_PREFIX
-          value: "/demo"
-        ports:
-        - containerPort: 41520
+        - name: kaja
+          image: kajatools/kaja:latest
+          imagePullPolicy: Always
+          volumeMounts:
+            - name: workspace-volume
+              mountPath: /workspace
+          env:
+            - name: PATH_PREFIX
+              value: "/demo"
+          ports:
+            - containerPort: 41520
       volumes:
-      - name: workspace-volume
-        persistentVolumeClaim:
-          claimName: workspace-claim
+        - name: workspace-volume
+          persistentVolumeClaim:
+            claimName: workspace-claim
 ---
 apiVersion: v1
 kind: Service

@@ -6,5 +6,6 @@ resources:
 - home.yaml
 - ingress.yaml
 - kaja.yaml
+- teams.yaml
 - users.yaml
 - workspace-volume.yaml

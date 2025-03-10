@@ -55,3 +55,17 @@ patches:
     target:
       kind: Deployment
       name: users-deployment
+  - patch: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: teams-deployment
+      spec:
+        template:
+          spec:
+            containers:
+            - name: teams
+              imagePullPolicy: Never
+    target:
+      kind: Deployment
+      name: teams-deployment

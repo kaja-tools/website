@@ -1,0 +1,72 @@
+#!/bin/bash
+set -e
+cd "$(dirname "$0")/.."
+
+# Check if kubectl context is docker-desktop
+if [[ $(kubectl config current-context) != "docker-desktop" ]]; then
+    echo "Error: kubectl must be using docker-desktop context"
+    echo "Current context: $(kubectl config current-context)"
+    exit 1
+fi
+
+# Create namespace only if it doesn't exist
+if ! kubectl get namespace public-ingress >/dev/null 2>&1; then
+    echo "Creating namespace public-ingress"
+    kubectl create namespace public-ingress
+fi
+
+# Quick check if ingress-nginx is already installed
+if ! kubectl get deployment ingress-nginx-controller -n public-ingress >/dev/null 2>&1; then
+    echo "Installing ingress-nginx"
+    helm upgrade --install ingress-nginx ingress-nginx \
+      --repo https://kubernetes.github.io/ingress-nginx \
+      --namespace public-ingress \
+      --set controller.config.http2=true \
+      --set controller.config.http2-push="on" \
+      --set controller.config.http2-push-preload="on" \
+      --set controller.ingressClassByName=true \
+      --set controller.ingressClassResource.controllerValue=k8s.io/ingress-nginx \
+      --set controller.ingressClassResource.enabled=true \
+      --set controller.ingressClassResource.name=public \
+      --set controller.service.externalTrafficPolicy=Local \
+      --set controller.setAsDefaultIngress=true
+else
+    echo "ingress-nginx already installed, skipping..."
+fi
+
+echo "Waiting for ingress-nginx webhook to be ready..."
+kubectl wait --namespace public-ingress \
+  --for=condition=ready pod \
+  --selector=app.kubernetes.io/component=controller \
+  --timeout=90s
+
+kubectl apply -k k8s/overlays/development
+
+# Get the first pod with a volume mount and copy proto files
+POD_NAME=$(kubectl get pods -l app=kaja -o jsonpath='{.items[0].metadata.name}')
+echo "Copying configuration and proto files to $POD_NAME"
+kubectl exec $POD_NAME -- rm -rf /workspace/teams
+kubectl exec $POD_NAME -- rm -rf /workspace/users
+kubectl exec $POD_NAME -- mkdir /workspace/teams
+kubectl exec $POD_NAME -- mkdir /workspace/users
+kubectl cp apps/kaja/kaja.json $POD_NAME:/workspace/kaja.json
+kubectl cp apps/teams/proto/teams.proto $POD_NAME:/workspace/teams/teams.proto
+kubectl cp apps/users/proto/users.proto $POD_NAME:/workspace/users/users.proto
+
+# Rebuild and update teams service
+echo "Rebuilding teams service Docker image..."
+docker build -t kajatools/website-teams:latest ./apps/teams
+
+echo "Updating teams-deployment in cluster..."
+kubectl rollout restart deployment teams-deployment
+kubectl rollout status deployment teams-deployment
+
+# Rebuild and update users service
+echo "Rebuilding users service Docker image..."
+docker build -t kajatools/website-users:latest ./apps/users
+
+echo "Updating users-deployment in cluster..."
+kubectl rollout restart deployment users-deployment
+kubectl rollout status deployment users-deployment
+
+echo "Done"
