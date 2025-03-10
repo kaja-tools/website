@@ -52,6 +52,7 @@ kubectl exec $POD_NAME -- mkdir /workspace/users
 kubectl cp apps/kaja/kaja.json $POD_NAME:/workspace/kaja.json
 kubectl cp apps/teams/proto/teams.proto $POD_NAME:/workspace/teams/teams.proto
 kubectl cp apps/users/proto/users.proto $POD_NAME:/workspace/users/users.proto
+
 # Rebuild and update teams service
 echo "Rebuilding teams service Docker image..."
 docker build -t kajatools/website-teams:latest ./apps/teams

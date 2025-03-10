@@ -1,0 +1,20 @@
+#!/bin/bash
+set -e
+cd "$(dirname "$0")/.."
+
+if [[ $(kubectl config current-context) != "kaja" ]]; then
+    echo "Error: kubectl must be using kaja context"
+    echo "Current context: $(kubectl config current-context)"
+    exit 1
+fi
+
+# Get the first pod with a volume mount and copy proto files
+POD_NAME=$(kubectl get pods -l app=kaja -o jsonpath='{.items[0].metadata.name}')
+echo "Copying configuration and proto files to $POD_NAME"
+kubectl exec $POD_NAME -- rm -rf /workspace/teams
+kubectl exec $POD_NAME -- rm -rf /workspace/users
+kubectl exec $POD_NAME -- mkdir /workspace/teams
+kubectl exec $POD_NAME -- mkdir /workspace/users
+kubectl cp apps/kaja/kaja.json $POD_NAME:/workspace/kaja.json
+kubectl cp apps/teams/proto/teams.proto $POD_NAME:/workspace/teams/teams.proto
+kubectl cp apps/users/proto/users.proto $POD_NAME:/workspace/users/users.proto
