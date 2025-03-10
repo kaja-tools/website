@@ -9,16 +9,12 @@ This repo is the source for the [kaja.tools](https://kaja.tools) website.
 scripts/protoc
 
 # Run the whole thing in local Docker
-scripts/docker
+scripts/development
 ```
 
-## Deployment
+## Production
 
 ```
-kubectl cp apps/users/proto/users.proto kaja-deployment-7c99d757c4-6sjgq:/workspace/users.proto
-
-kubectl kustomize k8s/overlays/production
-kubectl apply -k k8s/overlays/production
-kubectl rollout restart deployment kaja-deployment
-kubectl apply -k k8s/overlays/development
+# Deploy everything to production
+scripts/production
 ```

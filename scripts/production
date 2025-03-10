@@ -18,3 +18,6 @@ kubectl exec $POD_NAME -- mkdir /workspace/users
 kubectl cp apps/kaja/kaja.json $POD_NAME:/workspace/kaja.json
 kubectl cp apps/teams/proto/teams.proto $POD_NAME:/workspace/teams/teams.proto
 kubectl cp apps/users/proto/users.proto $POD_NAME:/workspace/users/users.proto
+
+kubectl apply -k k8s/overlays/production
+kubectl rollout restart deployment kaja-deployment
