@@ -21,9 +21,6 @@ spec:
           volumeMounts:
             - name: workspace-volume
               mountPath: /workspace
-          env:
-            - name: PATH_PREFIX
-              value: "/demo"
           ports:
             - containerPort: 41520
       volumes:
