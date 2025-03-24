@@ -19,5 +19,8 @@ kubectl cp apps/kaja/kaja.json $POD_NAME:/workspace/kaja.json
 kubectl cp apps/teams/proto/teams.proto $POD_NAME:/workspace/teams/teams.proto
 kubectl cp apps/users/proto/users.proto $POD_NAME:/workspace/users/users.proto
 
+kubectl delete secret secrets
+kubectl create secret generic secrets --from-literal=AI_API_KEY=$(cat .ai_api_key)
+
 kubectl apply -k k8s/overlays/production
 kubectl rollout restart deployment kaja-deployment

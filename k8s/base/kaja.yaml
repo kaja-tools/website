@@ -18,6 +18,12 @@ spec:
         - name: kaja
           image: kajatools/kaja:latest
           imagePullPolicy: Always
+          env:
+            - name: AI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: secrets
+                  key: AI_API_KEY
           volumeMounts:
             - name: workspace-volume
               mountPath: /workspace
