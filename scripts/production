@@ -23,4 +23,7 @@ kubectl delete secret secrets
 kubectl create secret generic secrets --from-literal=AI_API_KEY=$(cat .ai_api_key)
 
 kubectl apply -k k8s/overlays/production
+kubectl rollout restart deployment home-deployment
 kubectl rollout restart deployment kaja-deployment
+kubectl rollout restart deployment teams-deployment
+kubectl rollout restart deployment users-deployment
