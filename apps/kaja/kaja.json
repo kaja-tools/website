@@ -5,13 +5,13 @@
       "name": "teams",
       "protocol": "RPC_PROTOCOL_GRPC",
       "url": "dns:teams-service:80",
-      "workspace": "teams"
+      "protoDir": "teams"
     },
     {
       "name": "users",
       "protocol": "RPC_PROTOCOL_TWIRP",
       "url": "http://users-service",
-      "workspace": "users"
+      "protoDir": "users"
     }
   ]
 }
