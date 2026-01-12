@@ -45,6 +45,20 @@ patches:
       apiVersion: apps/v1
       kind: Deployment
       metadata:
+        name: home-deployment
+      spec:
+        template:
+          spec:
+            containers:
+            - name: home
+              imagePullPolicy: Never
+    target:
+      kind: Deployment
+      name: home-deployment
+  - patch: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
         name: users-deployment
       spec:
         template:

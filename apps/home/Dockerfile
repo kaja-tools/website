@@ -11,6 +11,7 @@ FROM alpine
 WORKDIR /app
 
 COPY --from=builder /app/server .
+COPY --from=builder /app/static ./static
 
 EXPOSE 8080
 

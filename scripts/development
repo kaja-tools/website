@@ -40,7 +40,14 @@ kubectl wait --namespace public-ingress \
   --selector=app.kubernetes.io/component=controller \
   --timeout=90s
 
+# Create secret from .ai_api_key file
+kubectl delete secret secrets --ignore-not-found
+kubectl create secret generic secrets --from-literal=AI_API_KEY=$(cat .ai_api_key)
+
 kubectl apply -k k8s/overlays/development
+
+# Wait for kaja pod to be ready
+kubectl wait --for=condition=ready pod -l app=kaja --timeout=120s
 
 # Get the first pod with a volume mount and copy proto files
 POD_NAME=$(kubectl get pods -l app=kaja -o jsonpath='{.items[0].metadata.name}')

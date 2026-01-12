@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kaja - Code-based UI for gRPC and Twirp APIs</title>
+    <meta name="description" content="Kaja is an experimental, code-based UI for exploring and calling gRPC and Twirp APIs.">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <header>
+        <a href="/" class="logo-link">
+            <img src="/logo.svg" alt="Kaja" class="logo">
+        </a>
+        <nav>
+            <a href="https://github.com/wham/kaja" class="nav-link" target="_blank" rel="noopener">
+                <svg class="github-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+                </svg>
+                GitHub
+            </a>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero">
+            <h1>Explore and call your APIs with code</h1>
+            <p class="tagline">Kaja is an experimental, code-based UI for exploring and calling gRPC and Twirp APIs.</p>
+            <div class="cta-buttons">
+                <a href="https://kaja.tools/demo/" class="btn btn-primary">
+                    Try Live Demo
+                </a>
+                <a href="https://github.com/wham/kaja/releases" class="btn btn-secondary">
+                    <svg class="apple-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+                    </svg>
+                    Download for macOS
+                </a>
+                <a href="https://github.com/wham/kaja" class="btn btn-secondary" target="_blank" rel="noopener">
+                    View on GitHub
+                </a>
+            </div>
+        </section>
+
+        <section class="slideshow-container">
+            <div class="slideshow">
+                <div class="slide active">
+                    <img src="/assets/screenshot.png" alt="Kaja application screenshot showing the code-based UI for API exploration">
+                </div>
+            </div>
+            <div class="slideshow-nav">
+                <button class="nav-dot active" data-slide="0" aria-label="Go to slide 1"></button>
+            </div>
+        </section>
+
+        <section class="features">
+            <div class="feature">
+                <div class="feature-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/>
+                    </svg>
+                </div>
+                <h3>Code-based UI</h3>
+                <p>Write code to explore and call your APIs with full IntelliSense support.</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 6v6l4 2"/>
+                    </svg>
+                </div>
+                <h3>gRPC & Twirp</h3>
+                <p>Native support for both gRPC and Twirp protocols out of the box.</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="3" width="20" height="14" rx="2"/>
+                        <path d="M8 21h8M12 17v4"/>
+                    </svg>
+                </div>
+                <h3>macOS & Docker</h3>
+                <p>Available as a macOS app or Docker container for any environment.</p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Kaja. <a href="https://github.com/wham/kaja" target="_blank" rel="noopener">Open source</a> under MIT license.</p>
+    </footer>
+
+    <script src="/script.js"></script>
+</body>
+</html>
