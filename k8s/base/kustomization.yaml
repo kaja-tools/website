@@ -5,6 +5,7 @@ resources:
 - cluster-issuer.yaml
 - home.yaml
 - ingress.yaml
+- ingress-grpc.yaml
 - kaja.yaml
 - teams.yaml
 - users.yaml

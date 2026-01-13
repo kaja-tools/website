@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-grpc
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-production
+    nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
+spec:
+  ingressClassName: public
+  tls:
+  - hosts:
+    - kaja.tools
+    secretName: tls-secret
+  rules:
+  - host: kaja.tools
+    http:
+      paths:
+      - path: /teams.Teams/
+        pathType: Prefix
+        backend:
+          service:
+            name: teams-service
+            port:
+              number: 80
