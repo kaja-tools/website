@@ -22,13 +22,6 @@ spec:
             name: kaja-service
             port:
               number: 80
-      - path: /teams
-        pathType: Prefix
-        backend:
-          service:
-            name: teams-service
-            port:
-              number: 80
       - path: /users
         pathType: Prefix
         backend:

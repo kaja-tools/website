@@ -28,6 +28,22 @@ patches:
       kind: Ingress
       name: ingress
   - patch: |
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: ingress-grpc
+        annotations:
+          cert-manager.io/cluster-issuer: null
+      spec:
+        tls: []
+  - patch: |
+      - op: replace
+        path: /spec/rules/0/host
+        value: localhost
+    target:
+      kind: Ingress
+      name: ingress-grpc
+  - patch: |
       apiVersion: v1
       kind: PersistentVolume
       metadata:

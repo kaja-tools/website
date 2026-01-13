@@ -27,7 +27,7 @@ func main() {
 
 	model := model.NewUsers(db)
 
-	usersServer := api.NewUsersServer(api.NewUsersHandler(model), twirp.WithServerHooks(api.NewLoggingServerHooks()))
+	usersServer := api.NewUsersServer(api.NewUsersHandler(model), twirp.WithServerPathPrefix("/users/twirp"), twirp.WithServerHooks(api.NewLoggingServerHooks()))
 	mux := http.NewServeMux()
 	fmt.Printf("Handling UsersServer on %s\n", usersServer.PathPrefix())
 	mux.Handle(usersServer.PathPrefix(), usersServer)
