@@ -4,7 +4,7 @@
     {
       "name": "teams",
       "protocol": "RPC_PROTOCOL_GRPC",
-      "url": "dns:teams-service:80",
+      "url": "dns:kaja.tools:443",
       "protoDir": "teams"
     },
     {
