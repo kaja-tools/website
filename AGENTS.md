@@ -1,5 +1,19 @@
 # Agent Guidelines
 
+## Proto Files
+
+To regenerate proto files after modifying `.proto` definitions, run:
+```bash
+./scripts/protoc
+```
+
+This script:
+- Installs a consistent version of `protoc` into the `build/` directory (supports Linux and macOS)
+- Installs the required Go plugins (`protoc-gen-go`, `protoc-gen-go-grpc`, `protoc-gen-twirp`)
+- Regenerates all proto files for teams, users, and quirks services
+
+Do not use system-installed protoc or manually run protoc commands.
+
 ## Home Page Static Files
 
 Structure for `apps/home/static/`:
@@ -28,3 +42,5 @@ gRPC paths follow the format `/package.Service/Method` (e.g., `/teams.Teams/GetA
 ### Testing services locally
 - **Twirp**: `curl -X POST http://localhost/users/twirp/Users/GetAllUsers -H "Content-Type: application/json" -d '{}'`
 - **gRPC**: `grpcurl -plaintext -import-path apps/teams/proto -proto teams.proto localhost:80 teams.Teams/GetAllTeams`
+
+- Run against the k8s cluster on localhost

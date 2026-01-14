@@ -22,3 +22,24 @@ spec:
             name: teams-service
             port:
               number: 80
+      - path: /Basics/
+        pathType: Prefix
+        backend:
+          service:
+            name: grpc-quirks-service
+            port:
+              number: 80
+      - path: /quirks.v1.Quirks/
+        pathType: Prefix
+        backend:
+          service:
+            name: grpc-quirks-service
+            port:
+              number: 80
+      - path: /quirks.v1.quirks_2/
+        pathType: Prefix
+        backend:
+          service:
+            name: grpc-quirks-service
+            port:
+              number: 80

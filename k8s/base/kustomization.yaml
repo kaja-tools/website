@@ -3,10 +3,12 @@ kind: Kustomization
 
 resources:
 - cluster-issuer.yaml
+- grpc-quirks.yaml
 - home.yaml
 - ingress.yaml
 - ingress-grpc.yaml
 - kaja.yaml
 - teams.yaml
+- twirp-quirks.yaml
 - users.yaml
 - workspace-volume.yaml

@@ -35,3 +35,10 @@ jobs:
           push: true
           tags: |
             kajatools/website-users:latest
+      - name: Build and push website-quirks
+        uses: docker/build-push-action@v3
+        with:
+          context: ./apps/quirks
+          push: true
+          tags: |
+            kajatools/website-quirks:latest
