@@ -35,3 +35,17 @@ jobs:
           push: true
           tags: |
             kajatools/website-users:latest
+      - name: Build and push website-grpc-quirks
+        uses: docker/build-push-action@v3
+        with:
+          context: ./apps/grpc-quirks
+          push: true
+          tags: |
+            kajatools/website-grpc-quirks:latest
+      - name: Build and push website-twirp-quirks
+        uses: docker/build-push-action@v3
+        with:
+          context: ./apps/twirp-quirks
+          push: true
+          tags: |
+            kajatools/website-twirp-quirks:latest
