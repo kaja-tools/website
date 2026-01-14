@@ -42,9 +42,9 @@ if [[ ! -x "$PROTOC_BIN" ]] || ! "$PROTOC_BIN" --version 2>/dev/null | grep -q "
 
     curl -fsSL "$PROTOC_URL" -o "$BUILD_DIR/$PROTOC_ZIP"
     unzip -o "$BUILD_DIR/$PROTOC_ZIP" -d "$BUILD_DIR"
-    rm "$BUILD_DIR/$PROTOC_ZIP"
+    rm "$BUILD_DIR/$PROTOC_ZIP" "$BUILD_DIR/readme.txt"
     chmod +x "$PROTOC_BIN"
-    echo "protoc $PROTOC_VERSION installed to $BUILD_DIR"
+    echo "protoc $PROTOC_VERSION installed to $BUILD_DIR/bin"
 fi
 
 # Check Go is installed
@@ -53,9 +53,8 @@ if ! command -v go &> /dev/null; then
     exit 1
 fi
 
-# Install Go protoc plugins
-export GOBIN=$BUILD_DIR
-export PATH=$BUILD_DIR/bin:$GOBIN:$PATH
+# Install Go protoc plugins into build/bin
+export GOBIN=$BUILD_DIR/bin
 go install github.com/twitchtv/twirp/protoc-gen-twirp@latest
 go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
@@ -63,12 +62,12 @@ go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
 echo "Generating proto files..."
 
 cd "apps/teams"
-"$PROTOC_BIN" --proto_path=. --plugin=protoc-gen-go="$BUILD_DIR/protoc-gen-go" --go_out=. --plugin=protoc-gen-grpc="$BUILD_DIR/protoc-gen-go-grpc" --grpc_out=. -Iproto/ $(find . -iname "*.proto")
+"$PROTOC_BIN" -I"$BUILD_DIR/include" --proto_path=. --plugin=protoc-gen-go="$GOBIN/protoc-gen-go" --go_out=. --plugin=protoc-gen-grpc="$GOBIN/protoc-gen-go-grpc" --grpc_out=. -Iproto/ $(find . -iname "*.proto")
 
 cd "../users"
-"$PROTOC_BIN" --proto_path=. --plugin=protoc-gen-go="$BUILD_DIR/protoc-gen-go" --go_out=. --plugin=protoc-gen-twirp="$BUILD_DIR/protoc-gen-twirp" --twirp_out=. -Iproto/ $(find . -iname "*.proto")
+"$PROTOC_BIN" -I"$BUILD_DIR/include" --proto_path=. --plugin=protoc-gen-go="$GOBIN/protoc-gen-go" --go_out=. --plugin=protoc-gen-twirp="$GOBIN/protoc-gen-twirp" --twirp_out=. -Iproto/ $(find . -iname "*.proto")
 
 cd "../quirks"
-"$PROTOC_BIN" --proto_path=. --plugin=protoc-gen-go="$BUILD_DIR/protoc-gen-go" --go_out=. --plugin=protoc-gen-grpc="$BUILD_DIR/protoc-gen-go-grpc" --grpc_out=. --plugin=protoc-gen-twirp="$BUILD_DIR/protoc-gen-twirp" --twirp_out=. -Iproto/ $(find . -iname "*.proto")
+"$PROTOC_BIN" -I"$BUILD_DIR/include" --proto_path=. --plugin=protoc-gen-go="$GOBIN/protoc-gen-go" --go_out=. --plugin=protoc-gen-grpc="$GOBIN/protoc-gen-go-grpc" --grpc_out=. --plugin=protoc-gen-twirp="$GOBIN/protoc-gen-twirp" --twirp_out=. -Iproto/ $(find . -iname "*.proto")
 
 echo "Proto generation complete."
