@@ -14,6 +14,5 @@ RUN apk add --no-cache ca-certificates
 WORKDIR /app
 COPY --from=builder /grpc-server .
 COPY --from=builder /twirp-server .
-COPY .env .
 
 EXPOSE 50053 41523

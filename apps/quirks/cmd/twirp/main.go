@@ -4,19 +4,11 @@ import (
 	"fmt"
 	"net/http"
 
-	"log/slog"
-
-	"github.com/joho/godotenv"
 	"github.com/kaja-tools/website/v2/internal/api"
 	"github.com/twitchtv/twirp"
 )
 
 func main() {
-	err := godotenv.Load(".env")
-	if err != nil {
-		slog.Info(".env file not loaded", "error", err)
-	}
-
 	basicsServer := api.NewBasicsServer(&api.BasicsService{}, twirp.WithServerPathPrefix("/twirp-quirks/twirp"))
 	quirksServer := api.NewQuirksServer(&api.QuirksService{}, twirp.WithServerPathPrefix("/twirp-quirks/twirp"))
 	quirks_2Server := api.NewQuirks_2Server(&api.Quirks_2Service{}, twirp.WithServerPathPrefix("/twirp-quirks/twirp"))

@@ -7,17 +7,11 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/joho/godotenv"
 	"github.com/kaja-tools/website/v2/internal/api"
 	"google.golang.org/grpc"
 )
 
 func main() {
-	err := godotenv.Load(".env")
-	if err != nil {
-		log.Printf(".env file not loaded: %v", err)
-	}
-
 	// Create gRPC server
 	grpcServer := grpc.NewServer()
 	api.RegisterBasicsServer(grpcServer, &api.BasicsService{})

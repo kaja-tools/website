@@ -5,7 +5,6 @@ go 1.24.0
 toolchain go1.24.7
 
 require (
-	github.com/joho/godotenv v1.5.1
 	github.com/twitchtv/twirp v8.1.3+incompatible
 	google.golang.org/grpc v1.78.0
 	google.golang.org/protobuf v1.36.10
