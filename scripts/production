@@ -8,8 +8,8 @@ if [[ $(kubectl config current-context) != "kaja" ]]; then
     exit 1
 fi
 
-# Get the first pod with a volume mount and copy proto files
-POD_NAME=$(kubectl get pods -l app=kaja -o jsonpath='{.items[0].metadata.name}')
+# Get the first running pod with a volume mount and copy proto files
+POD_NAME=$(kubectl get pods -l app=kaja --field-selector=status.phase=Running -o jsonpath='{.items[0].metadata.name}')
 echo "Copying configuration and proto files to $POD_NAME"
 kubectl exec $POD_NAME -- rm -rf /workspace/teams
 kubectl exec $POD_NAME -- rm -rf /workspace/users
@@ -27,3 +27,5 @@ kubectl rollout restart deployment home-deployment
 kubectl rollout restart deployment kaja-deployment
 kubectl rollout restart deployment teams-deployment
 kubectl rollout restart deployment users-deployment
+kubectl rollout restart deployment grpc-quirks-deployment
+kubectl rollout restart deployment twirp-quirks-deployment
