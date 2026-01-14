@@ -1,50 +1,74 @@
 #!/bin/bash
 set -e
 
-# Check if Go is installed, if not ask for user confirmation to install it using Homebrew
-if ! command -v go &> /dev/null
-then
-    echo "Go is not installed."
-    read -p "Would you like to install Go using Homebrew? (y/n) " -n 1 -r
-    echo    # Move to a new line
-    if [[ $REPLY =~ ^[Yy]$ ]]
-    then
-        echo "Installing Go using Homebrew..."
-        brew install go
-    else
-        echo "Go installation skipped. Exiting script."
-        exit 1
-    fi
-fi
-
-# Check if protoc is installed, if not ask for user confirmation to install it using Homebrew
-if ! command -v protoc &> /dev/null
-then
-    echo "protoc is not installed."
-    read -p "Would you like to install protoc using Homebrew? (y/n) " -n 1 -r
-    echo    # Move to a new line
-    if [[ $REPLY =~ ^[Yy]$ ]]
-    then
-        echo "Installing protoc using Homebrew..."
-        brew install protobuf
-    else
-        echo "protoc installation skipped. Exiting script."
-        exit 1
-    fi
-fi
+# Protoc version to use
+PROTOC_VERSION="30.2"
 
 cd "$(dirname "$0")/.."
-export GOBIN=$PWD/build
-export PATH=$GOBIN:$PATH
+BUILD_DIR=$PWD/build
+mkdir -p "$BUILD_DIR"
+
+# Determine OS and architecture
+OS=$(uname -s)
+ARCH=$(uname -m)
+
+case "$OS" in
+    Linux)
+        case "$ARCH" in
+            x86_64)  PROTOC_PLATFORM="linux-x86_64" ;;
+            aarch64) PROTOC_PLATFORM="linux-aarch_64" ;;
+            *)       echo "Unsupported Linux architecture: $ARCH"; exit 1 ;;
+        esac
+        ;;
+    Darwin)
+        case "$ARCH" in
+            x86_64)  PROTOC_PLATFORM="osx-x86_64" ;;
+            arm64)   PROTOC_PLATFORM="osx-aarch_64" ;;
+            *)       echo "Unsupported macOS architecture: $ARCH"; exit 1 ;;
+        esac
+        ;;
+    *)
+        echo "Unsupported OS: $OS"
+        exit 1
+        ;;
+esac
+
+# Install protoc if not present or wrong version
+PROTOC_BIN="$BUILD_DIR/bin/protoc"
+if [[ ! -x "$PROTOC_BIN" ]] || ! "$PROTOC_BIN" --version 2>/dev/null | grep -q "$PROTOC_VERSION"; then
+    echo "Installing protoc $PROTOC_VERSION for $PROTOC_PLATFORM..."
+    PROTOC_ZIP="protoc-${PROTOC_VERSION}-${PROTOC_PLATFORM}.zip"
+    PROTOC_URL="https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/${PROTOC_ZIP}"
+
+    curl -fsSL "$PROTOC_URL" -o "$BUILD_DIR/$PROTOC_ZIP"
+    unzip -o "$BUILD_DIR/$PROTOC_ZIP" -d "$BUILD_DIR"
+    rm "$BUILD_DIR/$PROTOC_ZIP"
+    chmod +x "$PROTOC_BIN"
+    echo "protoc $PROTOC_VERSION installed to $BUILD_DIR"
+fi
+
+# Check Go is installed
+if ! command -v go &> /dev/null; then
+    echo "Go is not installed. Please install Go first."
+    exit 1
+fi
+
+# Install Go protoc plugins
+export GOBIN=$BUILD_DIR
+export PATH=$BUILD_DIR/bin:$GOBIN:$PATH
 go install github.com/twitchtv/twirp/protoc-gen-twirp@latest
 go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
 
+echo "Generating proto files..."
+
 cd "apps/teams"
-protoc --proto_path=. --plugin=protoc-gen-go=../../build/protoc-gen-go --go_out=. --plugin=protoc-gen-grpc=../../build/protoc-gen-go-grpc --grpc_out=. -Iproto/ $(find . -iname "*.proto")
+"$PROTOC_BIN" --proto_path=. --plugin=protoc-gen-go="$BUILD_DIR/protoc-gen-go" --go_out=. --plugin=protoc-gen-grpc="$BUILD_DIR/protoc-gen-go-grpc" --grpc_out=. -Iproto/ $(find . -iname "*.proto")
 
 cd "../users"
-protoc --proto_path=. --plugin=protoc-gen-go=../../build/protoc-gen-go --go_out=. --plugin=protoc-gen-twirp=../../build/protoc-gen-twirp --twirp_out=. -Iproto/ $(find . -iname "*.proto")
+"$PROTOC_BIN" --proto_path=. --plugin=protoc-gen-go="$BUILD_DIR/protoc-gen-go" --go_out=. --plugin=protoc-gen-twirp="$BUILD_DIR/protoc-gen-twirp" --twirp_out=. -Iproto/ $(find . -iname "*.proto")
 
 cd "../quirks"
-protoc --proto_path=. --plugin=protoc-gen-go=../../build/protoc-gen-go --go_out=. --plugin=protoc-gen-grpc=../../build/protoc-gen-go-grpc --grpc_out=. --plugin=protoc-gen-twirp=../../build/protoc-gen-twirp --twirp_out=. -Iproto/ $(find . -iname "*.proto")
+"$PROTOC_BIN" --proto_path=. --plugin=protoc-gen-go="$BUILD_DIR/protoc-gen-go" --go_out=. --plugin=protoc-gen-grpc="$BUILD_DIR/protoc-gen-go-grpc" --grpc_out=. --plugin=protoc-gen-twirp="$BUILD_DIR/protoc-gen-twirp" --twirp_out=. -Iproto/ $(find . -iname "*.proto")
+
+echo "Proto generation complete."
