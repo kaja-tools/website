@@ -42,3 +42,5 @@ gRPC paths follow the format `/package.Service/Method` (e.g., `/teams.Teams/GetA
 ### Testing services locally
 - **Twirp**: `curl -X POST http://localhost/users/twirp/Users/GetAllUsers -H "Content-Type: application/json" -d '{}'`
 - **gRPC**: `grpcurl -plaintext -import-path apps/teams/proto -proto teams.proto localhost:80 teams.Teams/GetAllTeams`
+
+- Run against the k8s cluster on localhost
