@@ -16,8 +16,9 @@ spec:
     spec:
       containers:
       - name: twirp-quirks
-        image: kajatools/website-twirp-quirks:latest
+        image: kajatools/website-quirks:latest
         imagePullPolicy: Always
+        command: ["./twirp-server"]
         ports:
         - containerPort: 41523
 ---

@@ -46,8 +46,5 @@ protoc --proto_path=. --plugin=protoc-gen-go=../../build/protoc-gen-go --go_out=
 cd "../users"
 protoc --proto_path=. --plugin=protoc-gen-go=../../build/protoc-gen-go --go_out=. --plugin=protoc-gen-twirp=../../build/protoc-gen-twirp --twirp_out=. -Iproto/ $(find . -iname "*.proto")
 
-cd "../grpc-quirks"
-protoc --proto_path=. --plugin=protoc-gen-go=../../build/protoc-gen-go --go_out=. --plugin=protoc-gen-grpc=../../build/protoc-gen-go-grpc --grpc_out=. -Iproto/ $(find . -iname "*.proto")
-
-cd "../twirp-quirks"
-protoc --proto_path=. --plugin=protoc-gen-go=../../build/protoc-gen-go --go_out=. --plugin=protoc-gen-twirp=../../build/protoc-gen-twirp --twirp_out=. -Iproto/ $(find . -iname "*.proto")
+cd "../quirks"
+protoc --proto_path=. --plugin=protoc-gen-go=../../build/protoc-gen-go --go_out=. --plugin=protoc-gen-grpc=../../build/protoc-gen-go-grpc --grpc_out=. --plugin=protoc-gen-twirp=../../build/protoc-gen-twirp --twirp_out=. -Iproto/ $(find . -iname "*.proto")

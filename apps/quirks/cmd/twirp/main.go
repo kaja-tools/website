@@ -17,9 +17,9 @@ func main() {
 		slog.Info(".env file not loaded", "error", err)
 	}
 
-	basicsServer := api.NewBasicsServer(api.NewBasicsHandler(), twirp.WithServerPathPrefix("/twirp-quirks/twirp"))
-	quirksServer := api.NewQuirksServer(api.NewQuirksHandler(), twirp.WithServerPathPrefix("/twirp-quirks/twirp"))
-	quirks_2Server := api.NewQuirks_2Server(api.NewQuirks_2Handler(), twirp.WithServerPathPrefix("/twirp-quirks/twirp"))
+	basicsServer := api.NewBasicsServer(&api.BasicsService{}, twirp.WithServerPathPrefix("/twirp-quirks/twirp"))
+	quirksServer := api.NewQuirksServer(&api.QuirksService{}, twirp.WithServerPathPrefix("/twirp-quirks/twirp"))
+	quirks_2Server := api.NewQuirks_2Server(&api.Quirks_2Service{}, twirp.WithServerPathPrefix("/twirp-quirks/twirp"))
 
 	mux := http.NewServeMux()
 	fmt.Printf("Handling BasicsServer on %s\n", basicsServer.PathPrefix())

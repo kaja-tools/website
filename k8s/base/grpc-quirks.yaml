@@ -16,8 +16,9 @@ spec:
     spec:
       containers:
       - name: grpc-quirks
-        image: kajatools/website-grpc-quirks:latest
+        image: kajatools/website-quirks:latest
         imagePullPolicy: Always
+        command: ["./grpc-server"]
         ports:
         - containerPort: 50053
 ---
