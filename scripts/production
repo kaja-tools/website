@@ -23,9 +23,19 @@ kubectl delete secret secrets
 kubectl create secret generic secrets --from-literal=AI_API_KEY=$(cat .ai_api_key)
 
 kubectl apply -k k8s/overlays/production
-kubectl rollout restart deployment home-deployment
-kubectl rollout restart deployment kaja-deployment
-kubectl rollout restart deployment teams-deployment
-kubectl rollout restart deployment users-deployment
-kubectl rollout restart deployment grpc-quirks-deployment
-kubectl rollout restart deployment twirp-quirks-deployment
+
+# Force fresh image pulls by adding a timestamp annotation to all deployments
+DEPLOY_TIMESTAMP=$(date +%s)
+echo "Forcing fresh image pulls with timestamp: $DEPLOY_TIMESTAMP"
+
+for deployment in home-deployment kaja-deployment teams-deployment users-deployment grpc-quirks-deployment twirp-quirks-deployment; do
+    kubectl patch deployment $deployment -p "{\"spec\":{\"template\":{\"metadata\":{\"annotations\":{\"deployment-timestamp\":\"$DEPLOY_TIMESTAMP\"}}}}}"
+done
+
+echo "Waiting for rollouts to complete..."
+kubectl rollout status deployment home-deployment
+kubectl rollout status deployment kaja-deployment
+kubectl rollout status deployment teams-deployment
+kubectl rollout status deployment users-deployment
+kubectl rollout status deployment grpc-quirks-deployment
+kubectl rollout status deployment twirp-quirks-deployment

@@ -99,3 +99,31 @@ patches:
     target:
       kind: Deployment
       name: teams-deployment
+  - patch: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: grpc-quirks-deployment
+      spec:
+        template:
+          spec:
+            containers:
+            - name: grpc-quirks
+              imagePullPolicy: Never
+    target:
+      kind: Deployment
+      name: grpc-quirks-deployment
+  - patch: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: twirp-quirks-deployment
+      spec:
+        template:
+          spec:
+            containers:
+            - name: twirp-quirks
+              imagePullPolicy: Never
+    target:
+      kind: Deployment
+      name: twirp-quirks-deployment

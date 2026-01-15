@@ -40,6 +40,21 @@ kubectl wait --namespace public-ingress \
   --selector=app.kubernetes.io/component=controller \
   --timeout=90s
 
+# Build local Docker images first (before applying k8s manifests)
+echo "Building local Docker images..."
+
+echo "Building home service Docker image..."
+docker build -t kajatools/website-home:latest ./apps/home
+
+echo "Building teams service Docker image..."
+docker build -t kajatools/website-teams:latest ./apps/teams
+
+echo "Building users service Docker image..."
+docker build -t kajatools/website-users:latest ./apps/users
+
+echo "Building quirks service Docker image..."
+docker build -t kajatools/website-quirks:latest ./apps/quirks
+
 # Create secret from .ai_api_key file
 kubectl delete secret secrets --ignore-not-found
 kubectl create secret generic secrets --from-literal=AI_API_KEY=$(cat .ai_api_key)
@@ -59,21 +74,5 @@ kubectl exec $POD_NAME -- mkdir /workspace/users
 kubectl cp apps/kaja/kaja.json $POD_NAME:/workspace/kaja.json
 kubectl cp apps/teams/proto/teams.proto $POD_NAME:/workspace/teams/teams.proto
 kubectl cp apps/users/proto/users.proto $POD_NAME:/workspace/users/users.proto
-
-# Rebuild and update teams service
-echo "Rebuilding teams service Docker image..."
-docker build -t kajatools/website-teams:latest ./apps/teams
-
-echo "Updating teams-deployment in cluster..."
-kubectl rollout restart deployment teams-deployment
-kubectl rollout status deployment teams-deployment
-
-# Rebuild and update users service
-echo "Rebuilding users service Docker image..."
-docker build -t kajatools/website-users:latest ./apps/users
-
-echo "Updating users-deployment in cluster..."
-kubectl rollout restart deployment users-deployment
-kubectl rollout status deployment users-deployment
 
 echo "Done"
