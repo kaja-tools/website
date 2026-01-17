@@ -11,13 +11,11 @@ service Users {
     rpc DeleteAllUsers(DeleteAllUsersRequest) returns (DeleteAllUsersResponse);
 }
 
-message CreateUserRequest {
-    string name = 1;
+message GetAllUsersRequest {
 }
 
-message CreateUserResponse {
-    string message = 1;
-    User user = 2;
+message GetAllUsersResponse {
+    repeated User users = 1;
 }
 
 message GetUserRequest {
@@ -26,6 +24,15 @@ message GetUserRequest {
 
 message GetUserResponse {
     User user = 1;
+}
+
+message CreateUserRequest {
+    string name = 1;
+}
+
+message CreateUserResponse {
+    string message = 1;
+    User user = 2;
 }
 
 message UpdateUserRequest {
@@ -42,13 +49,6 @@ message DeleteUserRequest {
 }
 
 message DeleteUserResponse {
-}
-
-message GetAllUsersRequest {
-}
-
-message GetAllUsersResponse {
-    repeated User users = 1;
 }
 
 message DeleteAllUsersRequest {
