@@ -5,10 +5,10 @@ package teams;
 option go_package = "internal/api";
 
 service Teams {
-    rpc CreateTeam(CreateTeamRequest) returns (CreateTeamResponse);
-    rpc GetTeam(GetTeamRequest) returns (GetTeamResponse);
-    rpc DeleteTeam(DeleteTeamRequest) returns (DeleteTeamResponse);
     rpc GetAllTeams(GetAllTeamsRequest) returns (GetAllTeamsResponse);
+    rpc GetTeam(GetTeamRequest) returns (GetTeamResponse);
+    rpc CreateTeam(CreateTeamRequest) returns (CreateTeamResponse);
+    rpc DeleteTeam(DeleteTeamRequest) returns (DeleteTeamResponse);
     rpc AddTeamMember(AddTeamMemberRequest) returns (AddTeamMemberResponse);
     rpc RemoveTeamMember(RemoveTeamMemberRequest) returns (RemoveTeamMemberResponse);
     rpc UpdateTeamMemberRole(UpdateTeamMemberRoleRequest) returns (UpdateTeamMemberRoleResponse);
