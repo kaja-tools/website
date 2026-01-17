@@ -11,6 +11,7 @@ import (
 	"github.com/kaja-tools/website/v2/internal/api"
 	"github.com/kaja-tools/website/v2/internal/model"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 func main() {
@@ -52,6 +53,7 @@ func main() {
 	// Create gRPC server
 	grpcServer := grpc.NewServer()
 	api.RegisterTeamsServer(grpcServer, srv)
+	reflection.Register(grpcServer)
 
 	// Handle shutdown gracefully
 	go func() {
