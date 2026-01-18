@@ -15,6 +15,7 @@ spec:
   - host: kaja.tools
     http:
       paths:
+      # Teams service
       - path: /teams.Teams/
         pathType: Prefix
         backend:
@@ -22,6 +23,21 @@ spec:
             name: teams-service
             port:
               number: 80
+      - path: /grpc.reflection.v1alpha.ServerReflection/
+        pathType: Prefix
+        backend:
+          service:
+            name: teams-service
+            port:
+              number: 80
+      - path: /grpc.reflection.v1.ServerReflection/
+        pathType: Prefix
+        backend:
+          service:
+            name: teams-service
+            port:
+              number: 80
+      # Quirks service
       - path: /Basics/
         pathType: Prefix
         backend:
