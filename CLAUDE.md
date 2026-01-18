@@ -39,6 +39,12 @@ This annotation applies to all backends in an ingress, so HTTP and gRPC services
 
 gRPC paths follow the format `/package.Service/Method` (e.g., `/teams.Teams/GetAllTeams`).
 
+**Important:** When adding a new gRPC service, you must add paths to `k8s/base/ingress-grpc.yaml` for:
+1. The service methods (e.g., `/mypackage.MyService/`)
+2. gRPC reflection (required for `grpcurl` to work without proto files):
+   - `/grpc.reflection.v1alpha.ServerReflection/`
+   - `/grpc.reflection.v1.ServerReflection/`
+
 ### Testing services locally
 - **Twirp**: `curl -X POST http://localhost/users/twirp/Users/GetAllUsers -H "Content-Type: application/json" -d '{}'`
 - **gRPC**: `grpcurl -plaintext -import-path apps/teams/proto -proto teams.proto localhost:80 teams.Teams/GetAllTeams`
