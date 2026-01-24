@@ -37,6 +37,12 @@ type Basics interface {
 	Panic(context.Context, *Void) (*Message, error)
 
 	Repeated(context.Context, *RepeatedRequest) (*RepeatedRequest, error)
+
+	// Returns 403 Unauthorized error
+	Unauthorized(context.Context, *Void) (*Void, error)
+
+	// Returns all headers passed to the method
+	Headers(context.Context, *Void) (*HeadersResponse, error)
 }
 
 // ======================
@@ -45,7 +51,7 @@ type Basics interface {
 
 type basicsProtobufClient struct {
 	client      HTTPClient
-	urls        [4]string
+	urls        [6]string
 	interceptor twirp.Interceptor
 	opts        twirp.ClientOptions
 }
@@ -73,11 +79,13 @@ func NewBasicsProtobufClient(baseURL string, client HTTPClient, opts ...twirp.Cl
 	// Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>
 	serviceURL := sanitizeBaseURL(baseURL)
 	serviceURL += baseServicePath(pathPrefix, "", "Basics")
-	urls := [4]string{
+	urls := [6]string{
 		serviceURL + "Types",
 		serviceURL + "Map",
 		serviceURL + "Panic",
 		serviceURL + "Repeated",
+		serviceURL + "Unauthorized",
+		serviceURL + "Headers",
 	}
 
 	return &basicsProtobufClient{
@@ -272,13 +280,105 @@ func (c *basicsProtobufClient) callRepeated(ctx context.Context, in *RepeatedReq
 	return out, nil
 }
 
+func (c *basicsProtobufClient) Unauthorized(ctx context.Context, in *Void) (*Void, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "")
+	ctx = ctxsetters.WithServiceName(ctx, "Basics")
+	ctx = ctxsetters.WithMethodName(ctx, "Unauthorized")
+	caller := c.callUnauthorized
+	if c.interceptor != nil {
+		caller = func(ctx context.Context, req *Void) (*Void, error) {
+			resp, err := c.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*Void)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*Void) when calling interceptor")
+					}
+					return c.callUnauthorized(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Void)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*Void) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+	return caller(ctx, in)
+}
+
+func (c *basicsProtobufClient) callUnauthorized(ctx context.Context, in *Void) (*Void, error) {
+	out := new(Void)
+	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[4], in, out)
+	if err != nil {
+		twerr, ok := err.(twirp.Error)
+		if !ok {
+			twerr = twirp.InternalErrorWith(err)
+		}
+		callClientError(ctx, c.opts.Hooks, twerr)
+		return nil, err
+	}
+
+	callClientResponseReceived(ctx, c.opts.Hooks)
+
+	return out, nil
+}
+
+func (c *basicsProtobufClient) Headers(ctx context.Context, in *Void) (*HeadersResponse, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "")
+	ctx = ctxsetters.WithServiceName(ctx, "Basics")
+	ctx = ctxsetters.WithMethodName(ctx, "Headers")
+	caller := c.callHeaders
+	if c.interceptor != nil {
+		caller = func(ctx context.Context, req *Void) (*HeadersResponse, error) {
+			resp, err := c.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*Void)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*Void) when calling interceptor")
+					}
+					return c.callHeaders(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*HeadersResponse)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*HeadersResponse) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+	return caller(ctx, in)
+}
+
+func (c *basicsProtobufClient) callHeaders(ctx context.Context, in *Void) (*HeadersResponse, error) {
+	out := new(HeadersResponse)
+	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[5], in, out)
+	if err != nil {
+		twerr, ok := err.(twirp.Error)
+		if !ok {
+			twerr = twirp.InternalErrorWith(err)
+		}
+		callClientError(ctx, c.opts.Hooks, twerr)
+		return nil, err
+	}
+
+	callClientResponseReceived(ctx, c.opts.Hooks)
+
+	return out, nil
+}
+
 // ==================
 // Basics JSON Client
 // ==================
 
 type basicsJSONClient struct {
 	client      HTTPClient
-	urls        [4]string
+	urls        [6]string
 	interceptor twirp.Interceptor
 	opts        twirp.ClientOptions
 }
@@ -306,11 +406,13 @@ func NewBasicsJSONClient(baseURL string, client HTTPClient, opts ...twirp.Client
 	// Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>
 	serviceURL := sanitizeBaseURL(baseURL)
 	serviceURL += baseServicePath(pathPrefix, "", "Basics")
-	urls := [4]string{
+	urls := [6]string{
 		serviceURL + "Types",
 		serviceURL + "Map",
 		serviceURL + "Panic",
 		serviceURL + "Repeated",
+		serviceURL + "Unauthorized",
+		serviceURL + "Headers",
 	}
 
 	return &basicsJSONClient{
@@ -505,6 +607,98 @@ func (c *basicsJSONClient) callRepeated(ctx context.Context, in *RepeatedRequest
 	return out, nil
 }
 
+func (c *basicsJSONClient) Unauthorized(ctx context.Context, in *Void) (*Void, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "")
+	ctx = ctxsetters.WithServiceName(ctx, "Basics")
+	ctx = ctxsetters.WithMethodName(ctx, "Unauthorized")
+	caller := c.callUnauthorized
+	if c.interceptor != nil {
+		caller = func(ctx context.Context, req *Void) (*Void, error) {
+			resp, err := c.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*Void)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*Void) when calling interceptor")
+					}
+					return c.callUnauthorized(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Void)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*Void) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+	return caller(ctx, in)
+}
+
+func (c *basicsJSONClient) callUnauthorized(ctx context.Context, in *Void) (*Void, error) {
+	out := new(Void)
+	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[4], in, out)
+	if err != nil {
+		twerr, ok := err.(twirp.Error)
+		if !ok {
+			twerr = twirp.InternalErrorWith(err)
+		}
+		callClientError(ctx, c.opts.Hooks, twerr)
+		return nil, err
+	}
+
+	callClientResponseReceived(ctx, c.opts.Hooks)
+
+	return out, nil
+}
+
+func (c *basicsJSONClient) Headers(ctx context.Context, in *Void) (*HeadersResponse, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "")
+	ctx = ctxsetters.WithServiceName(ctx, "Basics")
+	ctx = ctxsetters.WithMethodName(ctx, "Headers")
+	caller := c.callHeaders
+	if c.interceptor != nil {
+		caller = func(ctx context.Context, req *Void) (*HeadersResponse, error) {
+			resp, err := c.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*Void)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*Void) when calling interceptor")
+					}
+					return c.callHeaders(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*HeadersResponse)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*HeadersResponse) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+	return caller(ctx, in)
+}
+
+func (c *basicsJSONClient) callHeaders(ctx context.Context, in *Void) (*HeadersResponse, error) {
+	out := new(HeadersResponse)
+	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[5], in, out)
+	if err != nil {
+		twerr, ok := err.(twirp.Error)
+		if !ok {
+			twerr = twirp.InternalErrorWith(err)
+		}
+		callClientError(ctx, c.opts.Hooks, twerr)
+		return nil, err
+	}
+
+	callClientResponseReceived(ctx, c.opts.Hooks)
+
+	return out, nil
+}
+
 // =====================
 // Basics Server Handler
 // =====================
@@ -613,6 +807,12 @@ func (s *basicsServer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		return
 	case "Repeated":
 		s.serveRepeated(ctx, resp, req)
+		return
+	case "Unauthorized":
+		s.serveUnauthorized(ctx, resp, req)
+		return
+	case "Headers":
+		s.serveHeaders(ctx, resp, req)
 		return
 	default:
 		msg := fmt.Sprintf("no handler for path %q", req.URL.Path)
@@ -1341,6 +1541,366 @@ func (s *basicsServer) serveRepeatedProtobuf(ctx context.Context, resp http.Resp
 	callResponseSent(ctx, s.hooks)
 }
 
+func (s *basicsServer) serveUnauthorized(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	header := req.Header.Get("Content-Type")
+	i := strings.Index(header, ";")
+	if i == -1 {
+		i = len(header)
+	}
+	switch strings.TrimSpace(strings.ToLower(header[:i])) {
+	case "application/json":
+		s.serveUnauthorizedJSON(ctx, resp, req)
+	case "application/protobuf":
+		s.serveUnauthorizedProtobuf(ctx, resp, req)
+	default:
+		msg := fmt.Sprintf("unexpected Content-Type: %q", req.Header.Get("Content-Type"))
+		twerr := badRouteError(msg, req.Method, req.URL.Path)
+		s.writeError(ctx, resp, twerr)
+	}
+}
+
+func (s *basicsServer) serveUnauthorizedJSON(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	var err error
+	ctx = ctxsetters.WithMethodName(ctx, "Unauthorized")
+	ctx, err = callRequestRouted(ctx, s.hooks)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
+	d := json.NewDecoder(req.Body)
+	rawReqBody := json.RawMessage{}
+	if err := d.Decode(&rawReqBody); err != nil {
+		s.handleRequestBodyError(ctx, resp, "the json request could not be decoded", err)
+		return
+	}
+	reqContent := new(Void)
+	unmarshaler := protojson.UnmarshalOptions{DiscardUnknown: true}
+	if err = unmarshaler.Unmarshal(rawReqBody, reqContent); err != nil {
+		s.handleRequestBodyError(ctx, resp, "the json request could not be decoded", err)
+		return
+	}
+
+	handler := s.Basics.Unauthorized
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *Void) (*Void, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*Void)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*Void) when calling interceptor")
+					}
+					return s.Basics.Unauthorized(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Void)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*Void) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
+	// Call service method
+	var respContent *Void
+	func() {
+		defer ensurePanicResponses(ctx, resp, s.hooks)
+		respContent, err = handler(ctx, reqContent)
+	}()
+
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+	if respContent == nil {
+		s.writeError(ctx, resp, twirp.InternalError("received a nil *Void and nil error while calling Unauthorized. nil responses are not supported"))
+		return
+	}
+
+	ctx = callResponsePrepared(ctx, s.hooks)
+
+	marshaler := &protojson.MarshalOptions{UseProtoNames: !s.jsonCamelCase, EmitUnpopulated: !s.jsonSkipDefaults}
+	respBytes, err := marshaler.Marshal(respContent)
+	if err != nil {
+		s.writeError(ctx, resp, wrapInternal(err, "failed to marshal json response"))
+		return
+	}
+
+	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
+	resp.Header().Set("Content-Type", "application/json")
+	resp.Header().Set("Content-Length", strconv.Itoa(len(respBytes)))
+	resp.WriteHeader(http.StatusOK)
+
+	if n, err := resp.Write(respBytes); err != nil {
+		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
+		twerr := twirp.NewError(twirp.Unknown, msg)
+		ctx = callError(ctx, s.hooks, twerr)
+	}
+	callResponseSent(ctx, s.hooks)
+}
+
+func (s *basicsServer) serveUnauthorizedProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	var err error
+	ctx = ctxsetters.WithMethodName(ctx, "Unauthorized")
+	ctx, err = callRequestRouted(ctx, s.hooks)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
+	buf, err := io.ReadAll(req.Body)
+	if err != nil {
+		s.handleRequestBodyError(ctx, resp, "failed to read request body", err)
+		return
+	}
+	reqContent := new(Void)
+	if err = proto.Unmarshal(buf, reqContent); err != nil {
+		s.writeError(ctx, resp, malformedRequestError("the protobuf request could not be decoded"))
+		return
+	}
+
+	handler := s.Basics.Unauthorized
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *Void) (*Void, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*Void)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*Void) when calling interceptor")
+					}
+					return s.Basics.Unauthorized(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Void)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*Void) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
+	// Call service method
+	var respContent *Void
+	func() {
+		defer ensurePanicResponses(ctx, resp, s.hooks)
+		respContent, err = handler(ctx, reqContent)
+	}()
+
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+	if respContent == nil {
+		s.writeError(ctx, resp, twirp.InternalError("received a nil *Void and nil error while calling Unauthorized. nil responses are not supported"))
+		return
+	}
+
+	ctx = callResponsePrepared(ctx, s.hooks)
+
+	respBytes, err := proto.Marshal(respContent)
+	if err != nil {
+		s.writeError(ctx, resp, wrapInternal(err, "failed to marshal proto response"))
+		return
+	}
+
+	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
+	resp.Header().Set("Content-Type", "application/protobuf")
+	resp.Header().Set("Content-Length", strconv.Itoa(len(respBytes)))
+	resp.WriteHeader(http.StatusOK)
+	if n, err := resp.Write(respBytes); err != nil {
+		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
+		twerr := twirp.NewError(twirp.Unknown, msg)
+		ctx = callError(ctx, s.hooks, twerr)
+	}
+	callResponseSent(ctx, s.hooks)
+}
+
+func (s *basicsServer) serveHeaders(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	header := req.Header.Get("Content-Type")
+	i := strings.Index(header, ";")
+	if i == -1 {
+		i = len(header)
+	}
+	switch strings.TrimSpace(strings.ToLower(header[:i])) {
+	case "application/json":
+		s.serveHeadersJSON(ctx, resp, req)
+	case "application/protobuf":
+		s.serveHeadersProtobuf(ctx, resp, req)
+	default:
+		msg := fmt.Sprintf("unexpected Content-Type: %q", req.Header.Get("Content-Type"))
+		twerr := badRouteError(msg, req.Method, req.URL.Path)
+		s.writeError(ctx, resp, twerr)
+	}
+}
+
+func (s *basicsServer) serveHeadersJSON(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	var err error
+	ctx = ctxsetters.WithMethodName(ctx, "Headers")
+	ctx, err = callRequestRouted(ctx, s.hooks)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
+	d := json.NewDecoder(req.Body)
+	rawReqBody := json.RawMessage{}
+	if err := d.Decode(&rawReqBody); err != nil {
+		s.handleRequestBodyError(ctx, resp, "the json request could not be decoded", err)
+		return
+	}
+	reqContent := new(Void)
+	unmarshaler := protojson.UnmarshalOptions{DiscardUnknown: true}
+	if err = unmarshaler.Unmarshal(rawReqBody, reqContent); err != nil {
+		s.handleRequestBodyError(ctx, resp, "the json request could not be decoded", err)
+		return
+	}
+
+	handler := s.Basics.Headers
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *Void) (*HeadersResponse, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*Void)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*Void) when calling interceptor")
+					}
+					return s.Basics.Headers(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*HeadersResponse)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*HeadersResponse) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
+	// Call service method
+	var respContent *HeadersResponse
+	func() {
+		defer ensurePanicResponses(ctx, resp, s.hooks)
+		respContent, err = handler(ctx, reqContent)
+	}()
+
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+	if respContent == nil {
+		s.writeError(ctx, resp, twirp.InternalError("received a nil *HeadersResponse and nil error while calling Headers. nil responses are not supported"))
+		return
+	}
+
+	ctx = callResponsePrepared(ctx, s.hooks)
+
+	marshaler := &protojson.MarshalOptions{UseProtoNames: !s.jsonCamelCase, EmitUnpopulated: !s.jsonSkipDefaults}
+	respBytes, err := marshaler.Marshal(respContent)
+	if err != nil {
+		s.writeError(ctx, resp, wrapInternal(err, "failed to marshal json response"))
+		return
+	}
+
+	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
+	resp.Header().Set("Content-Type", "application/json")
+	resp.Header().Set("Content-Length", strconv.Itoa(len(respBytes)))
+	resp.WriteHeader(http.StatusOK)
+
+	if n, err := resp.Write(respBytes); err != nil {
+		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
+		twerr := twirp.NewError(twirp.Unknown, msg)
+		ctx = callError(ctx, s.hooks, twerr)
+	}
+	callResponseSent(ctx, s.hooks)
+}
+
+func (s *basicsServer) serveHeadersProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	var err error
+	ctx = ctxsetters.WithMethodName(ctx, "Headers")
+	ctx, err = callRequestRouted(ctx, s.hooks)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
+	buf, err := io.ReadAll(req.Body)
+	if err != nil {
+		s.handleRequestBodyError(ctx, resp, "failed to read request body", err)
+		return
+	}
+	reqContent := new(Void)
+	if err = proto.Unmarshal(buf, reqContent); err != nil {
+		s.writeError(ctx, resp, malformedRequestError("the protobuf request could not be decoded"))
+		return
+	}
+
+	handler := s.Basics.Headers
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *Void) (*HeadersResponse, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*Void)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*Void) when calling interceptor")
+					}
+					return s.Basics.Headers(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*HeadersResponse)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*HeadersResponse) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
+	// Call service method
+	var respContent *HeadersResponse
+	func() {
+		defer ensurePanicResponses(ctx, resp, s.hooks)
+		respContent, err = handler(ctx, reqContent)
+	}()
+
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+	if respContent == nil {
+		s.writeError(ctx, resp, twirp.InternalError("received a nil *HeadersResponse and nil error while calling Headers. nil responses are not supported"))
+		return
+	}
+
+	ctx = callResponsePrepared(ctx, s.hooks)
+
+	respBytes, err := proto.Marshal(respContent)
+	if err != nil {
+		s.writeError(ctx, resp, wrapInternal(err, "failed to marshal proto response"))
+		return
+	}
+
+	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
+	resp.Header().Set("Content-Type", "application/protobuf")
+	resp.Header().Set("Content-Length", strconv.Itoa(len(respBytes)))
+	resp.WriteHeader(http.StatusOK)
+	if n, err := resp.Write(respBytes); err != nil {
+		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
+		twerr := twirp.NewError(twirp.Unknown, msg)
+		ctx = callError(ctx, s.hooks, twerr)
+	}
+	callResponseSent(ctx, s.hooks)
+}
+
 func (s *basicsServer) ServiceDescriptor() ([]byte, int) {
 	return twirpFileDescriptor1, 0
 }
@@ -1357,41 +1917,55 @@ func (s *basicsServer) PathPrefix() string {
 }
 
 var twirpFileDescriptor1 = []byte{
-	// 572 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x54, 0xdf, 0x6f, 0x12, 0x41,
-	0x10, 0xf6, 0x80, 0x43, 0x6e, 0xf8, 0x21, 0x6e, 0x48, 0xa5, 0x97, 0x9a, 0x12, 0x92, 0x36, 0xd5,
-	0x87, 0xa5, 0x52, 0x63, 0xaa, 0x0f, 0x36, 0x21, 0xe1, 0xc1, 0x18, 0x4c, 0xb3, 0x36, 0x26, 0xea,
-	0x03, 0xb9, 0xa3, 0x2b, 0xd9, 0x78, 0xec, 0x9d, 0xec, 0x62, 0xc2, 0x63, 0xfd, 0x53, 0xfc, 0x4b,
-	0x9b, 0x9b, 0xbb, 0xe3, 0xf6, 0x80, 0xa6, 0x2f, 0x30, 0xf3, 0xcd, 0xcc, 0xc7, 0xb7, 0xb3, 0xdf,
-	0x02, 0x24, 0x5a, 0x86, 0x3a, 0x1c, 0xf8, 0x9e, 0x12, 0x33, 0x45, 0x31, 0x71, 0x8f, 0xe7, 0x61,
-	0x38, 0x0f, 0xf8, 0x00, 0x33, 0x7f, 0xf5, 0x6b, 0xa0, 0xc5, 0x82, 0x2b, 0xed, 0x2d, 0xa2, 0xb4,
-	0xa1, 0x93, 0x0c, 0x05, 0xc2, 0x1f, 0x70, 0xb9, 0x5a, 0xa4, 0xe8, 0x8b, 0x1c, 0x5d, 0x70, 0xa5,
-	0xbc, 0x39, 0x4f, 0x0a, 0xfd, 0x3b, 0x1b, 0x60, 0xe2, 0x45, 0x8c, 0xff, 0x59, 0x71, 0xa5, 0xc9,
-	0x08, 0x9a, 0x4a, 0x2f, 0x85, 0x9c, 0x4f, 0x93, 0xaf, 0xae, 0xd5, 0x2b, 0x9f, 0xd5, 0x87, 0x2f,
-	0x69, 0xde, 0x43, 0xbf, 0x62, 0x25, 0xf9, 0x1c, 0x4b, 0xbd, 0x5c, 0xb3, 0x86, 0x32, 0x20, 0x72,
-	0x05, 0x69, 0x3e, 0x15, 0x52, 0x5f, 0x0c, 0xbb, 0x25, 0xa4, 0x38, 0xda, 0xa5, 0xf8, 0x14, 0x97,
-	0x13, 0x86, 0xba, 0xca, 0x11, 0x14, 0x21, 0xa4, 0x7e, 0xf7, 0x36, 0x13, 0x51, 0xde, 0x23, 0x02,
-	0x1b, 0x8a, 0x22, 0x0c, 0x88, 0xfc, 0x84, 0x83, 0x54, 0xc4, 0x92, 0x47, 0xdc, 0xd3, 0xfc, 0x36,
-	0x23, 0xab, 0x20, 0xd9, 0xc9, 0xae, 0x1c, 0x96, 0x36, 0x9a, 0xa4, 0x1d, 0xb5, 0xa7, 0xe4, 0x9e,
-	0x42, 0xab, 0x88, 0x90, 0x0e, 0xd8, 0x7f, 0xbd, 0x60, 0xc5, 0x71, 0x5f, 0x0e, 0x4b, 0x12, 0xf7,
-	0x0a, 0x9e, 0xef, 0x2c, 0x8b, 0xb4, 0xa1, 0xfc, 0x9b, 0xaf, 0xbb, 0x56, 0xcf, 0x3a, 0x73, 0x58,
-	0x1c, 0xe6, 0xc3, 0x25, 0xc4, 0x92, 0xe4, 0x43, 0xe9, 0xd2, 0x72, 0x3f, 0x42, 0x7b, 0x7b, 0x55,
-	0x8f, 0xcd, 0xdb, 0xe6, 0x7c, 0x2c, 0x60, 0x7b, 0x51, 0x26, 0x01, 0x79, 0x4c, 0xc0, 0x0c, 0x0e,
-	0x1f, 0x5c, 0xce, 0x1e, 0x25, 0xe7, 0x26, 0x51, 0x7d, 0xe8, 0x9a, 0x4b, 0x2e, 0x32, 0x18, 0x3f,
-	0xd2, 0xff, 0x67, 0xc1, 0xb3, 0xac, 0x9a, 0x19, 0xf1, 0x00, 0xaa, 0x86, 0x03, 0x1d, 0x96, 0x66,
-	0xb1, 0xd4, 0xdc, 0x55, 0x36, 0x4b, 0x12, 0x72, 0x08, 0x95, 0xd8, 0xec, 0x68, 0x94, 0xd6, 0xd0,
-	0xa6, 0x63, 0xb9, 0x5a, 0x30, 0x84, 0xc8, 0x29, 0x3c, 0x4d, 0x1d, 0x9f, 0xde, 0x7c, 0x83, 0x06,
-	0xc2, 0xa7, 0x93, 0x04, 0x63, 0x59, 0xb1, 0x7f, 0x57, 0x82, 0xc6, 0xcd, 0x3a, 0xe2, 0x2a, 0x53,
-	0x70, 0x09, 0xce, 0xe6, 0x6d, 0xe1, 0x19, 0xe3, 0xf3, 0x24, 0xaf, 0x8f, 0x66, 0xaf, 0x8f, 0xde,
-	0x64, 0x1d, 0x2c, 0x6f, 0x26, 0x04, 0x2a, 0x7e, 0x18, 0x06, 0xb8, 0x84, 0x1a, 0xc3, 0xd8, 0x50,
-	0x68, 0x6d, 0x2b, 0x7c, 0x0f, 0x75, 0xc9, 0x55, 0xec, 0x50, 0xec, 0xa8, 0x60, 0x47, 0x97, 0x9a,
-	0x62, 0xe8, 0x17, 0x6c, 0xc0, 0x21, 0x90, 0x9b, 0x98, 0xbc, 0x82, 0x5a, 0x14, 0x2a, 0xa1, 0x45,
-	0x28, 0xbb, 0x36, 0xce, 0x35, 0xf1, 0x74, 0xd7, 0x29, 0xc8, 0x36, 0xe5, 0x7e, 0x1f, 0x20, 0x27,
-	0x21, 0x0e, 0xd8, 0x9f, 0xc7, 0xdf, 0xa7, 0xe7, 0xed, 0x27, 0x59, 0xf8, 0xa6, 0x6d, 0xbd, 0x3e,
-	0x82, 0xca, 0xc3, 0xd5, 0xe1, 0x7f, 0x0b, 0xaa, 0x23, 0xfc, 0x2f, 0x22, 0x27, 0x60, 0xa3, 0x3c,
-	0xd2, 0x2c, 0xc8, 0x74, 0x8b, 0x29, 0x39, 0x86, 0xf2, 0xc4, 0x8b, 0x48, 0xdd, 0xb0, 0x81, 0x6b,
-	0x26, 0xa4, 0x07, 0xf6, 0xb5, 0x27, 0xc5, 0x8c, 0x38, 0x28, 0xfb, 0x5b, 0x28, 0x6e, 0xdd, 0xc2,
-	0xfd, 0x10, 0x0a, 0xb5, 0xcc, 0x1a, 0xa4, 0x4d, 0xb7, 0x5c, 0xe2, 0xee, 0x20, 0xa3, 0xd6, 0x8f,
-	0x86, 0x90, 0x9a, 0x2f, 0xa5, 0x17, 0x0c, 0xbc, 0x48, 0xf8, 0x55, 0xbc, 0xaa, 0x8b, 0xfb, 0x00,
-	0x00, 0x00, 0xff, 0xff, 0x60, 0xca, 0x47, 0x94, 0x4c, 0x05, 0x00, 0x00,
+	// 793 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x55, 0x5d, 0x6f, 0xeb, 0x44,
+	0x10, 0x65, 0x93, 0x38, 0x1f, 0x13, 0x27, 0x71, 0x97, 0xea, 0xe2, 0x6b, 0x5d, 0x54, 0x2b, 0xa2,
+	0x95, 0xe1, 0xc1, 0x29, 0x69, 0x14, 0x4a, 0x1f, 0xa8, 0x54, 0xa9, 0x12, 0x08, 0x15, 0x55, 0x4b,
+	0x41, 0x02, 0x1e, 0x2a, 0xbb, 0xd9, 0xa6, 0x16, 0x8e, 0x6d, 0xb2, 0x36, 0x22, 0xbc, 0xc1, 0x03,
+	0xff, 0x90, 0xff, 0xc1, 0x4f, 0x40, 0xde, 0x0f, 0x7b, 0x93, 0xb4, 0xaa, 0xee, 0x4b, 0xbb, 0xe7,
+	0xcc, 0xd9, 0xe9, 0xf1, 0xcc, 0xec, 0x14, 0x70, 0xb6, 0x4e, 0xf3, 0x74, 0x12, 0x06, 0x2c, 0x7a,
+	0x60, 0x3e, 0x07, 0xce, 0xd1, 0x32, 0x4d, 0x97, 0x31, 0x9d, 0x70, 0x14, 0x16, 0x8f, 0x93, 0x3c,
+	0x5a, 0x51, 0x96, 0x07, 0xab, 0x4c, 0x0a, 0x0e, 0xc5, 0xa5, 0x38, 0x0a, 0x27, 0x34, 0x29, 0x56,
+	0x92, 0xfd, 0xa8, 0x66, 0x57, 0x94, 0xb1, 0x60, 0x49, 0x45, 0x60, 0xfc, 0x97, 0x01, 0x70, 0x13,
+	0x64, 0x84, 0xfe, 0x56, 0x50, 0x96, 0xe3, 0x2b, 0x18, 0xb0, 0x7c, 0x1d, 0x25, 0xcb, 0x7b, 0xf1,
+	0xcb, 0x46, 0x6e, 0xd3, 0xeb, 0x4f, 0x3f, 0xf6, 0x6b, 0x8d, 0xff, 0x3d, 0x8f, 0x88, 0x9f, 0xd7,
+	0x49, 0xbe, 0xde, 0x10, 0x93, 0x69, 0x14, 0xbe, 0x04, 0x89, 0xef, 0xa3, 0x24, 0x3f, 0x9b, 0xda,
+	0x0d, 0x9e, 0xe2, 0xdd, 0x7e, 0x8a, 0x6f, 0xca, 0xb0, 0xc8, 0xd0, 0x67, 0x35, 0xc3, 0x4d, 0x44,
+	0x49, 0x3e, 0x9f, 0x29, 0x13, 0xcd, 0x67, 0x4c, 0x70, 0xc1, 0xb6, 0x09, 0x8d, 0xc2, 0xbf, 0xc0,
+	0x1b, 0x69, 0x62, 0x4d, 0x33, 0x1a, 0xe4, 0x74, 0xa1, 0x92, 0xb5, 0x78, 0xb2, 0xe3, 0x7d, 0x3b,
+	0x44, 0x0a, 0xf5, 0xa4, 0x87, 0xec, 0x99, 0x90, 0x73, 0x02, 0xc3, 0x6d, 0x06, 0x1f, 0x82, 0xf1,
+	0x7b, 0x10, 0x17, 0x94, 0xd7, 0xab, 0x47, 0x04, 0x70, 0x2e, 0xe1, 0x60, 0xaf, 0x58, 0xd8, 0x82,
+	0xe6, 0xaf, 0x74, 0x63, 0x23, 0x17, 0x79, 0x3d, 0x52, 0x1e, 0xeb, 0xcb, 0x0d, 0xce, 0x09, 0x70,
+	0xd1, 0x38, 0x47, 0xce, 0x57, 0x60, 0xed, 0x96, 0xea, 0xb5, 0xfb, 0x86, 0x7e, 0xbf, 0x34, 0xb0,
+	0x5b, 0x28, 0x3d, 0x01, 0x7e, 0xcd, 0xc0, 0x03, 0xbc, 0x7d, 0xb1, 0x38, 0xcf, 0x38, 0x39, 0xd5,
+	0x13, 0xf5, 0xa7, 0x8e, 0x5e, 0xe4, 0xed, 0x0c, 0xda, 0x1f, 0x19, 0xff, 0x8d, 0x60, 0xa4, 0xa2,
+	0x6a, 0x10, 0xdf, 0x40, 0x5b, 0x9b, 0xc0, 0x1e, 0x91, 0xa8, 0xb4, 0x5a, 0x4f, 0x95, 0x41, 0x04,
+	0xc0, 0x6f, 0xa1, 0x55, 0x0e, 0x3b, 0x1f, 0x94, 0xe1, 0xd4, 0xf0, 0xaf, 0x93, 0x62, 0x45, 0x38,
+	0x85, 0x4f, 0xa0, 0x23, 0x27, 0x5e, 0x76, 0xde, 0xf4, 0xe3, 0x28, 0xf4, 0x6f, 0x04, 0x47, 0x54,
+	0x70, 0xfc, 0x6f, 0x0b, 0xcc, 0xbb, 0x4d, 0x46, 0x99, 0xe6, 0x60, 0x91, 0x16, 0x61, 0x4c, 0xf9,
+	0x07, 0x22, 0x22, 0x51, 0xe9, 0xe0, 0x31, 0x4e, 0x83, 0x9c, 0x7f, 0x63, 0x83, 0x08, 0x50, 0xfb,
+	0x6a, 0x8a, 0x1e, 0x08, 0x5f, 0x82, 0x9d, 0xcf, 0xec, 0x96, 0x8b, 0xbc, 0x26, 0x11, 0xa0, 0xcc,
+	0x5c, 0x08, 0xb1, 0xe1, 0x22, 0x6f, 0x40, 0x24, 0x52, 0xfc, 0x7c, 0x66, 0xb7, 0x5d, 0xe4, 0xb5,
+	0x88, 0x44, 0xbc, 0x16, 0x42, 0xdf, 0x71, 0x91, 0x77, 0x40, 0x24, 0x52, 0xfc, 0x7c, 0x66, 0x77,
+	0x79, 0x2f, 0x25, 0xc2, 0x36, 0x74, 0x1e, 0xa3, 0x3f, 0xe8, 0xe2, 0x6c, 0x6a, 0xf7, 0x5c, 0xe4,
+	0x75, 0x88, 0x82, 0x55, 0x64, 0x3e, 0xb3, 0xc1, 0x45, 0x5e, 0x9b, 0x28, 0x88, 0x1d, 0xe8, 0x32,
+	0x75, 0xa9, 0xef, 0x22, 0x6f, 0x44, 0x2a, 0x5c, 0xc7, 0xe6, 0x33, 0xdb, 0x74, 0x91, 0x67, 0x91,
+	0x0a, 0x63, 0x0c, 0xad, 0x30, 0x4d, 0x63, 0x7b, 0xe0, 0x22, 0xaf, 0x4b, 0xf8, 0x59, 0xeb, 0xdd,
+	0x90, 0x8f, 0x86, 0xd6, 0xbb, 0x70, 0x93, 0x53, 0x66, 0x8f, 0x5c, 0xe4, 0x99, 0x44, 0x00, 0x7c,
+	0x0e, 0xbd, 0x6a, 0x87, 0xd9, 0x96, 0x9c, 0x1b, 0xb1, 0xe5, 0x7c, 0xb5, 0xe5, 0xfc, 0x3b, 0xa5,
+	0x20, 0xb5, 0xb8, 0xea, 0xfa, 0x81, 0x8b, 0x76, 0xbb, 0xfe, 0x25, 0xf4, 0x13, 0xca, 0xca, 0x57,
+	0xcf, 0x15, 0x98, 0x2b, 0x6c, 0x5f, 0x6f, 0xb0, 0xff, 0x1d, 0x17, 0xf0, 0x4b, 0x90, 0x54, 0x67,
+	0xfc, 0x29, 0x74, 0xb3, 0x94, 0x45, 0x79, 0x94, 0x26, 0xf6, 0x87, 0xfc, 0xde, 0x80, 0x4f, 0xcc,
+	0xad, 0x24, 0x49, 0x15, 0x1e, 0x8f, 0x01, 0xea, 0x24, 0xb8, 0x07, 0xc6, 0xb7, 0xd7, 0x3f, 0xdd,
+	0x9f, 0x5a, 0x1f, 0xa8, 0xe3, 0xe7, 0x16, 0x1a, 0xff, 0x83, 0x60, 0xf4, 0x35, 0x0d, 0x16, 0x74,
+	0xcd, 0x08, 0x65, 0x59, 0x9a, 0x30, 0x8a, 0xbf, 0x80, 0xce, 0x93, 0xa0, 0xaa, 0xfd, 0xba, 0x23,
+	0x51, 0x58, 0x6c, 0x21, 0xa5, 0x76, 0x2e, 0xc0, 0xd4, 0x03, 0xef, 0xb3, 0x4b, 0x3e, 0x7b, 0x07,
+	0xad, 0x97, 0x6d, 0x4e, 0xff, 0x43, 0xd0, 0xbe, 0xe2, 0xff, 0x68, 0xf0, 0x31, 0x18, 0xbc, 0x4e,
+	0x78, 0xb0, 0x55, 0x2f, 0x67, 0x1b, 0xe2, 0x23, 0x68, 0xde, 0x04, 0x19, 0xee, 0x6b, 0x6f, 0xdc,
+	0xd1, 0x01, 0x76, 0xc1, 0xb8, 0x0d, 0x92, 0xe8, 0x01, 0xf7, 0x78, 0xfd, 0x7e, 0x4c, 0xa3, 0x85,
+	0xb3, 0xf5, 0xf8, 0xb0, 0x0f, 0x5d, 0xf5, 0xee, 0xb1, 0xe5, 0xef, 0xac, 0x00, 0x67, 0x8f, 0xc1,
+	0x9f, 0x80, 0xf9, 0x43, 0x12, 0x14, 0xf9, 0x53, 0xba, 0x8e, 0xfe, 0xa4, 0x0b, 0x3d, 0x71, 0x7d,
+	0x2c, 0x5f, 0xbc, 0x2c, 0x92, 0x2e, 0xb0, 0x76, 0x4b, 0x7c, 0x35, 0xfc, 0xd9, 0x8c, 0x92, 0x9c,
+	0xae, 0x93, 0x20, 0x9e, 0x04, 0x59, 0x14, 0xb6, 0xf9, 0xb4, 0x9d, 0xfd, 0x1f, 0x00, 0x00, 0xff,
+	0xff, 0x67, 0xb8, 0x83, 0x06, 0x77, 0x07, 0x00, 0x00,
 }

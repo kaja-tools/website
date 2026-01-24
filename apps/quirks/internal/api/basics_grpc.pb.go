@@ -19,10 +19,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Basics_Types_FullMethodName    = "/Basics/Types"
-	Basics_Map_FullMethodName      = "/Basics/Map"
-	Basics_Panic_FullMethodName    = "/Basics/Panic"
-	Basics_Repeated_FullMethodName = "/Basics/Repeated"
+	Basics_Types_FullMethodName        = "/Basics/Types"
+	Basics_Map_FullMethodName          = "/Basics/Map"
+	Basics_Panic_FullMethodName        = "/Basics/Panic"
+	Basics_Repeated_FullMethodName     = "/Basics/Repeated"
+	Basics_Unauthorized_FullMethodName = "/Basics/Unauthorized"
+	Basics_Headers_FullMethodName      = "/Basics/Headers"
 )
 
 // BasicsClient is the client API for Basics service.
@@ -37,6 +39,10 @@ type BasicsClient interface {
 	Map(ctx context.Context, in *MapRequest, opts ...grpc.CallOption) (*MapRequest, error)
 	Panic(ctx context.Context, in *Void, opts ...grpc.CallOption) (*Message, error)
 	Repeated(ctx context.Context, in *RepeatedRequest, opts ...grpc.CallOption) (*RepeatedRequest, error)
+	// Returns 403 Unauthorized error
+	Unauthorized(ctx context.Context, in *Void, opts ...grpc.CallOption) (*Void, error)
+	// Returns all headers passed to the method
+	Headers(ctx context.Context, in *Void, opts ...grpc.CallOption) (*HeadersResponse, error)
 }
 
 type basicsClient struct {
@@ -87,6 +93,26 @@ func (c *basicsClient) Repeated(ctx context.Context, in *RepeatedRequest, opts .
 	return out, nil
 }
 
+func (c *basicsClient) Unauthorized(ctx context.Context, in *Void, opts ...grpc.CallOption) (*Void, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Void)
+	err := c.cc.Invoke(ctx, Basics_Unauthorized_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *basicsClient) Headers(ctx context.Context, in *Void, opts ...grpc.CallOption) (*HeadersResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(HeadersResponse)
+	err := c.cc.Invoke(ctx, Basics_Headers_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BasicsServer is the server API for Basics service.
 // All implementations must embed UnimplementedBasicsServer
 // for forward compatibility.
@@ -99,6 +125,10 @@ type BasicsServer interface {
 	Map(context.Context, *MapRequest) (*MapRequest, error)
 	Panic(context.Context, *Void) (*Message, error)
 	Repeated(context.Context, *RepeatedRequest) (*RepeatedRequest, error)
+	// Returns 403 Unauthorized error
+	Unauthorized(context.Context, *Void) (*Void, error)
+	// Returns all headers passed to the method
+	Headers(context.Context, *Void) (*HeadersResponse, error)
 	mustEmbedUnimplementedBasicsServer()
 }
 
@@ -120,6 +150,12 @@ func (UnimplementedBasicsServer) Panic(context.Context, *Void) (*Message, error)
 }
 func (UnimplementedBasicsServer) Repeated(context.Context, *RepeatedRequest) (*RepeatedRequest, error) {
 	return nil, status.Error(codes.Unimplemented, "method Repeated not implemented")
+}
+func (UnimplementedBasicsServer) Unauthorized(context.Context, *Void) (*Void, error) {
+	return nil, status.Error(codes.Unimplemented, "method Unauthorized not implemented")
+}
+func (UnimplementedBasicsServer) Headers(context.Context, *Void) (*HeadersResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method Headers not implemented")
 }
 func (UnimplementedBasicsServer) mustEmbedUnimplementedBasicsServer() {}
 func (UnimplementedBasicsServer) testEmbeddedByValue()                {}
@@ -214,6 +250,42 @@ func _Basics_Repeated_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Basics_Unauthorized_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Void)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BasicsServer).Unauthorized(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Basics_Unauthorized_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BasicsServer).Unauthorized(ctx, req.(*Void))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Basics_Headers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Void)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BasicsServer).Headers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Basics_Headers_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BasicsServer).Headers(ctx, req.(*Void))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Basics_ServiceDesc is the grpc.ServiceDesc for Basics service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -236,6 +308,14 @@ var Basics_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Repeated",
 			Handler:    _Basics_Repeated_Handler,
+		},
+		{
+			MethodName: "Unauthorized",
+			Handler:    _Basics_Unauthorized_Handler,
+		},
+		{
+			MethodName: "Headers",
+			Handler:    _Basics_Headers_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
