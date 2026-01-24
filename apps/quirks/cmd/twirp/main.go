@@ -8,6 +8,28 @@ import (
 	"github.com/twitchtv/twirp"
 )
 
+// headerMiddleware wraps an http.Handler and injects HTTP headers into the Twirp context
+func headerMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Filter out reserved headers that Twirp doesn't allow
+		headers := make(http.Header)
+		for key, values := range r.Header {
+			// Skip reserved headers (Content-Type, Accept, Twirp-specific headers)
+			switch key {
+			case "Content-Type", "Accept", "Content-Length", "Transfer-Encoding":
+				continue
+			}
+			headers[key] = values
+		}
+		ctx, err := twirp.WithHTTPRequestHeaders(r.Context(), headers)
+		if err != nil {
+			fmt.Printf("Error setting headers: %v\n", err)
+			ctx = r.Context()
+		}
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
 func main() {
 	basicsServer := api.NewBasicsServer(&api.BasicsService{}, twirp.WithServerPathPrefix("/twirp-quirks/twirp"))
 	quirksServer := api.NewQuirksServer(&api.QuirksService{}, twirp.WithServerPathPrefix("/twirp-quirks/twirp"))
@@ -15,10 +37,10 @@ func main() {
 
 	mux := http.NewServeMux()
 	fmt.Printf("Handling BasicsServer on %s\n", basicsServer.PathPrefix())
-	mux.Handle(basicsServer.PathPrefix(), basicsServer)
+	mux.Handle(basicsServer.PathPrefix(), headerMiddleware(basicsServer))
 	fmt.Printf("Handling QuirksServer on %s\n", quirksServer.PathPrefix())
-	mux.Handle(quirksServer.PathPrefix(), quirksServer)
+	mux.Handle(quirksServer.PathPrefix(), headerMiddleware(quirksServer))
 	fmt.Printf("Handling Quirks_2Server on %s\n", quirks_2Server.PathPrefix())
-	mux.Handle(quirks_2Server.PathPrefix(), quirks_2Server)
+	mux.Handle(quirks_2Server.PathPrefix(), headerMiddleware(quirks_2Server))
 	http.ListenAndServe(":41523", mux)
 }

@@ -9,6 +9,7 @@ import (
 
 	"github.com/kaja-tools/website/v2/internal/api"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 func main() {
@@ -17,6 +18,9 @@ func main() {
 	api.RegisterBasicsServer(grpcServer, &api.BasicsService{})
 	api.RegisterQuirksServer(grpcServer, &api.QuirksService{})
 	api.RegisterQuirks_2Server(grpcServer, &api.Quirks_2Service{})
+
+	// Enable gRPC reflection for grpcurl and other tools
+	reflection.Register(grpcServer)
 
 	// Create TCP listener
 	lis, err := net.Listen("tcp", ":50053")
