@@ -3,6 +3,9 @@ on:
   push:
     branches:
       - "main"
+  pull_request:
+    branches:
+      - "main"
 jobs:
   docker:
     runs-on: ubuntu-latest
@@ -10,6 +13,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Login to Docker Hub
+        if: github.event_name == 'push'
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
@@ -18,27 +22,27 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: ./apps/home
-          push: true
+          push: ${{ github.event_name == 'push' }}
           tags: |
             kajatools/website-home:latest
       - name: Build and push website-teams
         uses: docker/build-push-action@v3
         with:
           context: ./apps/teams
-          push: true
+          push: ${{ github.event_name == 'push' }}
           tags: |
             kajatools/website-teams:latest
       - name: Build and push website-users
         uses: docker/build-push-action@v3
         with:
           context: ./apps/users
-          push: true
+          push: ${{ github.event_name == 'push' }}
           tags: |
             kajatools/website-users:latest
       - name: Build and push website-quirks
         uses: docker/build-push-action@v3
         with:
           context: ./apps/quirks
-          push: true
+          push: ${{ github.event_name == 'push' }}
           tags: |
             kajatools/website-quirks:latest
