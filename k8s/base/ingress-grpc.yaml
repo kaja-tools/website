@@ -59,18 +59,3 @@ spec:
             name: grpc-quirks-service
             port:
               number: 80
-      # Quirks gRPC reflection
-      - path: /grpc.reflection.v1alpha.ServerReflection/ServerReflectionInfo
-        pathType: Exact
-        backend:
-          service:
-            name: grpc-quirks-service
-            port:
-              number: 80
-      - path: /grpc.reflection.v1.ServerReflection/ServerReflectionInfo
-        pathType: Exact
-        backend:
-          service:
-            name: grpc-quirks-service
-            port:
-              number: 80
