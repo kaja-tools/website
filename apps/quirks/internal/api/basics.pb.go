@@ -251,12 +251,35 @@ func (x *RepeatedRequest) GetMessage() []*Message {
 }
 
 type TypesRequest struct {
-	state         protoimpl.MessageState  `protogen:"open.v1"`
-	Timestamp     *timestamppb.Timestamp  `protobuf:"bytes,1,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
-	Bool          bool                    `protobuf:"varint,2,opt,name=bool,proto3" json:"bool,omitempty"`
-	Enum          Enum                    `protobuf:"varint,3,opt,name=enum,proto3,enum=Enum" json:"enum,omitempty"`
-	NestedEnum    TypesRequest_NestedEnum `protobuf:"varint,4,opt,name=nested_enum,json=nestedEnum,proto3,enum=TypesRequest_NestedEnum" json:"nested_enum,omitempty"`
-	Position      Position                `protobuf:"varint,5,opt,name=position,proto3,enum=lib.Position" json:"position,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Floating point types
+	Double float64 `protobuf:"fixed64,1,opt,name=double,proto3" json:"double,omitempty"`
+	Float  float32 `protobuf:"fixed32,2,opt,name=float,proto3" json:"float,omitempty"`
+	// Signed integers (variable-length encoding)
+	Int32 int32 `protobuf:"varint,3,opt,name=int32,proto3" json:"int32,omitempty"`
+	Int64 int64 `protobuf:"varint,4,opt,name=int64,proto3" json:"int64,omitempty"`
+	// Unsigned integers (variable-length encoding)
+	Uint32 uint32 `protobuf:"varint,5,opt,name=uint32,proto3" json:"uint32,omitempty"`
+	Uint64 uint64 `protobuf:"varint,6,opt,name=uint64,proto3" json:"uint64,omitempty"`
+	// Signed integers (ZigZag encoding, efficient for negative numbers)
+	Sint32 int32 `protobuf:"zigzag32,7,opt,name=sint32,proto3" json:"sint32,omitempty"`
+	Sint64 int64 `protobuf:"zigzag64,8,opt,name=sint64,proto3" json:"sint64,omitempty"`
+	// Fixed-size integers (always 4/8 bytes, efficient for large numbers)
+	Fixed32  uint32 `protobuf:"fixed32,9,opt,name=fixed32,proto3" json:"fixed32,omitempty"`
+	Fixed64  uint64 `protobuf:"fixed64,10,opt,name=fixed64,proto3" json:"fixed64,omitempty"`
+	Sfixed32 int32  `protobuf:"fixed32,11,opt,name=sfixed32,proto3" json:"sfixed32,omitempty"`
+	Sfixed64 int64  `protobuf:"fixed64,12,opt,name=sfixed64,proto3" json:"sfixed64,omitempty"`
+	// Boolean
+	Bool bool `protobuf:"varint,13,opt,name=bool,proto3" json:"bool,omitempty"`
+	// String and bytes
+	String_ string `protobuf:"bytes,14,opt,name=string,proto3" json:"string,omitempty"`
+	Bytes   []byte `protobuf:"bytes,15,opt,name=bytes,proto3" json:"bytes,omitempty"`
+	// Well-known types
+	Timestamp *timestamppb.Timestamp `protobuf:"bytes,16,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	// Enum types
+	Enum          Enum                    `protobuf:"varint,17,opt,name=enum,proto3,enum=Enum" json:"enum,omitempty"`
+	NestedEnum    TypesRequest_NestedEnum `protobuf:"varint,18,opt,name=nested_enum,json=nestedEnum,proto3,enum=TypesRequest_NestedEnum" json:"nested_enum,omitempty"`
+	Position      Position                `protobuf:"varint,19,opt,name=position,proto3,enum=lib.Position" json:"position,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -291,11 +314,88 @@ func (*TypesRequest) Descriptor() ([]byte, []int) {
 	return file_proto_basics_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *TypesRequest) GetTimestamp() *timestamppb.Timestamp {
+func (x *TypesRequest) GetDouble() float64 {
 	if x != nil {
-		return x.Timestamp
+		return x.Double
 	}
-	return nil
+	return 0
+}
+
+func (x *TypesRequest) GetFloat() float32 {
+	if x != nil {
+		return x.Float
+	}
+	return 0
+}
+
+func (x *TypesRequest) GetInt32() int32 {
+	if x != nil {
+		return x.Int32
+	}
+	return 0
+}
+
+func (x *TypesRequest) GetInt64() int64 {
+	if x != nil {
+		return x.Int64
+	}
+	return 0
+}
+
+func (x *TypesRequest) GetUint32() uint32 {
+	if x != nil {
+		return x.Uint32
+	}
+	return 0
+}
+
+func (x *TypesRequest) GetUint64() uint64 {
+	if x != nil {
+		return x.Uint64
+	}
+	return 0
+}
+
+func (x *TypesRequest) GetSint32() int32 {
+	if x != nil {
+		return x.Sint32
+	}
+	return 0
+}
+
+func (x *TypesRequest) GetSint64() int64 {
+	if x != nil {
+		return x.Sint64
+	}
+	return 0
+}
+
+func (x *TypesRequest) GetFixed32() uint32 {
+	if x != nil {
+		return x.Fixed32
+	}
+	return 0
+}
+
+func (x *TypesRequest) GetFixed64() uint64 {
+	if x != nil {
+		return x.Fixed64
+	}
+	return 0
+}
+
+func (x *TypesRequest) GetSfixed32() int32 {
+	if x != nil {
+		return x.Sfixed32
+	}
+	return 0
+}
+
+func (x *TypesRequest) GetSfixed64() int64 {
+	if x != nil {
+		return x.Sfixed64
+	}
+	return 0
 }
 
 func (x *TypesRequest) GetBool() bool {
@@ -303,6 +403,27 @@ func (x *TypesRequest) GetBool() bool {
 		return x.Bool
 	}
 	return false
+}
+
+func (x *TypesRequest) GetString_() string {
+	if x != nil {
+		return x.String_
+	}
+	return ""
+}
+
+func (x *TypesRequest) GetBytes() []byte {
+	if x != nil {
+		return x.Bytes
+	}
+	return nil
+}
+
+func (x *TypesRequest) GetTimestamp() *timestamppb.Timestamp {
+	if x != nil {
+		return x.Timestamp
+	}
+	return nil
 }
 
 func (x *TypesRequest) GetEnum() Enum {
@@ -326,6 +447,50 @@ func (x *TypesRequest) GetPosition() Position {
 	return Position_TOP
 }
 
+type HeadersResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Headers       map[string]string      `protobuf:"bytes,1,rep,name=headers,proto3" json:"headers,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *HeadersResponse) Reset() {
+	*x = HeadersResponse{}
+	mi := &file_proto_basics_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *HeadersResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*HeadersResponse) ProtoMessage() {}
+
+func (x *HeadersResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_basics_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use HeadersResponse.ProtoReflect.Descriptor instead.
+func (*HeadersResponse) Descriptor() ([]byte, []int) {
+	return file_proto_basics_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *HeadersResponse) GetHeaders() map[string]string {
+	if x != nil {
+		return x.Headers
+	}
+	return nil
+}
+
 type MapRequest_RepeatedString struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Value         []string               `protobuf:"bytes,1,rep,name=value,proto3" json:"value,omitempty"`
@@ -335,7 +500,7 @@ type MapRequest_RepeatedString struct {
 
 func (x *MapRequest_RepeatedString) Reset() {
 	*x = MapRequest_RepeatedString{}
-	mi := &file_proto_basics_proto_msgTypes[3]
+	mi := &file_proto_basics_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -347,7 +512,7 @@ func (x *MapRequest_RepeatedString) String() string {
 func (*MapRequest_RepeatedString) ProtoMessage() {}
 
 func (x *MapRequest_RepeatedString) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_basics_proto_msgTypes[3]
+	mi := &file_proto_basics_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -399,26 +564,48 @@ const file_proto_basics_proto_rawDesc = "" +
 	"\x06string\x18\x01 \x03(\tR\x06string\x12\x14\n" +
 	"\x05int32\x18\x02 \x03(\x05R\x05int32\x12\x19\n" +
 	"\x04enum\x18\x03 \x03(\x0e2\x05.EnumR\x04enum\x12&\n" +
-	"\amessage\x18\x04 \x03(\v2\f.lib.MessageR\amessage\"\x81\x02\n" +
-	"\fTypesRequest\x128\n" +
-	"\ttimestamp\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\ttimestamp\x12\x12\n" +
-	"\x04bool\x18\x02 \x01(\bR\x04bool\x12\x19\n" +
-	"\x04enum\x18\x03 \x01(\x0e2\x05.EnumR\x04enum\x129\n" +
-	"\vnested_enum\x18\x04 \x01(\x0e2\x18.TypesRequest.NestedEnumR\n" +
+	"\amessage\x18\x04 \x03(\v2\f.lib.MessageR\amessage\"\xd5\x04\n" +
+	"\fTypesRequest\x12\x16\n" +
+	"\x06double\x18\x01 \x01(\x01R\x06double\x12\x14\n" +
+	"\x05float\x18\x02 \x01(\x02R\x05float\x12\x14\n" +
+	"\x05int32\x18\x03 \x01(\x05R\x05int32\x12\x14\n" +
+	"\x05int64\x18\x04 \x01(\x03R\x05int64\x12\x16\n" +
+	"\x06uint32\x18\x05 \x01(\rR\x06uint32\x12\x16\n" +
+	"\x06uint64\x18\x06 \x01(\x04R\x06uint64\x12\x16\n" +
+	"\x06sint32\x18\a \x01(\x11R\x06sint32\x12\x16\n" +
+	"\x06sint64\x18\b \x01(\x12R\x06sint64\x12\x18\n" +
+	"\afixed32\x18\t \x01(\aR\afixed32\x12\x18\n" +
+	"\afixed64\x18\n" +
+	" \x01(\x06R\afixed64\x12\x1a\n" +
+	"\bsfixed32\x18\v \x01(\x0fR\bsfixed32\x12\x1a\n" +
+	"\bsfixed64\x18\f \x01(\x10R\bsfixed64\x12\x12\n" +
+	"\x04bool\x18\r \x01(\bR\x04bool\x12\x16\n" +
+	"\x06string\x18\x0e \x01(\tR\x06string\x12\x14\n" +
+	"\x05bytes\x18\x0f \x01(\fR\x05bytes\x128\n" +
+	"\ttimestamp\x18\x10 \x01(\v2\x1a.google.protobuf.TimestampR\ttimestamp\x12\x19\n" +
+	"\x04enum\x18\x11 \x01(\x0e2\x05.EnumR\x04enum\x129\n" +
+	"\vnested_enum\x18\x12 \x01(\x0e2\x18.TypesRequest.NestedEnumR\n" +
 	"nestedEnum\x12)\n" +
-	"\bposition\x18\x05 \x01(\x0e2\r.lib.PositionR\bposition\"\"\n" +
+	"\bposition\x18\x13 \x01(\x0e2\r.lib.PositionR\bposition\"\"\n" +
 	"\n" +
 	"NestedEnum\x12\t\n" +
 	"\x05KEY_0\x10\x00\x12\t\n" +
-	"\x05KEY_1\x10\x01*\x1c\n" +
+	"\x05KEY_1\x10\x01\"\x86\x01\n" +
+	"\x0fHeadersResponse\x127\n" +
+	"\aheaders\x18\x01 \x03(\v2\x1d.HeadersResponse.HeadersEntryR\aheaders\x1a:\n" +
+	"\fHeadersEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01*\x1c\n" +
 	"\x04Enum\x12\t\n" +
 	"\x05KEY_0\x10\x00\x12\t\n" +
-	"\x05KEY_1\x10\x012\xa2\x01\n" +
+	"\x05KEY_1\x10\x012\xf0\x01\n" +
 	"\x06Basics\x12%\n" +
 	"\x05Types\x12\r.TypesRequest\x1a\r.TypesRequest\x12\x1f\n" +
 	"\x03Map\x12\v.MapRequest\x1a\v.MapRequest\x12 \n" +
 	"\x05Panic\x12\t.lib.Void\x1a\f.lib.Message\x12.\n" +
-	"\bRepeated\x12\x10.RepeatedRequest\x1a\x10.RepeatedRequestB\x0eZ\finternal/apib\x06proto3"
+	"\bRepeated\x12\x10.RepeatedRequest\x1a\x10.RepeatedRequest\x12$\n" +
+	"\fUnauthorized\x12\t.lib.Void\x1a\t.lib.Void\x12&\n" +
+	"\aHeaders\x12\t.lib.Void\x1a\x10.HeadersResponseB\x0eZ\finternal/apib\x06proto3"
 
 var (
 	file_proto_basics_proto_rawDescOnce sync.Once
@@ -433,48 +620,55 @@ func file_proto_basics_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_basics_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_proto_basics_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_proto_basics_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_proto_basics_proto_goTypes = []any{
 	(Enum)(0),                         // 0: Enum
 	(TypesRequest_NestedEnum)(0),      // 1: TypesRequest.NestedEnum
 	(*MapRequest)(nil),                // 2: MapRequest
 	(*RepeatedRequest)(nil),           // 3: RepeatedRequest
 	(*TypesRequest)(nil),              // 4: TypesRequest
-	(*MapRequest_RepeatedString)(nil), // 5: MapRequest.RepeatedString
-	nil,                               // 6: MapRequest.StringStringEntry
-	nil,                               // 7: MapRequest.StringInt32Entry
-	nil,                               // 8: MapRequest.Sint64StringEntry
-	nil,                               // 9: MapRequest.StringRepeatedStringEntry
-	(*Message)(nil),                   // 10: lib.Message
-	(*timestamppb.Timestamp)(nil),     // 11: google.protobuf.Timestamp
-	(Position)(0),                     // 12: lib.Position
-	(*Void)(nil),                      // 13: lib.Void
+	(*HeadersResponse)(nil),           // 5: HeadersResponse
+	(*MapRequest_RepeatedString)(nil), // 6: MapRequest.RepeatedString
+	nil,                               // 7: MapRequest.StringStringEntry
+	nil,                               // 8: MapRequest.StringInt32Entry
+	nil,                               // 9: MapRequest.Sint64StringEntry
+	nil,                               // 10: MapRequest.StringRepeatedStringEntry
+	nil,                               // 11: HeadersResponse.HeadersEntry
+	(*Message)(nil),                   // 12: lib.Message
+	(*timestamppb.Timestamp)(nil),     // 13: google.protobuf.Timestamp
+	(Position)(0),                     // 14: lib.Position
+	(*Void)(nil),                      // 15: lib.Void
 }
 var file_proto_basics_proto_depIdxs = []int32{
-	6,  // 0: MapRequest.string_string:type_name -> MapRequest.StringStringEntry
-	7,  // 1: MapRequest.string_int32:type_name -> MapRequest.StringInt32Entry
-	8,  // 2: MapRequest.sint64_string:type_name -> MapRequest.Sint64StringEntry
-	9,  // 3: MapRequest.string_repeated_string:type_name -> MapRequest.StringRepeatedStringEntry
+	7,  // 0: MapRequest.string_string:type_name -> MapRequest.StringStringEntry
+	8,  // 1: MapRequest.string_int32:type_name -> MapRequest.StringInt32Entry
+	9,  // 2: MapRequest.sint64_string:type_name -> MapRequest.Sint64StringEntry
+	10, // 3: MapRequest.string_repeated_string:type_name -> MapRequest.StringRepeatedStringEntry
 	0,  // 4: RepeatedRequest.enum:type_name -> Enum
-	10, // 5: RepeatedRequest.message:type_name -> lib.Message
-	11, // 6: TypesRequest.timestamp:type_name -> google.protobuf.Timestamp
+	12, // 5: RepeatedRequest.message:type_name -> lib.Message
+	13, // 6: TypesRequest.timestamp:type_name -> google.protobuf.Timestamp
 	0,  // 7: TypesRequest.enum:type_name -> Enum
 	1,  // 8: TypesRequest.nested_enum:type_name -> TypesRequest.NestedEnum
-	12, // 9: TypesRequest.position:type_name -> lib.Position
-	5,  // 10: MapRequest.StringRepeatedStringEntry.value:type_name -> MapRequest.RepeatedString
-	4,  // 11: Basics.Types:input_type -> TypesRequest
-	2,  // 12: Basics.Map:input_type -> MapRequest
-	13, // 13: Basics.Panic:input_type -> lib.Void
-	3,  // 14: Basics.Repeated:input_type -> RepeatedRequest
-	4,  // 15: Basics.Types:output_type -> TypesRequest
-	2,  // 16: Basics.Map:output_type -> MapRequest
-	10, // 17: Basics.Panic:output_type -> lib.Message
-	3,  // 18: Basics.Repeated:output_type -> RepeatedRequest
-	15, // [15:19] is the sub-list for method output_type
-	11, // [11:15] is the sub-list for method input_type
-	11, // [11:11] is the sub-list for extension type_name
-	11, // [11:11] is the sub-list for extension extendee
-	0,  // [0:11] is the sub-list for field type_name
+	14, // 9: TypesRequest.position:type_name -> lib.Position
+	11, // 10: HeadersResponse.headers:type_name -> HeadersResponse.HeadersEntry
+	6,  // 11: MapRequest.StringRepeatedStringEntry.value:type_name -> MapRequest.RepeatedString
+	4,  // 12: Basics.Types:input_type -> TypesRequest
+	2,  // 13: Basics.Map:input_type -> MapRequest
+	15, // 14: Basics.Panic:input_type -> lib.Void
+	3,  // 15: Basics.Repeated:input_type -> RepeatedRequest
+	15, // 16: Basics.Unauthorized:input_type -> lib.Void
+	15, // 17: Basics.Headers:input_type -> lib.Void
+	4,  // 18: Basics.Types:output_type -> TypesRequest
+	2,  // 19: Basics.Map:output_type -> MapRequest
+	12, // 20: Basics.Panic:output_type -> lib.Message
+	3,  // 21: Basics.Repeated:output_type -> RepeatedRequest
+	15, // 22: Basics.Unauthorized:output_type -> lib.Void
+	5,  // 23: Basics.Headers:output_type -> HeadersResponse
+	18, // [18:24] is the sub-list for method output_type
+	12, // [12:18] is the sub-list for method input_type
+	12, // [12:12] is the sub-list for extension type_name
+	12, // [12:12] is the sub-list for extension extendee
+	0,  // [0:12] is the sub-list for field type_name
 }
 
 func init() { file_proto_basics_proto_init() }
@@ -490,7 +684,7 @@ func file_proto_basics_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_basics_proto_rawDesc), len(file_proto_basics_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   8,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
