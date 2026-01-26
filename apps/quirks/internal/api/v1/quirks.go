@@ -1,4 +1,4 @@
-package api
+package v1
 
 import (
 	"context"
@@ -12,6 +12,12 @@ type QuirksService struct {
 func (s *QuirksService) MethodWithAReallyLongNameGmthggupcbmnphflnnvu(ctx context.Context, req *Void) (*Message, error) {
 	return &Message{
 		Name: strings.Repeat("Ha ", 1000),
+	}, nil
+}
+
+func (s *QuirksService) Sum(ctx context.Context, req *SumStringsRequest) (*SumStringsResponse, error) {
+	return &SumStringsResponse{
+		Result: req.A + req.B,
 	}, nil
 }
 
