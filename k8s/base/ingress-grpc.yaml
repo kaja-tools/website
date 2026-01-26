@@ -23,6 +23,9 @@ spec:
             name: teams-service
             port:
               number: 80
+      # gRPC reflection - routes to teams-service
+      # Note: Each reflection path can only route to one backend.
+      # For grpcurl without proto files on other services, use -import-path with proto files.
       - path: /grpc.reflection.v1alpha.ServerReflection/
         pathType: Prefix
         backend:
@@ -38,7 +41,7 @@ spec:
             port:
               number: 80
       # Quirks service
-      - path: /Basics/
+      - path: /quirks.v1.Basics/
         pathType: Prefix
         backend:
           service:
@@ -53,6 +56,13 @@ spec:
             port:
               number: 80
       - path: /quirks.v1.quirks_2/
+        pathType: Prefix
+        backend:
+          service:
+            name: grpc-quirks-service
+            port:
+              number: 80
+      - path: /quirks.v2.Quirks/
         pathType: Prefix
         backend:
           service:
