@@ -1,7 +1,8 @@
 syntax = "proto3";
 package quirks.v1;
 import "google/protobuf/timestamp.proto";
-import "lib.proto";
+import "lib/message.proto";
+import "lib/enum.proto";
 
 option go_package = "internal/api/v1";
 
@@ -12,12 +13,12 @@ service Basics {
     // All possible protobuf types
     rpc Types(TypesRequest) returns(TypesRequest);
     rpc Map(MapRequest) returns(MapRequest);
-    rpc Panic(Void) returns(Message);
+    rpc Panic(lib.Void) returns(lib.Message);
     rpc Repeated(RepeatedRequest) returns(RepeatedRequest);
     // Returns 403 Unauthorized error
-    rpc Unauthorized(Void) returns(Void);
+    rpc Unauthorized(lib.Void) returns(lib.Void);
     // Returns all headers passed to the method
-    rpc Headers(Void) returns(HeadersResponse);
+    rpc Headers(lib.Void) returns(HeadersResponse);
 }
 
 message MapRequest {
@@ -40,7 +41,7 @@ message RepeatedRequest {
     repeated string string = 1;
     repeated int32 int32 = 2;
     repeated Enum enum = 3;
-    repeated Message message = 4;
+    repeated lib.Message message = 4;
 }
 
 message TypesRequest {
@@ -84,7 +85,7 @@ message TypesRequest {
     // Enum types
     Enum enum = 17;
     NestedEnum nested_enum = 18;
-    Position position = 19;
+    lib.Position position = 19;
 }
 
 message HeadersResponse {

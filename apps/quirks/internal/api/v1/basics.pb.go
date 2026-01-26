@@ -279,7 +279,7 @@ type TypesRequest struct {
 	// Enum types
 	Enum          Enum                    `protobuf:"varint,17,opt,name=enum,proto3,enum=quirks.v1.Enum" json:"enum,omitempty"`
 	NestedEnum    TypesRequest_NestedEnum `protobuf:"varint,18,opt,name=nested_enum,json=nestedEnum,proto3,enum=quirks.v1.TypesRequest_NestedEnum" json:"nested_enum,omitempty"`
-	Position      Position                `protobuf:"varint,19,opt,name=position,proto3,enum=quirks.v1.Position" json:"position,omitempty"`
+	Position      Position                `protobuf:"varint,19,opt,name=position,proto3,enum=lib.Position" json:"position,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -539,7 +539,7 @@ var File_basics_proto protoreflect.FileDescriptor
 
 const file_basics_proto_rawDesc = "" +
 	"\n" +
-	"\fbasics.proto\x12\tquirks.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\tlib.proto\"\xb3\x05\n" +
+	"\fbasics.proto\x12\tquirks.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x11lib/message.proto\x1a\x0elib/enum.proto\"\xb3\x05\n" +
 	"\n" +
 	"MapRequest\x12L\n" +
 	"\rstring_string\x18\x01 \x03(\v2'.quirks.v1.MapRequest.StringStringEntryR\fstringString\x12I\n" +
@@ -559,12 +559,12 @@ const file_basics_proto_rawDesc = "" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1am\n" +
 	"\x19StringRepeatedStringEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12:\n" +
-	"\x05value\x18\x02 \x01(\v2$.quirks.v1.MapRequest.RepeatedStringR\x05value:\x028\x01\"\x92\x01\n" +
+	"\x05value\x18\x02 \x01(\v2$.quirks.v1.MapRequest.RepeatedStringR\x05value:\x028\x01\"\x8c\x01\n" +
 	"\x0fRepeatedRequest\x12\x16\n" +
 	"\x06string\x18\x01 \x03(\tR\x06string\x12\x14\n" +
 	"\x05int32\x18\x02 \x03(\x05R\x05int32\x12#\n" +
-	"\x04enum\x18\x03 \x03(\x0e2\x0f.quirks.v1.EnumR\x04enum\x12,\n" +
-	"\amessage\x18\x04 \x03(\v2\x12.quirks.v1.MessageR\amessage\"\xef\x04\n" +
+	"\x04enum\x18\x03 \x03(\x0e2\x0f.quirks.v1.EnumR\x04enum\x12&\n" +
+	"\amessage\x18\x04 \x03(\v2\f.lib.MessageR\amessage\"\xe9\x04\n" +
 	"\fTypesRequest\x12\x16\n" +
 	"\x06double\x18\x01 \x01(\x01R\x06double\x12\x14\n" +
 	"\x05float\x18\x02 \x01(\x02R\x05float\x12\x14\n" +
@@ -585,8 +585,8 @@ const file_basics_proto_rawDesc = "" +
 	"\ttimestamp\x18\x10 \x01(\v2\x1a.google.protobuf.TimestampR\ttimestamp\x12#\n" +
 	"\x04enum\x18\x11 \x01(\x0e2\x0f.quirks.v1.EnumR\x04enum\x12C\n" +
 	"\vnested_enum\x18\x12 \x01(\x0e2\".quirks.v1.TypesRequest.NestedEnumR\n" +
-	"nestedEnum\x12/\n" +
-	"\bposition\x18\x13 \x01(\x0e2\x13.quirks.v1.PositionR\bposition\"\"\n" +
+	"nestedEnum\x12)\n" +
+	"\bposition\x18\x13 \x01(\x0e2\r.lib.PositionR\bposition\"\"\n" +
 	"\n" +
 	"NestedEnum\x12\t\n" +
 	"\x05KEY_0\x10\x00\x12\t\n" +
@@ -598,14 +598,14 @@ const file_basics_proto_rawDesc = "" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01*\x1c\n" +
 	"\x04Enum\x12\t\n" +
 	"\x05KEY_0\x10\x00\x12\t\n" +
-	"\x05KEY_1\x10\x012\xd4\x02\n" +
+	"\x05KEY_1\x10\x012\xb6\x02\n" +
 	"\x06Basics\x129\n" +
 	"\x05Types\x12\x17.quirks.v1.TypesRequest\x1a\x17.quirks.v1.TypesRequest\x123\n" +
-	"\x03Map\x12\x15.quirks.v1.MapRequest\x1a\x15.quirks.v1.MapRequest\x12,\n" +
-	"\x05Panic\x12\x0f.quirks.v1.Void\x1a\x12.quirks.v1.Message\x12B\n" +
-	"\bRepeated\x12\x1a.quirks.v1.RepeatedRequest\x1a\x1a.quirks.v1.RepeatedRequest\x120\n" +
-	"\fUnauthorized\x12\x0f.quirks.v1.Void\x1a\x0f.quirks.v1.Void\x126\n" +
-	"\aHeaders\x12\x0f.quirks.v1.Void\x1a\x1a.quirks.v1.HeadersResponseB\x11Z\x0finternal/api/v1b\x06proto3"
+	"\x03Map\x12\x15.quirks.v1.MapRequest\x1a\x15.quirks.v1.MapRequest\x12 \n" +
+	"\x05Panic\x12\t.lib.Void\x1a\f.lib.Message\x12B\n" +
+	"\bRepeated\x12\x1a.quirks.v1.RepeatedRequest\x1a\x1a.quirks.v1.RepeatedRequest\x12$\n" +
+	"\fUnauthorized\x12\t.lib.Void\x1a\t.lib.Void\x120\n" +
+	"\aHeaders\x12\t.lib.Void\x1a\x1a.quirks.v1.HeadersResponseB\x11Z\x0finternal/api/v1b\x06proto3"
 
 var (
 	file_basics_proto_rawDescOnce sync.Once
@@ -634,10 +634,10 @@ var file_basics_proto_goTypes = []any{
 	nil,                               // 9: quirks.v1.MapRequest.Sint64StringEntry
 	nil,                               // 10: quirks.v1.MapRequest.StringRepeatedStringEntry
 	nil,                               // 11: quirks.v1.HeadersResponse.HeadersEntry
-	(*Message)(nil),                   // 12: quirks.v1.Message
+	(*Message)(nil),                   // 12: lib.Message
 	(*timestamppb.Timestamp)(nil),     // 13: google.protobuf.Timestamp
-	(Position)(0),                     // 14: quirks.v1.Position
-	(*Void)(nil),                      // 15: quirks.v1.Void
+	(Position)(0),                     // 14: lib.Position
+	(*Void)(nil),                      // 15: lib.Void
 }
 var file_basics_proto_depIdxs = []int32{
 	7,  // 0: quirks.v1.MapRequest.string_string:type_name -> quirks.v1.MapRequest.StringStringEntry
@@ -645,24 +645,24 @@ var file_basics_proto_depIdxs = []int32{
 	9,  // 2: quirks.v1.MapRequest.sint64_string:type_name -> quirks.v1.MapRequest.Sint64StringEntry
 	10, // 3: quirks.v1.MapRequest.string_repeated_string:type_name -> quirks.v1.MapRequest.StringRepeatedStringEntry
 	0,  // 4: quirks.v1.RepeatedRequest.enum:type_name -> quirks.v1.Enum
-	12, // 5: quirks.v1.RepeatedRequest.message:type_name -> quirks.v1.Message
+	12, // 5: quirks.v1.RepeatedRequest.message:type_name -> lib.Message
 	13, // 6: quirks.v1.TypesRequest.timestamp:type_name -> google.protobuf.Timestamp
 	0,  // 7: quirks.v1.TypesRequest.enum:type_name -> quirks.v1.Enum
 	1,  // 8: quirks.v1.TypesRequest.nested_enum:type_name -> quirks.v1.TypesRequest.NestedEnum
-	14, // 9: quirks.v1.TypesRequest.position:type_name -> quirks.v1.Position
+	14, // 9: quirks.v1.TypesRequest.position:type_name -> lib.Position
 	11, // 10: quirks.v1.HeadersResponse.headers:type_name -> quirks.v1.HeadersResponse.HeadersEntry
 	6,  // 11: quirks.v1.MapRequest.StringRepeatedStringEntry.value:type_name -> quirks.v1.MapRequest.RepeatedString
 	4,  // 12: quirks.v1.Basics.Types:input_type -> quirks.v1.TypesRequest
 	2,  // 13: quirks.v1.Basics.Map:input_type -> quirks.v1.MapRequest
-	15, // 14: quirks.v1.Basics.Panic:input_type -> quirks.v1.Void
+	15, // 14: quirks.v1.Basics.Panic:input_type -> lib.Void
 	3,  // 15: quirks.v1.Basics.Repeated:input_type -> quirks.v1.RepeatedRequest
-	15, // 16: quirks.v1.Basics.Unauthorized:input_type -> quirks.v1.Void
-	15, // 17: quirks.v1.Basics.Headers:input_type -> quirks.v1.Void
+	15, // 16: quirks.v1.Basics.Unauthorized:input_type -> lib.Void
+	15, // 17: quirks.v1.Basics.Headers:input_type -> lib.Void
 	4,  // 18: quirks.v1.Basics.Types:output_type -> quirks.v1.TypesRequest
 	2,  // 19: quirks.v1.Basics.Map:output_type -> quirks.v1.MapRequest
-	12, // 20: quirks.v1.Basics.Panic:output_type -> quirks.v1.Message
+	12, // 20: quirks.v1.Basics.Panic:output_type -> lib.Message
 	3,  // 21: quirks.v1.Basics.Repeated:output_type -> quirks.v1.RepeatedRequest
-	15, // 22: quirks.v1.Basics.Unauthorized:output_type -> quirks.v1.Void
+	15, // 22: quirks.v1.Basics.Unauthorized:output_type -> lib.Void
 	5,  // 23: quirks.v1.Basics.Headers:output_type -> quirks.v1.HeadersResponse
 	18, // [18:24] is the sub-list for method output_type
 	12, // [12:18] is the sub-list for method input_type
@@ -676,7 +676,8 @@ func file_basics_proto_init() {
 	if File_basics_proto != nil {
 		return
 	}
-	file_lib_proto_init()
+	file_lib_message_proto_init()
+	file_lib_enum_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

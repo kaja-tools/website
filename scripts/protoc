@@ -68,10 +68,10 @@ cd "../users"
 "$PROTOC_BIN" -I"$BUILD_DIR/include" --proto_path=. --plugin=protoc-gen-go="$GOBIN/protoc-gen-go" --go_out=. --plugin=protoc-gen-twirp="$GOBIN/protoc-gen-twirp" --twirp_out=. -Iproto/ $(find . -iname "*.proto")
 
 cd "../quirks"
-# Generate v1 proto files
-"$PROTOC_BIN" -I"$BUILD_DIR/include" --proto_path=proto/v1 --plugin=protoc-gen-go="$GOBIN/protoc-gen-go" --go_out=. --plugin=protoc-gen-grpc="$GOBIN/protoc-gen-go-grpc" --grpc_out=. --plugin=protoc-gen-twirp="$GOBIN/protoc-gen-twirp" --twirp_out=. proto/v1/*.proto
+# Generate v1 proto files (including lib/ subdirectory)
+"$PROTOC_BIN" -I"$BUILD_DIR/include" --proto_path=proto/v1 --plugin=protoc-gen-go="$GOBIN/protoc-gen-go" --go_out=. --plugin=protoc-gen-grpc="$GOBIN/protoc-gen-go-grpc" --grpc_out=. --plugin=protoc-gen-twirp="$GOBIN/protoc-gen-twirp" --twirp_out=. $(find proto/v1 -name "*.proto")
 
 # Generate v2 proto files
-"$PROTOC_BIN" -I"$BUILD_DIR/include" --proto_path=proto/v2 --plugin=protoc-gen-go="$GOBIN/protoc-gen-go" --go_out=. --plugin=protoc-gen-grpc="$GOBIN/protoc-gen-go-grpc" --grpc_out=. --plugin=protoc-gen-twirp="$GOBIN/protoc-gen-twirp" --twirp_out=. proto/v2/*.proto
+"$PROTOC_BIN" -I"$BUILD_DIR/include" --proto_path=proto/v2 --plugin=protoc-gen-go="$GOBIN/protoc-gen-go" --go_out=. --plugin=protoc-gen-grpc="$GOBIN/protoc-gen-go-grpc" --grpc_out=. --plugin=protoc-gen-twirp="$GOBIN/protoc-gen-twirp" --twirp_out=. $(find proto/v2 -name "*.proto")
 
 echo "Proto generation complete."
