@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	Quirks_MethodWithAReallyLongNameGmthggupcbmnphflnnvu_FullMethodName = "/quirks.v1.Quirks/MethodWithAReallyLongNameGmthggupcbmnphflnnvu"
+	Quirks_Sum_FullMethodName                                           = "/quirks.v1.Quirks/Sum"
 )
 
 // QuirksClient is the client API for Quirks service.
@@ -29,6 +30,8 @@ const (
 // Test unusual things
 type QuirksClient interface {
 	MethodWithAReallyLongNameGmthggupcbmnphflnnvu(ctx context.Context, in *Void, opts ...grpc.CallOption) (*Message, error)
+	// Concatenates two strings
+	Sum(ctx context.Context, in *SumStringsRequest, opts ...grpc.CallOption) (*SumStringsResponse, error)
 }
 
 type quirksClient struct {
@@ -49,6 +52,16 @@ func (c *quirksClient) MethodWithAReallyLongNameGmthggupcbmnphflnnvu(ctx context
 	return out, nil
 }
 
+func (c *quirksClient) Sum(ctx context.Context, in *SumStringsRequest, opts ...grpc.CallOption) (*SumStringsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SumStringsResponse)
+	err := c.cc.Invoke(ctx, Quirks_Sum_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QuirksServer is the server API for Quirks service.
 // All implementations must embed UnimplementedQuirksServer
 // for forward compatibility.
@@ -56,6 +69,8 @@ func (c *quirksClient) MethodWithAReallyLongNameGmthggupcbmnphflnnvu(ctx context
 // Test unusual things
 type QuirksServer interface {
 	MethodWithAReallyLongNameGmthggupcbmnphflnnvu(context.Context, *Void) (*Message, error)
+	// Concatenates two strings
+	Sum(context.Context, *SumStringsRequest) (*SumStringsResponse, error)
 	mustEmbedUnimplementedQuirksServer()
 }
 
@@ -68,6 +83,9 @@ type UnimplementedQuirksServer struct{}
 
 func (UnimplementedQuirksServer) MethodWithAReallyLongNameGmthggupcbmnphflnnvu(context.Context, *Void) (*Message, error) {
 	return nil, status.Error(codes.Unimplemented, "method MethodWithAReallyLongNameGmthggupcbmnphflnnvu not implemented")
+}
+func (UnimplementedQuirksServer) Sum(context.Context, *SumStringsRequest) (*SumStringsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method Sum not implemented")
 }
 func (UnimplementedQuirksServer) mustEmbedUnimplementedQuirksServer() {}
 func (UnimplementedQuirksServer) testEmbeddedByValue()                {}
@@ -108,6 +126,24 @@ func _Quirks_MethodWithAReallyLongNameGmthggupcbmnphflnnvu_Handler(srv interface
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Quirks_Sum_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SumStringsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QuirksServer).Sum(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Quirks_Sum_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QuirksServer).Sum(ctx, req.(*SumStringsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Quirks_ServiceDesc is the grpc.ServiceDesc for Quirks service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -118,6 +154,10 @@ var Quirks_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "MethodWithAReallyLongNameGmthggupcbmnphflnnvu",
 			Handler:    _Quirks_MethodWithAReallyLongNameGmthggupcbmnphflnnvu_Handler,
+		},
+		{
+			MethodName: "Sum",
+			Handler:    _Quirks_Sum_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

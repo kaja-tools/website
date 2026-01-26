@@ -15,6 +15,12 @@ func (s *QuirksService) MethodWithAReallyLongNameGmthggupcbmnphflnnvu(ctx contex
 	}, nil
 }
 
+func (s *QuirksService) Sum(ctx context.Context, req *SumStringsRequest) (*SumStringsResponse, error) {
+	return &SumStringsResponse{
+		Result: req.A + req.B,
+	}, nil
+}
+
 type Quirks_2Service struct {
 	UnimplementedQuirks_2Server
 }

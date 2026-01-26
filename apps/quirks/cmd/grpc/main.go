@@ -8,6 +8,7 @@ import (
 	"syscall"
 
 	"github.com/kaja-tools/website/v2/internal/api"
+	v2 "github.com/kaja-tools/website/v2/internal/api/v2"
 	"google.golang.org/grpc"
 )
 
@@ -17,6 +18,7 @@ func main() {
 	api.RegisterBasicsServer(grpcServer, &api.BasicsService{})
 	api.RegisterQuirksServer(grpcServer, &api.QuirksService{})
 	api.RegisterQuirks_2Server(grpcServer, &api.Quirks_2Service{})
+	v2.RegisterQuirksServer(grpcServer, &v2.QuirksService{})
 
 	// Create TCP listener
 	lis, err := net.Listen("tcp", ":50053")
