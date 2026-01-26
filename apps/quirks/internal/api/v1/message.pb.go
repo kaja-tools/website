@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v6.30.2
-// source: lib/message.proto
+// source: v1/lib/message.proto
 
 package v1
 
@@ -29,7 +29,7 @@ type Void struct {
 
 func (x *Void) Reset() {
 	*x = Void{}
-	mi := &file_lib_message_proto_msgTypes[0]
+	mi := &file_v1_lib_message_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -41,7 +41,7 @@ func (x *Void) String() string {
 func (*Void) ProtoMessage() {}
 
 func (x *Void) ProtoReflect() protoreflect.Message {
-	mi := &file_lib_message_proto_msgTypes[0]
+	mi := &file_v1_lib_message_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -54,7 +54,7 @@ func (x *Void) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Void.ProtoReflect.Descriptor instead.
 func (*Void) Descriptor() ([]byte, []int) {
-	return file_lib_message_proto_rawDescGZIP(), []int{0}
+	return file_v1_lib_message_proto_rawDescGZIP(), []int{0}
 }
 
 type Message struct {
@@ -66,7 +66,7 @@ type Message struct {
 
 func (x *Message) Reset() {
 	*x = Message{}
-	mi := &file_lib_message_proto_msgTypes[1]
+	mi := &file_v1_lib_message_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -78,7 +78,7 @@ func (x *Message) String() string {
 func (*Message) ProtoMessage() {}
 
 func (x *Message) ProtoReflect() protoreflect.Message {
-	mi := &file_lib_message_proto_msgTypes[1]
+	mi := &file_v1_lib_message_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -91,7 +91,7 @@ func (x *Message) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Message.ProtoReflect.Descriptor instead.
 func (*Message) Descriptor() ([]byte, []int) {
-	return file_lib_message_proto_rawDescGZIP(), []int{1}
+	return file_v1_lib_message_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *Message) GetName() string {
@@ -101,33 +101,33 @@ func (x *Message) GetName() string {
 	return ""
 }
 
-var File_lib_message_proto protoreflect.FileDescriptor
+var File_v1_lib_message_proto protoreflect.FileDescriptor
 
-const file_lib_message_proto_rawDesc = "" +
+const file_v1_lib_message_proto_rawDesc = "" +
 	"\n" +
-	"\x11lib/message.proto\x12\x03lib\"\x06\n" +
+	"\x14v1/lib/message.proto\x12\x03lib\"\x06\n" +
 	"\x04Void\"\x1d\n" +
 	"\aMessage\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04nameB\x11Z\x0finternal/api/v1b\x06proto3"
 
 var (
-	file_lib_message_proto_rawDescOnce sync.Once
-	file_lib_message_proto_rawDescData []byte
+	file_v1_lib_message_proto_rawDescOnce sync.Once
+	file_v1_lib_message_proto_rawDescData []byte
 )
 
-func file_lib_message_proto_rawDescGZIP() []byte {
-	file_lib_message_proto_rawDescOnce.Do(func() {
-		file_lib_message_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_lib_message_proto_rawDesc), len(file_lib_message_proto_rawDesc)))
+func file_v1_lib_message_proto_rawDescGZIP() []byte {
+	file_v1_lib_message_proto_rawDescOnce.Do(func() {
+		file_v1_lib_message_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_v1_lib_message_proto_rawDesc), len(file_v1_lib_message_proto_rawDesc)))
 	})
-	return file_lib_message_proto_rawDescData
+	return file_v1_lib_message_proto_rawDescData
 }
 
-var file_lib_message_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-var file_lib_message_proto_goTypes = []any{
+var file_v1_lib_message_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_v1_lib_message_proto_goTypes = []any{
 	(*Void)(nil),    // 0: lib.Void
 	(*Message)(nil), // 1: lib.Message
 }
-var file_lib_message_proto_depIdxs = []int32{
+var file_v1_lib_message_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
 	0, // [0:0] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
@@ -135,26 +135,26 @@ var file_lib_message_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_lib_message_proto_init() }
-func file_lib_message_proto_init() {
-	if File_lib_message_proto != nil {
+func init() { file_v1_lib_message_proto_init() }
+func file_v1_lib_message_proto_init() {
+	if File_v1_lib_message_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_lib_message_proto_rawDesc), len(file_lib_message_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_lib_message_proto_rawDesc), len(file_v1_lib_message_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_lib_message_proto_goTypes,
-		DependencyIndexes: file_lib_message_proto_depIdxs,
-		MessageInfos:      file_lib_message_proto_msgTypes,
+		GoTypes:           file_v1_lib_message_proto_goTypes,
+		DependencyIndexes: file_v1_lib_message_proto_depIdxs,
+		MessageInfos:      file_v1_lib_message_proto_msgTypes,
 	}.Build()
-	File_lib_message_proto = out.File
-	file_lib_message_proto_goTypes = nil
-	file_lib_message_proto_depIdxs = nil
+	File_v1_lib_message_proto = out.File
+	file_v1_lib_message_proto_goTypes = nil
+	file_v1_lib_message_proto_depIdxs = nil
 }

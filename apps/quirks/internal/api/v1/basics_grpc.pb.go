@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.0
 // - protoc             v6.30.2
-// source: basics.proto
+// source: v1/basics.proto
 
 package v1
 
@@ -319,5 +319,5 @@ var Basics_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "basics.proto",
+	Metadata: "v1/basics.proto",
 }

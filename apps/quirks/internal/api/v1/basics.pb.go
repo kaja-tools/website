@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v6.30.2
-// source: basics.proto
+// source: v1/basics.proto
 
 package v1
 
@@ -52,11 +52,11 @@ func (x Enum) String() string {
 }
 
 func (Enum) Descriptor() protoreflect.EnumDescriptor {
-	return file_basics_proto_enumTypes[0].Descriptor()
+	return file_v1_basics_proto_enumTypes[0].Descriptor()
 }
 
 func (Enum) Type() protoreflect.EnumType {
-	return &file_basics_proto_enumTypes[0]
+	return &file_v1_basics_proto_enumTypes[0]
 }
 
 func (x Enum) Number() protoreflect.EnumNumber {
@@ -65,7 +65,7 @@ func (x Enum) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use Enum.Descriptor instead.
 func (Enum) EnumDescriptor() ([]byte, []int) {
-	return file_basics_proto_rawDescGZIP(), []int{0}
+	return file_v1_basics_proto_rawDescGZIP(), []int{0}
 }
 
 type TypesRequest_NestedEnum int32
@@ -98,11 +98,11 @@ func (x TypesRequest_NestedEnum) String() string {
 }
 
 func (TypesRequest_NestedEnum) Descriptor() protoreflect.EnumDescriptor {
-	return file_basics_proto_enumTypes[1].Descriptor()
+	return file_v1_basics_proto_enumTypes[1].Descriptor()
 }
 
 func (TypesRequest_NestedEnum) Type() protoreflect.EnumType {
-	return &file_basics_proto_enumTypes[1]
+	return &file_v1_basics_proto_enumTypes[1]
 }
 
 func (x TypesRequest_NestedEnum) Number() protoreflect.EnumNumber {
@@ -111,7 +111,7 @@ func (x TypesRequest_NestedEnum) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use TypesRequest_NestedEnum.Descriptor instead.
 func (TypesRequest_NestedEnum) EnumDescriptor() ([]byte, []int) {
-	return file_basics_proto_rawDescGZIP(), []int{2, 0}
+	return file_v1_basics_proto_rawDescGZIP(), []int{2, 0}
 }
 
 type MapRequest struct {
@@ -126,7 +126,7 @@ type MapRequest struct {
 
 func (x *MapRequest) Reset() {
 	*x = MapRequest{}
-	mi := &file_basics_proto_msgTypes[0]
+	mi := &file_v1_basics_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -138,7 +138,7 @@ func (x *MapRequest) String() string {
 func (*MapRequest) ProtoMessage() {}
 
 func (x *MapRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_basics_proto_msgTypes[0]
+	mi := &file_v1_basics_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -151,7 +151,7 @@ func (x *MapRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MapRequest.ProtoReflect.Descriptor instead.
 func (*MapRequest) Descriptor() ([]byte, []int) {
-	return file_basics_proto_rawDescGZIP(), []int{0}
+	return file_v1_basics_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *MapRequest) GetStringString() map[string]string {
@@ -194,7 +194,7 @@ type RepeatedRequest struct {
 
 func (x *RepeatedRequest) Reset() {
 	*x = RepeatedRequest{}
-	mi := &file_basics_proto_msgTypes[1]
+	mi := &file_v1_basics_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -206,7 +206,7 @@ func (x *RepeatedRequest) String() string {
 func (*RepeatedRequest) ProtoMessage() {}
 
 func (x *RepeatedRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_basics_proto_msgTypes[1]
+	mi := &file_v1_basics_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -219,7 +219,7 @@ func (x *RepeatedRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RepeatedRequest.ProtoReflect.Descriptor instead.
 func (*RepeatedRequest) Descriptor() ([]byte, []int) {
-	return file_basics_proto_rawDescGZIP(), []int{1}
+	return file_v1_basics_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *RepeatedRequest) GetString_() []string {
@@ -286,7 +286,7 @@ type TypesRequest struct {
 
 func (x *TypesRequest) Reset() {
 	*x = TypesRequest{}
-	mi := &file_basics_proto_msgTypes[2]
+	mi := &file_v1_basics_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -298,7 +298,7 @@ func (x *TypesRequest) String() string {
 func (*TypesRequest) ProtoMessage() {}
 
 func (x *TypesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_basics_proto_msgTypes[2]
+	mi := &file_v1_basics_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -311,7 +311,7 @@ func (x *TypesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TypesRequest.ProtoReflect.Descriptor instead.
 func (*TypesRequest) Descriptor() ([]byte, []int) {
-	return file_basics_proto_rawDescGZIP(), []int{2}
+	return file_v1_basics_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *TypesRequest) GetDouble() float64 {
@@ -456,7 +456,7 @@ type HeadersResponse struct {
 
 func (x *HeadersResponse) Reset() {
 	*x = HeadersResponse{}
-	mi := &file_basics_proto_msgTypes[3]
+	mi := &file_v1_basics_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -468,7 +468,7 @@ func (x *HeadersResponse) String() string {
 func (*HeadersResponse) ProtoMessage() {}
 
 func (x *HeadersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_basics_proto_msgTypes[3]
+	mi := &file_v1_basics_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -481,7 +481,7 @@ func (x *HeadersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HeadersResponse.ProtoReflect.Descriptor instead.
 func (*HeadersResponse) Descriptor() ([]byte, []int) {
-	return file_basics_proto_rawDescGZIP(), []int{3}
+	return file_v1_basics_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *HeadersResponse) GetHeaders() map[string]string {
@@ -500,7 +500,7 @@ type MapRequest_RepeatedString struct {
 
 func (x *MapRequest_RepeatedString) Reset() {
 	*x = MapRequest_RepeatedString{}
-	mi := &file_basics_proto_msgTypes[4]
+	mi := &file_v1_basics_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -512,7 +512,7 @@ func (x *MapRequest_RepeatedString) String() string {
 func (*MapRequest_RepeatedString) ProtoMessage() {}
 
 func (x *MapRequest_RepeatedString) ProtoReflect() protoreflect.Message {
-	mi := &file_basics_proto_msgTypes[4]
+	mi := &file_v1_basics_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -525,7 +525,7 @@ func (x *MapRequest_RepeatedString) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MapRequest_RepeatedString.ProtoReflect.Descriptor instead.
 func (*MapRequest_RepeatedString) Descriptor() ([]byte, []int) {
-	return file_basics_proto_rawDescGZIP(), []int{0, 0}
+	return file_v1_basics_proto_rawDescGZIP(), []int{0, 0}
 }
 
 func (x *MapRequest_RepeatedString) GetValue() []string {
@@ -535,11 +535,11 @@ func (x *MapRequest_RepeatedString) GetValue() []string {
 	return nil
 }
 
-var File_basics_proto protoreflect.FileDescriptor
+var File_v1_basics_proto protoreflect.FileDescriptor
 
-const file_basics_proto_rawDesc = "" +
+const file_v1_basics_proto_rawDesc = "" +
 	"\n" +
-	"\fbasics.proto\x12\tquirks.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x11lib/message.proto\x1a\x0elib/enum.proto\"\xb3\x05\n" +
+	"\x0fv1/basics.proto\x12\tquirks.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x14v1/lib/message.proto\x1a\x11v1/lib/enum.proto\"\xb3\x05\n" +
 	"\n" +
 	"MapRequest\x12L\n" +
 	"\rstring_string\x18\x01 \x03(\v2'.quirks.v1.MapRequest.StringStringEntryR\fstringString\x12I\n" +
@@ -608,20 +608,20 @@ const file_basics_proto_rawDesc = "" +
 	"\aHeaders\x12\t.lib.Void\x1a\x1a.quirks.v1.HeadersResponseB\x11Z\x0finternal/api/v1b\x06proto3"
 
 var (
-	file_basics_proto_rawDescOnce sync.Once
-	file_basics_proto_rawDescData []byte
+	file_v1_basics_proto_rawDescOnce sync.Once
+	file_v1_basics_proto_rawDescData []byte
 )
 
-func file_basics_proto_rawDescGZIP() []byte {
-	file_basics_proto_rawDescOnce.Do(func() {
-		file_basics_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_basics_proto_rawDesc), len(file_basics_proto_rawDesc)))
+func file_v1_basics_proto_rawDescGZIP() []byte {
+	file_v1_basics_proto_rawDescOnce.Do(func() {
+		file_v1_basics_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_v1_basics_proto_rawDesc), len(file_v1_basics_proto_rawDesc)))
 	})
-	return file_basics_proto_rawDescData
+	return file_v1_basics_proto_rawDescData
 }
 
-var file_basics_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_basics_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
-var file_basics_proto_goTypes = []any{
+var file_v1_basics_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_v1_basics_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_v1_basics_proto_goTypes = []any{
 	(Enum)(0),                         // 0: quirks.v1.Enum
 	(TypesRequest_NestedEnum)(0),      // 1: quirks.v1.TypesRequest.NestedEnum
 	(*MapRequest)(nil),                // 2: quirks.v1.MapRequest
@@ -639,7 +639,7 @@ var file_basics_proto_goTypes = []any{
 	(Position)(0),                     // 14: lib.Position
 	(*Void)(nil),                      // 15: lib.Void
 }
-var file_basics_proto_depIdxs = []int32{
+var file_v1_basics_proto_depIdxs = []int32{
 	7,  // 0: quirks.v1.MapRequest.string_string:type_name -> quirks.v1.MapRequest.StringStringEntry
 	8,  // 1: quirks.v1.MapRequest.string_int32:type_name -> quirks.v1.MapRequest.StringInt32Entry
 	9,  // 2: quirks.v1.MapRequest.sint64_string:type_name -> quirks.v1.MapRequest.Sint64StringEntry
@@ -671,29 +671,29 @@ var file_basics_proto_depIdxs = []int32{
 	0,  // [0:12] is the sub-list for field type_name
 }
 
-func init() { file_basics_proto_init() }
-func file_basics_proto_init() {
-	if File_basics_proto != nil {
+func init() { file_v1_basics_proto_init() }
+func file_v1_basics_proto_init() {
+	if File_v1_basics_proto != nil {
 		return
 	}
-	file_lib_message_proto_init()
-	file_lib_enum_proto_init()
+	file_v1_lib_message_proto_init()
+	file_v1_lib_enum_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_basics_proto_rawDesc), len(file_basics_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_basics_proto_rawDesc), len(file_v1_basics_proto_rawDesc)),
 			NumEnums:      2,
 			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_basics_proto_goTypes,
-		DependencyIndexes: file_basics_proto_depIdxs,
-		EnumInfos:         file_basics_proto_enumTypes,
-		MessageInfos:      file_basics_proto_msgTypes,
+		GoTypes:           file_v1_basics_proto_goTypes,
+		DependencyIndexes: file_v1_basics_proto_depIdxs,
+		EnumInfos:         file_v1_basics_proto_enumTypes,
+		MessageInfos:      file_v1_basics_proto_msgTypes,
 	}.Build()
-	File_basics_proto = out.File
-	file_basics_proto_goTypes = nil
-	file_basics_proto_depIdxs = nil
+	File_v1_basics_proto = out.File
+	file_v1_basics_proto_goTypes = nil
+	file_v1_basics_proto_depIdxs = nil
 }

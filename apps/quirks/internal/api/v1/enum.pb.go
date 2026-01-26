@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v6.30.2
-// source: lib/enum.proto
+// source: v1/lib/enum.proto
 
 package v1
 
@@ -51,11 +51,11 @@ func (x Position) String() string {
 }
 
 func (Position) Descriptor() protoreflect.EnumDescriptor {
-	return file_lib_enum_proto_enumTypes[0].Descriptor()
+	return file_v1_lib_enum_proto_enumTypes[0].Descriptor()
 }
 
 func (Position) Type() protoreflect.EnumType {
-	return &file_lib_enum_proto_enumTypes[0]
+	return &file_v1_lib_enum_proto_enumTypes[0]
 }
 
 func (x Position) Number() protoreflect.EnumNumber {
@@ -64,36 +64,36 @@ func (x Position) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use Position.Descriptor instead.
 func (Position) EnumDescriptor() ([]byte, []int) {
-	return file_lib_enum_proto_rawDescGZIP(), []int{0}
+	return file_v1_lib_enum_proto_rawDescGZIP(), []int{0}
 }
 
-var File_lib_enum_proto protoreflect.FileDescriptor
+var File_v1_lib_enum_proto protoreflect.FileDescriptor
 
-const file_lib_enum_proto_rawDesc = "" +
+const file_v1_lib_enum_proto_rawDesc = "" +
 	"\n" +
-	"\x0elib/enum.proto\x12\x03lib*\x1f\n" +
+	"\x11v1/lib/enum.proto\x12\x03lib*\x1f\n" +
 	"\bPosition\x12\a\n" +
 	"\x03TOP\x10\x00\x12\n" +
 	"\n" +
 	"\x06BOTTOM\x10\x01B\x11Z\x0finternal/api/v1b\x06proto3"
 
 var (
-	file_lib_enum_proto_rawDescOnce sync.Once
-	file_lib_enum_proto_rawDescData []byte
+	file_v1_lib_enum_proto_rawDescOnce sync.Once
+	file_v1_lib_enum_proto_rawDescData []byte
 )
 
-func file_lib_enum_proto_rawDescGZIP() []byte {
-	file_lib_enum_proto_rawDescOnce.Do(func() {
-		file_lib_enum_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_lib_enum_proto_rawDesc), len(file_lib_enum_proto_rawDesc)))
+func file_v1_lib_enum_proto_rawDescGZIP() []byte {
+	file_v1_lib_enum_proto_rawDescOnce.Do(func() {
+		file_v1_lib_enum_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_v1_lib_enum_proto_rawDesc), len(file_v1_lib_enum_proto_rawDesc)))
 	})
-	return file_lib_enum_proto_rawDescData
+	return file_v1_lib_enum_proto_rawDescData
 }
 
-var file_lib_enum_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_lib_enum_proto_goTypes = []any{
+var file_v1_lib_enum_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_v1_lib_enum_proto_goTypes = []any{
 	(Position)(0), // 0: lib.Position
 }
-var file_lib_enum_proto_depIdxs = []int32{
+var file_v1_lib_enum_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
 	0, // [0:0] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
@@ -101,26 +101,26 @@ var file_lib_enum_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_lib_enum_proto_init() }
-func file_lib_enum_proto_init() {
-	if File_lib_enum_proto != nil {
+func init() { file_v1_lib_enum_proto_init() }
+func file_v1_lib_enum_proto_init() {
+	if File_v1_lib_enum_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_lib_enum_proto_rawDesc), len(file_lib_enum_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_lib_enum_proto_rawDesc), len(file_v1_lib_enum_proto_rawDesc)),
 			NumEnums:      1,
 			NumMessages:   0,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_lib_enum_proto_goTypes,
-		DependencyIndexes: file_lib_enum_proto_depIdxs,
-		EnumInfos:         file_lib_enum_proto_enumTypes,
+		GoTypes:           file_v1_lib_enum_proto_goTypes,
+		DependencyIndexes: file_v1_lib_enum_proto_depIdxs,
+		EnumInfos:         file_v1_lib_enum_proto_enumTypes,
 	}.Build()
-	File_lib_enum_proto = out.File
-	file_lib_enum_proto_goTypes = nil
-	file_lib_enum_proto_depIdxs = nil
+	File_v1_lib_enum_proto = out.File
+	file_v1_lib_enum_proto_goTypes = nil
+	file_v1_lib_enum_proto_depIdxs = nil
 }

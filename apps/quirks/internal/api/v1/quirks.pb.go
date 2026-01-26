@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v6.30.2
-// source: quirks.proto
+// source: v1/quirks.proto
 
 package v1
 
@@ -31,7 +31,7 @@ type SumStringsRequest struct {
 
 func (x *SumStringsRequest) Reset() {
 	*x = SumStringsRequest{}
-	mi := &file_quirks_proto_msgTypes[0]
+	mi := &file_v1_quirks_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -43,7 +43,7 @@ func (x *SumStringsRequest) String() string {
 func (*SumStringsRequest) ProtoMessage() {}
 
 func (x *SumStringsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_quirks_proto_msgTypes[0]
+	mi := &file_v1_quirks_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -56,7 +56,7 @@ func (x *SumStringsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SumStringsRequest.ProtoReflect.Descriptor instead.
 func (*SumStringsRequest) Descriptor() ([]byte, []int) {
-	return file_quirks_proto_rawDescGZIP(), []int{0}
+	return file_v1_quirks_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *SumStringsRequest) GetA() string {
@@ -82,7 +82,7 @@ type SumStringsResponse struct {
 
 func (x *SumStringsResponse) Reset() {
 	*x = SumStringsResponse{}
-	mi := &file_quirks_proto_msgTypes[1]
+	mi := &file_v1_quirks_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -94,7 +94,7 @@ func (x *SumStringsResponse) String() string {
 func (*SumStringsResponse) ProtoMessage() {}
 
 func (x *SumStringsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_quirks_proto_msgTypes[1]
+	mi := &file_v1_quirks_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -107,7 +107,7 @@ func (x *SumStringsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SumStringsResponse.ProtoReflect.Descriptor instead.
 func (*SumStringsResponse) Descriptor() ([]byte, []int) {
-	return file_quirks_proto_rawDescGZIP(), []int{1}
+	return file_v1_quirks_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *SumStringsResponse) GetResult() string {
@@ -117,11 +117,11 @@ func (x *SumStringsResponse) GetResult() string {
 	return ""
 }
 
-var File_quirks_proto protoreflect.FileDescriptor
+var File_v1_quirks_proto protoreflect.FileDescriptor
 
-const file_quirks_proto_rawDesc = "" +
+const file_v1_quirks_proto_rawDesc = "" +
 	"\n" +
-	"\fquirks.proto\x12\tquirks.v1\x1a\x11lib/message.proto\"/\n" +
+	"\x0fv1/quirks.proto\x12\tquirks.v1\x1a\x14v1/lib/message.proto\"/\n" +
 	"\x11SumStringsRequest\x12\f\n" +
 	"\x01a\x18\x01 \x01(\tR\x01a\x12\f\n" +
 	"\x01b\x18\x02 \x01(\tR\x01b\",\n" +
@@ -134,25 +134,25 @@ const file_quirks_proto_rawDesc = "" +
 	"\x0fcamelCaseMethod\x12\t.lib.Void\x1a\t.lib.VoidB\x11Z\x0finternal/api/v1b\x06proto3"
 
 var (
-	file_quirks_proto_rawDescOnce sync.Once
-	file_quirks_proto_rawDescData []byte
+	file_v1_quirks_proto_rawDescOnce sync.Once
+	file_v1_quirks_proto_rawDescData []byte
 )
 
-func file_quirks_proto_rawDescGZIP() []byte {
-	file_quirks_proto_rawDescOnce.Do(func() {
-		file_quirks_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_quirks_proto_rawDesc), len(file_quirks_proto_rawDesc)))
+func file_v1_quirks_proto_rawDescGZIP() []byte {
+	file_v1_quirks_proto_rawDescOnce.Do(func() {
+		file_v1_quirks_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_v1_quirks_proto_rawDesc), len(file_v1_quirks_proto_rawDesc)))
 	})
-	return file_quirks_proto_rawDescData
+	return file_v1_quirks_proto_rawDescData
 }
 
-var file_quirks_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-var file_quirks_proto_goTypes = []any{
+var file_v1_quirks_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_v1_quirks_proto_goTypes = []any{
 	(*SumStringsRequest)(nil),  // 0: quirks.v1.SumStringsRequest
 	(*SumStringsResponse)(nil), // 1: quirks.v1.SumStringsResponse
 	(*Void)(nil),               // 2: lib.Void
 	(*Message)(nil),            // 3: lib.Message
 }
-var file_quirks_proto_depIdxs = []int32{
+var file_v1_quirks_proto_depIdxs = []int32{
 	2, // 0: quirks.v1.Quirks.MethodWithAReallyLongNameGmthggupcbmnphflnnvu:input_type -> lib.Void
 	0, // 1: quirks.v1.Quirks.Sum:input_type -> quirks.v1.SumStringsRequest
 	2, // 2: quirks.v1.quirks_2.camelCaseMethod:input_type -> lib.Void
@@ -166,27 +166,27 @@ var file_quirks_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_quirks_proto_init() }
-func file_quirks_proto_init() {
-	if File_quirks_proto != nil {
+func init() { file_v1_quirks_proto_init() }
+func file_v1_quirks_proto_init() {
+	if File_v1_quirks_proto != nil {
 		return
 	}
-	file_lib_message_proto_init()
+	file_v1_lib_message_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_quirks_proto_rawDesc), len(file_quirks_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_quirks_proto_rawDesc), len(file_v1_quirks_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   2,
 		},
-		GoTypes:           file_quirks_proto_goTypes,
-		DependencyIndexes: file_quirks_proto_depIdxs,
-		MessageInfos:      file_quirks_proto_msgTypes,
+		GoTypes:           file_v1_quirks_proto_goTypes,
+		DependencyIndexes: file_v1_quirks_proto_depIdxs,
+		MessageInfos:      file_v1_quirks_proto_msgTypes,
 	}.Build()
-	File_quirks_proto = out.File
-	file_quirks_proto_goTypes = nil
-	file_quirks_proto_depIdxs = nil
+	File_v1_quirks_proto = out.File
+	file_v1_quirks_proto_goTypes = nil
+	file_v1_quirks_proto_depIdxs = nil
 }

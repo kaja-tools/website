@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.0
 // - protoc             v6.30.2
-// source: quirks_v2.proto
+// source: v2/quirks.proto
 
 package v2
 
@@ -125,5 +125,5 @@ var Quirks_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "quirks_v2.proto",
+	Metadata: "v2/quirks.proto",
 }
