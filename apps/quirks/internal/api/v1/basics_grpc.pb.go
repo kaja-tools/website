@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.0
 // - protoc             v6.30.2
-// source: proto/basics.proto
+// source: basics.proto
 
-package api
+package v1
 
 import (
 	context "context"
@@ -19,12 +19,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Basics_Types_FullMethodName        = "/Basics/Types"
-	Basics_Map_FullMethodName          = "/Basics/Map"
-	Basics_Panic_FullMethodName        = "/Basics/Panic"
-	Basics_Repeated_FullMethodName     = "/Basics/Repeated"
-	Basics_Unauthorized_FullMethodName = "/Basics/Unauthorized"
-	Basics_Headers_FullMethodName      = "/Basics/Headers"
+	Basics_Types_FullMethodName        = "/quirks.v1.Basics/Types"
+	Basics_Map_FullMethodName          = "/quirks.v1.Basics/Map"
+	Basics_Panic_FullMethodName        = "/quirks.v1.Basics/Panic"
+	Basics_Repeated_FullMethodName     = "/quirks.v1.Basics/Repeated"
+	Basics_Unauthorized_FullMethodName = "/quirks.v1.Basics/Unauthorized"
+	Basics_Headers_FullMethodName      = "/quirks.v1.Basics/Headers"
 )
 
 // BasicsClient is the client API for Basics service.
@@ -290,7 +290,7 @@ func _Basics_Headers_Handler(srv interface{}, ctx context.Context, dec func(inte
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Basics_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "Basics",
+	ServiceName: "quirks.v1.Basics",
 	HandlerType: (*BasicsServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -319,5 +319,5 @@ var Basics_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "proto/basics.proto",
+	Metadata: "basics.proto",
 }

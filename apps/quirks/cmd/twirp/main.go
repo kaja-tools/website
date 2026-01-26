@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/kaja-tools/website/v2/internal/api"
+	v1 "github.com/kaja-tools/website/v2/internal/api/v1"
 	v2 "github.com/kaja-tools/website/v2/internal/api/v2"
 	"github.com/twitchtv/twirp"
 )
@@ -32,9 +32,9 @@ func headerMiddleware(next http.Handler) http.Handler {
 }
 
 func main() {
-	basicsServer := api.NewBasicsServer(&api.BasicsService{}, twirp.WithServerPathPrefix("/twirp-quirks/twirp"))
-	quirksServer := api.NewQuirksServer(&api.QuirksService{}, twirp.WithServerPathPrefix("/twirp-quirks/twirp"))
-	quirks_2Server := api.NewQuirks_2Server(&api.Quirks_2Service{}, twirp.WithServerPathPrefix("/twirp-quirks/twirp"))
+	basicsServer := v1.NewBasicsServer(&v1.BasicsService{}, twirp.WithServerPathPrefix("/twirp-quirks/twirp"))
+	quirksServer := v1.NewQuirksServer(&v1.QuirksService{}, twirp.WithServerPathPrefix("/twirp-quirks/twirp"))
+	quirks_2Server := v1.NewQuirks_2Server(&v1.Quirks_2Service{}, twirp.WithServerPathPrefix("/twirp-quirks/twirp"))
 	quirksV2Server := v2.NewQuirksServer(&v2.QuirksService{}, twirp.WithServerPathPrefix("/twirp-quirks/twirp"))
 
 	mux := http.NewServeMux()

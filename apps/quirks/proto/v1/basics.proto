@@ -1,9 +1,9 @@
 syntax = "proto3";
+package quirks.v1;
 import "google/protobuf/timestamp.proto";
-import "proto/lib/enum.proto";
-import "proto/lib/message.proto";
+import "lib.proto";
 
-option go_package = "internal/api";
+option go_package = "internal/api/v1";
 
 /**
  * Test basic scenarios that kaja needs to support
@@ -12,12 +12,12 @@ service Basics {
     // All possible protobuf types
     rpc Types(TypesRequest) returns(TypesRequest);
     rpc Map(MapRequest) returns(MapRequest);
-    rpc Panic(lib.Void) returns(lib.Message);
+    rpc Panic(Void) returns(Message);
     rpc Repeated(RepeatedRequest) returns(RepeatedRequest);
     // Returns 403 Unauthorized error
-    rpc Unauthorized(lib.Void) returns(lib.Void);
+    rpc Unauthorized(Void) returns(Void);
     // Returns all headers passed to the method
-    rpc Headers(lib.Void) returns(HeadersResponse);
+    rpc Headers(Void) returns(HeadersResponse);
 }
 
 message MapRequest {
@@ -40,7 +40,7 @@ message RepeatedRequest {
     repeated string string = 1;
     repeated int32 int32 = 2;
     repeated Enum enum = 3;
-    repeated lib.Message message = 4;
+    repeated Message message = 4;
 }
 
 message TypesRequest {
@@ -84,7 +84,7 @@ message TypesRequest {
     // Enum types
     Enum enum = 17;
     NestedEnum nested_enum = 18;
-    lib.Position position = 19;
+    Position position = 19;
 }
 
 message HeadersResponse {

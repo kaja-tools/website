@@ -7,7 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/kaja-tools/website/v2/internal/api"
+	v1 "github.com/kaja-tools/website/v2/internal/api/v1"
 	v2 "github.com/kaja-tools/website/v2/internal/api/v2"
 	"google.golang.org/grpc"
 )
@@ -15,9 +15,9 @@ import (
 func main() {
 	// Create gRPC server
 	grpcServer := grpc.NewServer()
-	api.RegisterBasicsServer(grpcServer, &api.BasicsService{})
-	api.RegisterQuirksServer(grpcServer, &api.QuirksService{})
-	api.RegisterQuirks_2Server(grpcServer, &api.Quirks_2Service{})
+	v1.RegisterBasicsServer(grpcServer, &v1.BasicsService{})
+	v1.RegisterQuirksServer(grpcServer, &v1.QuirksService{})
+	v1.RegisterQuirks_2Server(grpcServer, &v1.Quirks_2Service{})
 	v2.RegisterQuirksServer(grpcServer, &v2.QuirksService{})
 
 	// Create TCP listener

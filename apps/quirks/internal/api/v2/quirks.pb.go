@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v6.30.2
-// source: proto/quirks_v2.proto
+// source: quirks.proto
 
 package v2
 
@@ -31,7 +31,7 @@ type SumIntsRequest struct {
 
 func (x *SumIntsRequest) Reset() {
 	*x = SumIntsRequest{}
-	mi := &file_proto_quirks_v2_proto_msgTypes[0]
+	mi := &file_quirks_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -43,7 +43,7 @@ func (x *SumIntsRequest) String() string {
 func (*SumIntsRequest) ProtoMessage() {}
 
 func (x *SumIntsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_quirks_v2_proto_msgTypes[0]
+	mi := &file_quirks_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -56,7 +56,7 @@ func (x *SumIntsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SumIntsRequest.ProtoReflect.Descriptor instead.
 func (*SumIntsRequest) Descriptor() ([]byte, []int) {
-	return file_proto_quirks_v2_proto_rawDescGZIP(), []int{0}
+	return file_quirks_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *SumIntsRequest) GetA() int32 {
@@ -82,7 +82,7 @@ type SumIntsResponse struct {
 
 func (x *SumIntsResponse) Reset() {
 	*x = SumIntsResponse{}
-	mi := &file_proto_quirks_v2_proto_msgTypes[1]
+	mi := &file_quirks_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -94,7 +94,7 @@ func (x *SumIntsResponse) String() string {
 func (*SumIntsResponse) ProtoMessage() {}
 
 func (x *SumIntsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_quirks_v2_proto_msgTypes[1]
+	mi := &file_quirks_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -107,7 +107,7 @@ func (x *SumIntsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SumIntsResponse.ProtoReflect.Descriptor instead.
 func (*SumIntsResponse) Descriptor() ([]byte, []int) {
-	return file_proto_quirks_v2_proto_rawDescGZIP(), []int{1}
+	return file_quirks_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *SumIntsResponse) GetResult() int32 {
@@ -117,11 +117,11 @@ func (x *SumIntsResponse) GetResult() int32 {
 	return 0
 }
 
-var File_proto_quirks_v2_proto protoreflect.FileDescriptor
+var File_quirks_proto protoreflect.FileDescriptor
 
-const file_proto_quirks_v2_proto_rawDesc = "" +
+const file_quirks_proto_rawDesc = "" +
 	"\n" +
-	"\x15proto/quirks_v2.proto\x12\tquirks.v2\",\n" +
+	"\fquirks.proto\x12\tquirks.v2\",\n" +
 	"\x0eSumIntsRequest\x12\f\n" +
 	"\x01a\x18\x01 \x01(\x05R\x01a\x12\f\n" +
 	"\x01b\x18\x02 \x01(\x05R\x01b\")\n" +
@@ -131,23 +131,23 @@ const file_proto_quirks_v2_proto_rawDesc = "" +
 	"\x03Sum\x12\x19.quirks.v2.SumIntsRequest\x1a\x1a.quirks.v2.SumIntsResponseB\x11Z\x0finternal/api/v2b\x06proto3"
 
 var (
-	file_proto_quirks_v2_proto_rawDescOnce sync.Once
-	file_proto_quirks_v2_proto_rawDescData []byte
+	file_quirks_proto_rawDescOnce sync.Once
+	file_quirks_proto_rawDescData []byte
 )
 
-func file_proto_quirks_v2_proto_rawDescGZIP() []byte {
-	file_proto_quirks_v2_proto_rawDescOnce.Do(func() {
-		file_proto_quirks_v2_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_quirks_v2_proto_rawDesc), len(file_proto_quirks_v2_proto_rawDesc)))
+func file_quirks_proto_rawDescGZIP() []byte {
+	file_quirks_proto_rawDescOnce.Do(func() {
+		file_quirks_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_quirks_proto_rawDesc), len(file_quirks_proto_rawDesc)))
 	})
-	return file_proto_quirks_v2_proto_rawDescData
+	return file_quirks_proto_rawDescData
 }
 
-var file_proto_quirks_v2_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-var file_proto_quirks_v2_proto_goTypes = []any{
+var file_quirks_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_quirks_proto_goTypes = []any{
 	(*SumIntsRequest)(nil),  // 0: quirks.v2.SumIntsRequest
 	(*SumIntsResponse)(nil), // 1: quirks.v2.SumIntsResponse
 }
-var file_proto_quirks_v2_proto_depIdxs = []int32{
+var file_quirks_proto_depIdxs = []int32{
 	0, // 0: quirks.v2.Quirks.Sum:input_type -> quirks.v2.SumIntsRequest
 	1, // 1: quirks.v2.Quirks.Sum:output_type -> quirks.v2.SumIntsResponse
 	1, // [1:2] is the sub-list for method output_type
@@ -157,26 +157,26 @@ var file_proto_quirks_v2_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_proto_quirks_v2_proto_init() }
-func file_proto_quirks_v2_proto_init() {
-	if File_proto_quirks_v2_proto != nil {
+func init() { file_quirks_proto_init() }
+func file_quirks_proto_init() {
+	if File_quirks_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_quirks_v2_proto_rawDesc), len(file_proto_quirks_v2_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_quirks_proto_rawDesc), len(file_quirks_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_proto_quirks_v2_proto_goTypes,
-		DependencyIndexes: file_proto_quirks_v2_proto_depIdxs,
-		MessageInfos:      file_proto_quirks_v2_proto_msgTypes,
+		GoTypes:           file_quirks_proto_goTypes,
+		DependencyIndexes: file_quirks_proto_depIdxs,
+		MessageInfos:      file_quirks_proto_msgTypes,
 	}.Build()
-	File_proto_quirks_v2_proto = out.File
-	file_proto_quirks_v2_proto_goTypes = nil
-	file_proto_quirks_v2_proto_depIdxs = nil
+	File_quirks_proto = out.File
+	file_quirks_proto_goTypes = nil
+	file_quirks_proto_depIdxs = nil
 }

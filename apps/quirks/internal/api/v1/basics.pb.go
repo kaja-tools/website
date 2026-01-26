@@ -2,9 +2,9 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v6.30.2
-// source: proto/basics.proto
+// source: basics.proto
 
-package api
+package v1
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -52,11 +52,11 @@ func (x Enum) String() string {
 }
 
 func (Enum) Descriptor() protoreflect.EnumDescriptor {
-	return file_proto_basics_proto_enumTypes[0].Descriptor()
+	return file_basics_proto_enumTypes[0].Descriptor()
 }
 
 func (Enum) Type() protoreflect.EnumType {
-	return &file_proto_basics_proto_enumTypes[0]
+	return &file_basics_proto_enumTypes[0]
 }
 
 func (x Enum) Number() protoreflect.EnumNumber {
@@ -65,7 +65,7 @@ func (x Enum) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use Enum.Descriptor instead.
 func (Enum) EnumDescriptor() ([]byte, []int) {
-	return file_proto_basics_proto_rawDescGZIP(), []int{0}
+	return file_basics_proto_rawDescGZIP(), []int{0}
 }
 
 type TypesRequest_NestedEnum int32
@@ -98,11 +98,11 @@ func (x TypesRequest_NestedEnum) String() string {
 }
 
 func (TypesRequest_NestedEnum) Descriptor() protoreflect.EnumDescriptor {
-	return file_proto_basics_proto_enumTypes[1].Descriptor()
+	return file_basics_proto_enumTypes[1].Descriptor()
 }
 
 func (TypesRequest_NestedEnum) Type() protoreflect.EnumType {
-	return &file_proto_basics_proto_enumTypes[1]
+	return &file_basics_proto_enumTypes[1]
 }
 
 func (x TypesRequest_NestedEnum) Number() protoreflect.EnumNumber {
@@ -111,7 +111,7 @@ func (x TypesRequest_NestedEnum) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use TypesRequest_NestedEnum.Descriptor instead.
 func (TypesRequest_NestedEnum) EnumDescriptor() ([]byte, []int) {
-	return file_proto_basics_proto_rawDescGZIP(), []int{2, 0}
+	return file_basics_proto_rawDescGZIP(), []int{2, 0}
 }
 
 type MapRequest struct {
@@ -126,7 +126,7 @@ type MapRequest struct {
 
 func (x *MapRequest) Reset() {
 	*x = MapRequest{}
-	mi := &file_proto_basics_proto_msgTypes[0]
+	mi := &file_basics_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -138,7 +138,7 @@ func (x *MapRequest) String() string {
 func (*MapRequest) ProtoMessage() {}
 
 func (x *MapRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_basics_proto_msgTypes[0]
+	mi := &file_basics_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -151,7 +151,7 @@ func (x *MapRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MapRequest.ProtoReflect.Descriptor instead.
 func (*MapRequest) Descriptor() ([]byte, []int) {
-	return file_proto_basics_proto_rawDescGZIP(), []int{0}
+	return file_basics_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *MapRequest) GetStringString() map[string]string {
@@ -186,7 +186,7 @@ type RepeatedRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	String_       []string               `protobuf:"bytes,1,rep,name=string,proto3" json:"string,omitempty"`
 	Int32         []int32                `protobuf:"varint,2,rep,packed,name=int32,proto3" json:"int32,omitempty"`
-	Enum          []Enum                 `protobuf:"varint,3,rep,packed,name=enum,proto3,enum=Enum" json:"enum,omitempty"`
+	Enum          []Enum                 `protobuf:"varint,3,rep,packed,name=enum,proto3,enum=quirks.v1.Enum" json:"enum,omitempty"`
 	Message       []*Message             `protobuf:"bytes,4,rep,name=message,proto3" json:"message,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -194,7 +194,7 @@ type RepeatedRequest struct {
 
 func (x *RepeatedRequest) Reset() {
 	*x = RepeatedRequest{}
-	mi := &file_proto_basics_proto_msgTypes[1]
+	mi := &file_basics_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -206,7 +206,7 @@ func (x *RepeatedRequest) String() string {
 func (*RepeatedRequest) ProtoMessage() {}
 
 func (x *RepeatedRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_basics_proto_msgTypes[1]
+	mi := &file_basics_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -219,7 +219,7 @@ func (x *RepeatedRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RepeatedRequest.ProtoReflect.Descriptor instead.
 func (*RepeatedRequest) Descriptor() ([]byte, []int) {
-	return file_proto_basics_proto_rawDescGZIP(), []int{1}
+	return file_basics_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *RepeatedRequest) GetString_() []string {
@@ -277,16 +277,16 @@ type TypesRequest struct {
 	// Well-known types
 	Timestamp *timestamppb.Timestamp `protobuf:"bytes,16,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
 	// Enum types
-	Enum          Enum                    `protobuf:"varint,17,opt,name=enum,proto3,enum=Enum" json:"enum,omitempty"`
-	NestedEnum    TypesRequest_NestedEnum `protobuf:"varint,18,opt,name=nested_enum,json=nestedEnum,proto3,enum=TypesRequest_NestedEnum" json:"nested_enum,omitempty"`
-	Position      Position                `protobuf:"varint,19,opt,name=position,proto3,enum=lib.Position" json:"position,omitempty"`
+	Enum          Enum                    `protobuf:"varint,17,opt,name=enum,proto3,enum=quirks.v1.Enum" json:"enum,omitempty"`
+	NestedEnum    TypesRequest_NestedEnum `protobuf:"varint,18,opt,name=nested_enum,json=nestedEnum,proto3,enum=quirks.v1.TypesRequest_NestedEnum" json:"nested_enum,omitempty"`
+	Position      Position                `protobuf:"varint,19,opt,name=position,proto3,enum=quirks.v1.Position" json:"position,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *TypesRequest) Reset() {
 	*x = TypesRequest{}
-	mi := &file_proto_basics_proto_msgTypes[2]
+	mi := &file_basics_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -298,7 +298,7 @@ func (x *TypesRequest) String() string {
 func (*TypesRequest) ProtoMessage() {}
 
 func (x *TypesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_basics_proto_msgTypes[2]
+	mi := &file_basics_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -311,7 +311,7 @@ func (x *TypesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TypesRequest.ProtoReflect.Descriptor instead.
 func (*TypesRequest) Descriptor() ([]byte, []int) {
-	return file_proto_basics_proto_rawDescGZIP(), []int{2}
+	return file_basics_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *TypesRequest) GetDouble() float64 {
@@ -456,7 +456,7 @@ type HeadersResponse struct {
 
 func (x *HeadersResponse) Reset() {
 	*x = HeadersResponse{}
-	mi := &file_proto_basics_proto_msgTypes[3]
+	mi := &file_basics_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -468,7 +468,7 @@ func (x *HeadersResponse) String() string {
 func (*HeadersResponse) ProtoMessage() {}
 
 func (x *HeadersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_basics_proto_msgTypes[3]
+	mi := &file_basics_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -481,7 +481,7 @@ func (x *HeadersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HeadersResponse.ProtoReflect.Descriptor instead.
 func (*HeadersResponse) Descriptor() ([]byte, []int) {
-	return file_proto_basics_proto_rawDescGZIP(), []int{3}
+	return file_basics_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *HeadersResponse) GetHeaders() map[string]string {
@@ -500,7 +500,7 @@ type MapRequest_RepeatedString struct {
 
 func (x *MapRequest_RepeatedString) Reset() {
 	*x = MapRequest_RepeatedString{}
-	mi := &file_proto_basics_proto_msgTypes[4]
+	mi := &file_basics_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -512,7 +512,7 @@ func (x *MapRequest_RepeatedString) String() string {
 func (*MapRequest_RepeatedString) ProtoMessage() {}
 
 func (x *MapRequest_RepeatedString) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_basics_proto_msgTypes[4]
+	mi := &file_basics_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -525,7 +525,7 @@ func (x *MapRequest_RepeatedString) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MapRequest_RepeatedString.ProtoReflect.Descriptor instead.
 func (*MapRequest_RepeatedString) Descriptor() ([]byte, []int) {
-	return file_proto_basics_proto_rawDescGZIP(), []int{0, 0}
+	return file_basics_proto_rawDescGZIP(), []int{0, 0}
 }
 
 func (x *MapRequest_RepeatedString) GetValue() []string {
@@ -535,17 +535,17 @@ func (x *MapRequest_RepeatedString) GetValue() []string {
 	return nil
 }
 
-var File_proto_basics_proto protoreflect.FileDescriptor
+var File_basics_proto protoreflect.FileDescriptor
 
-const file_proto_basics_proto_rawDesc = "" +
+const file_basics_proto_rawDesc = "" +
 	"\n" +
-	"\x12proto/basics.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x14proto/lib/enum.proto\x1a\x17proto/lib/message.proto\"\x81\x05\n" +
+	"\fbasics.proto\x12\tquirks.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\tlib.proto\"\xb3\x05\n" +
 	"\n" +
-	"MapRequest\x12B\n" +
-	"\rstring_string\x18\x01 \x03(\v2\x1d.MapRequest.StringStringEntryR\fstringString\x12?\n" +
-	"\fstring_int32\x18\x02 \x03(\v2\x1c.MapRequest.StringInt32EntryR\vstringInt32\x12B\n" +
-	"\rsint64_string\x18\x03 \x03(\v2\x1d.MapRequest.Sint64StringEntryR\fsint64String\x12[\n" +
-	"\x16string_repeated_string\x18\x04 \x03(\v2%.MapRequest.StringRepeatedStringEntryR\x14stringRepeatedString\x1a&\n" +
+	"MapRequest\x12L\n" +
+	"\rstring_string\x18\x01 \x03(\v2'.quirks.v1.MapRequest.StringStringEntryR\fstringString\x12I\n" +
+	"\fstring_int32\x18\x02 \x03(\v2&.quirks.v1.MapRequest.StringInt32EntryR\vstringInt32\x12L\n" +
+	"\rsint64_string\x18\x03 \x03(\v2'.quirks.v1.MapRequest.Sint64StringEntryR\fsint64String\x12e\n" +
+	"\x16string_repeated_string\x18\x04 \x03(\v2/.quirks.v1.MapRequest.StringRepeatedStringEntryR\x14stringRepeatedString\x1a&\n" +
 	"\x0eRepeatedString\x12\x14\n" +
 	"\x05value\x18\x01 \x03(\tR\x05value\x1a?\n" +
 	"\x11StringStringEntry\x12\x10\n" +
@@ -556,15 +556,15 @@ const file_proto_basics_proto_rawDesc = "" +
 	"\x05value\x18\x02 \x01(\x05R\x05value:\x028\x01\x1a?\n" +
 	"\x11Sint64StringEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\x12R\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1ac\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1am\n" +
 	"\x19StringRepeatedStringEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x120\n" +
-	"\x05value\x18\x02 \x01(\v2\x1a.MapRequest.RepeatedStringR\x05value:\x028\x01\"\x82\x01\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12:\n" +
+	"\x05value\x18\x02 \x01(\v2$.quirks.v1.MapRequest.RepeatedStringR\x05value:\x028\x01\"\x92\x01\n" +
 	"\x0fRepeatedRequest\x12\x16\n" +
 	"\x06string\x18\x01 \x03(\tR\x06string\x12\x14\n" +
-	"\x05int32\x18\x02 \x03(\x05R\x05int32\x12\x19\n" +
-	"\x04enum\x18\x03 \x03(\x0e2\x05.EnumR\x04enum\x12&\n" +
-	"\amessage\x18\x04 \x03(\v2\f.lib.MessageR\amessage\"\xd5\x04\n" +
+	"\x05int32\x18\x02 \x03(\x05R\x05int32\x12#\n" +
+	"\x04enum\x18\x03 \x03(\x0e2\x0f.quirks.v1.EnumR\x04enum\x12,\n" +
+	"\amessage\x18\x04 \x03(\v2\x12.quirks.v1.MessageR\amessage\"\xef\x04\n" +
 	"\fTypesRequest\x12\x16\n" +
 	"\x06double\x18\x01 \x01(\x01R\x06double\x12\x14\n" +
 	"\x05float\x18\x02 \x01(\x02R\x05float\x12\x14\n" +
@@ -582,88 +582,88 @@ const file_proto_basics_proto_rawDesc = "" +
 	"\x04bool\x18\r \x01(\bR\x04bool\x12\x16\n" +
 	"\x06string\x18\x0e \x01(\tR\x06string\x12\x14\n" +
 	"\x05bytes\x18\x0f \x01(\fR\x05bytes\x128\n" +
-	"\ttimestamp\x18\x10 \x01(\v2\x1a.google.protobuf.TimestampR\ttimestamp\x12\x19\n" +
-	"\x04enum\x18\x11 \x01(\x0e2\x05.EnumR\x04enum\x129\n" +
-	"\vnested_enum\x18\x12 \x01(\x0e2\x18.TypesRequest.NestedEnumR\n" +
-	"nestedEnum\x12)\n" +
-	"\bposition\x18\x13 \x01(\x0e2\r.lib.PositionR\bposition\"\"\n" +
+	"\ttimestamp\x18\x10 \x01(\v2\x1a.google.protobuf.TimestampR\ttimestamp\x12#\n" +
+	"\x04enum\x18\x11 \x01(\x0e2\x0f.quirks.v1.EnumR\x04enum\x12C\n" +
+	"\vnested_enum\x18\x12 \x01(\x0e2\".quirks.v1.TypesRequest.NestedEnumR\n" +
+	"nestedEnum\x12/\n" +
+	"\bposition\x18\x13 \x01(\x0e2\x13.quirks.v1.PositionR\bposition\"\"\n" +
 	"\n" +
 	"NestedEnum\x12\t\n" +
 	"\x05KEY_0\x10\x00\x12\t\n" +
-	"\x05KEY_1\x10\x01\"\x86\x01\n" +
-	"\x0fHeadersResponse\x127\n" +
-	"\aheaders\x18\x01 \x03(\v2\x1d.HeadersResponse.HeadersEntryR\aheaders\x1a:\n" +
+	"\x05KEY_1\x10\x01\"\x90\x01\n" +
+	"\x0fHeadersResponse\x12A\n" +
+	"\aheaders\x18\x01 \x03(\v2'.quirks.v1.HeadersResponse.HeadersEntryR\aheaders\x1a:\n" +
 	"\fHeadersEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01*\x1c\n" +
 	"\x04Enum\x12\t\n" +
 	"\x05KEY_0\x10\x00\x12\t\n" +
-	"\x05KEY_1\x10\x012\xf0\x01\n" +
-	"\x06Basics\x12%\n" +
-	"\x05Types\x12\r.TypesRequest\x1a\r.TypesRequest\x12\x1f\n" +
-	"\x03Map\x12\v.MapRequest\x1a\v.MapRequest\x12 \n" +
-	"\x05Panic\x12\t.lib.Void\x1a\f.lib.Message\x12.\n" +
-	"\bRepeated\x12\x10.RepeatedRequest\x1a\x10.RepeatedRequest\x12$\n" +
-	"\fUnauthorized\x12\t.lib.Void\x1a\t.lib.Void\x12&\n" +
-	"\aHeaders\x12\t.lib.Void\x1a\x10.HeadersResponseB\x0eZ\finternal/apib\x06proto3"
+	"\x05KEY_1\x10\x012\xd4\x02\n" +
+	"\x06Basics\x129\n" +
+	"\x05Types\x12\x17.quirks.v1.TypesRequest\x1a\x17.quirks.v1.TypesRequest\x123\n" +
+	"\x03Map\x12\x15.quirks.v1.MapRequest\x1a\x15.quirks.v1.MapRequest\x12,\n" +
+	"\x05Panic\x12\x0f.quirks.v1.Void\x1a\x12.quirks.v1.Message\x12B\n" +
+	"\bRepeated\x12\x1a.quirks.v1.RepeatedRequest\x1a\x1a.quirks.v1.RepeatedRequest\x120\n" +
+	"\fUnauthorized\x12\x0f.quirks.v1.Void\x1a\x0f.quirks.v1.Void\x126\n" +
+	"\aHeaders\x12\x0f.quirks.v1.Void\x1a\x1a.quirks.v1.HeadersResponseB\x11Z\x0finternal/api/v1b\x06proto3"
 
 var (
-	file_proto_basics_proto_rawDescOnce sync.Once
-	file_proto_basics_proto_rawDescData []byte
+	file_basics_proto_rawDescOnce sync.Once
+	file_basics_proto_rawDescData []byte
 )
 
-func file_proto_basics_proto_rawDescGZIP() []byte {
-	file_proto_basics_proto_rawDescOnce.Do(func() {
-		file_proto_basics_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_basics_proto_rawDesc), len(file_proto_basics_proto_rawDesc)))
+func file_basics_proto_rawDescGZIP() []byte {
+	file_basics_proto_rawDescOnce.Do(func() {
+		file_basics_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_basics_proto_rawDesc), len(file_basics_proto_rawDesc)))
 	})
-	return file_proto_basics_proto_rawDescData
+	return file_basics_proto_rawDescData
 }
 
-var file_proto_basics_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_proto_basics_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
-var file_proto_basics_proto_goTypes = []any{
-	(Enum)(0),                         // 0: Enum
-	(TypesRequest_NestedEnum)(0),      // 1: TypesRequest.NestedEnum
-	(*MapRequest)(nil),                // 2: MapRequest
-	(*RepeatedRequest)(nil),           // 3: RepeatedRequest
-	(*TypesRequest)(nil),              // 4: TypesRequest
-	(*HeadersResponse)(nil),           // 5: HeadersResponse
-	(*MapRequest_RepeatedString)(nil), // 6: MapRequest.RepeatedString
-	nil,                               // 7: MapRequest.StringStringEntry
-	nil,                               // 8: MapRequest.StringInt32Entry
-	nil,                               // 9: MapRequest.Sint64StringEntry
-	nil,                               // 10: MapRequest.StringRepeatedStringEntry
-	nil,                               // 11: HeadersResponse.HeadersEntry
-	(*Message)(nil),                   // 12: lib.Message
+var file_basics_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_basics_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_basics_proto_goTypes = []any{
+	(Enum)(0),                         // 0: quirks.v1.Enum
+	(TypesRequest_NestedEnum)(0),      // 1: quirks.v1.TypesRequest.NestedEnum
+	(*MapRequest)(nil),                // 2: quirks.v1.MapRequest
+	(*RepeatedRequest)(nil),           // 3: quirks.v1.RepeatedRequest
+	(*TypesRequest)(nil),              // 4: quirks.v1.TypesRequest
+	(*HeadersResponse)(nil),           // 5: quirks.v1.HeadersResponse
+	(*MapRequest_RepeatedString)(nil), // 6: quirks.v1.MapRequest.RepeatedString
+	nil,                               // 7: quirks.v1.MapRequest.StringStringEntry
+	nil,                               // 8: quirks.v1.MapRequest.StringInt32Entry
+	nil,                               // 9: quirks.v1.MapRequest.Sint64StringEntry
+	nil,                               // 10: quirks.v1.MapRequest.StringRepeatedStringEntry
+	nil,                               // 11: quirks.v1.HeadersResponse.HeadersEntry
+	(*Message)(nil),                   // 12: quirks.v1.Message
 	(*timestamppb.Timestamp)(nil),     // 13: google.protobuf.Timestamp
-	(Position)(0),                     // 14: lib.Position
-	(*Void)(nil),                      // 15: lib.Void
+	(Position)(0),                     // 14: quirks.v1.Position
+	(*Void)(nil),                      // 15: quirks.v1.Void
 }
-var file_proto_basics_proto_depIdxs = []int32{
-	7,  // 0: MapRequest.string_string:type_name -> MapRequest.StringStringEntry
-	8,  // 1: MapRequest.string_int32:type_name -> MapRequest.StringInt32Entry
-	9,  // 2: MapRequest.sint64_string:type_name -> MapRequest.Sint64StringEntry
-	10, // 3: MapRequest.string_repeated_string:type_name -> MapRequest.StringRepeatedStringEntry
-	0,  // 4: RepeatedRequest.enum:type_name -> Enum
-	12, // 5: RepeatedRequest.message:type_name -> lib.Message
-	13, // 6: TypesRequest.timestamp:type_name -> google.protobuf.Timestamp
-	0,  // 7: TypesRequest.enum:type_name -> Enum
-	1,  // 8: TypesRequest.nested_enum:type_name -> TypesRequest.NestedEnum
-	14, // 9: TypesRequest.position:type_name -> lib.Position
-	11, // 10: HeadersResponse.headers:type_name -> HeadersResponse.HeadersEntry
-	6,  // 11: MapRequest.StringRepeatedStringEntry.value:type_name -> MapRequest.RepeatedString
-	4,  // 12: Basics.Types:input_type -> TypesRequest
-	2,  // 13: Basics.Map:input_type -> MapRequest
-	15, // 14: Basics.Panic:input_type -> lib.Void
-	3,  // 15: Basics.Repeated:input_type -> RepeatedRequest
-	15, // 16: Basics.Unauthorized:input_type -> lib.Void
-	15, // 17: Basics.Headers:input_type -> lib.Void
-	4,  // 18: Basics.Types:output_type -> TypesRequest
-	2,  // 19: Basics.Map:output_type -> MapRequest
-	12, // 20: Basics.Panic:output_type -> lib.Message
-	3,  // 21: Basics.Repeated:output_type -> RepeatedRequest
-	15, // 22: Basics.Unauthorized:output_type -> lib.Void
-	5,  // 23: Basics.Headers:output_type -> HeadersResponse
+var file_basics_proto_depIdxs = []int32{
+	7,  // 0: quirks.v1.MapRequest.string_string:type_name -> quirks.v1.MapRequest.StringStringEntry
+	8,  // 1: quirks.v1.MapRequest.string_int32:type_name -> quirks.v1.MapRequest.StringInt32Entry
+	9,  // 2: quirks.v1.MapRequest.sint64_string:type_name -> quirks.v1.MapRequest.Sint64StringEntry
+	10, // 3: quirks.v1.MapRequest.string_repeated_string:type_name -> quirks.v1.MapRequest.StringRepeatedStringEntry
+	0,  // 4: quirks.v1.RepeatedRequest.enum:type_name -> quirks.v1.Enum
+	12, // 5: quirks.v1.RepeatedRequest.message:type_name -> quirks.v1.Message
+	13, // 6: quirks.v1.TypesRequest.timestamp:type_name -> google.protobuf.Timestamp
+	0,  // 7: quirks.v1.TypesRequest.enum:type_name -> quirks.v1.Enum
+	1,  // 8: quirks.v1.TypesRequest.nested_enum:type_name -> quirks.v1.TypesRequest.NestedEnum
+	14, // 9: quirks.v1.TypesRequest.position:type_name -> quirks.v1.Position
+	11, // 10: quirks.v1.HeadersResponse.headers:type_name -> quirks.v1.HeadersResponse.HeadersEntry
+	6,  // 11: quirks.v1.MapRequest.StringRepeatedStringEntry.value:type_name -> quirks.v1.MapRequest.RepeatedString
+	4,  // 12: quirks.v1.Basics.Types:input_type -> quirks.v1.TypesRequest
+	2,  // 13: quirks.v1.Basics.Map:input_type -> quirks.v1.MapRequest
+	15, // 14: quirks.v1.Basics.Panic:input_type -> quirks.v1.Void
+	3,  // 15: quirks.v1.Basics.Repeated:input_type -> quirks.v1.RepeatedRequest
+	15, // 16: quirks.v1.Basics.Unauthorized:input_type -> quirks.v1.Void
+	15, // 17: quirks.v1.Basics.Headers:input_type -> quirks.v1.Void
+	4,  // 18: quirks.v1.Basics.Types:output_type -> quirks.v1.TypesRequest
+	2,  // 19: quirks.v1.Basics.Map:output_type -> quirks.v1.MapRequest
+	12, // 20: quirks.v1.Basics.Panic:output_type -> quirks.v1.Message
+	3,  // 21: quirks.v1.Basics.Repeated:output_type -> quirks.v1.RepeatedRequest
+	15, // 22: quirks.v1.Basics.Unauthorized:output_type -> quirks.v1.Void
+	5,  // 23: quirks.v1.Basics.Headers:output_type -> quirks.v1.HeadersResponse
 	18, // [18:24] is the sub-list for method output_type
 	12, // [12:18] is the sub-list for method input_type
 	12, // [12:12] is the sub-list for extension type_name
@@ -671,29 +671,28 @@ var file_proto_basics_proto_depIdxs = []int32{
 	0,  // [0:12] is the sub-list for field type_name
 }
 
-func init() { file_proto_basics_proto_init() }
-func file_proto_basics_proto_init() {
-	if File_proto_basics_proto != nil {
+func init() { file_basics_proto_init() }
+func file_basics_proto_init() {
+	if File_basics_proto != nil {
 		return
 	}
-	file_proto_lib_enum_proto_init()
-	file_proto_lib_message_proto_init()
+	file_lib_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_basics_proto_rawDesc), len(file_proto_basics_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_basics_proto_rawDesc), len(file_basics_proto_rawDesc)),
 			NumEnums:      2,
 			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_proto_basics_proto_goTypes,
-		DependencyIndexes: file_proto_basics_proto_depIdxs,
-		EnumInfos:         file_proto_basics_proto_enumTypes,
-		MessageInfos:      file_proto_basics_proto_msgTypes,
+		GoTypes:           file_basics_proto_goTypes,
+		DependencyIndexes: file_basics_proto_depIdxs,
+		EnumInfos:         file_basics_proto_enumTypes,
+		MessageInfos:      file_basics_proto_msgTypes,
 	}.Build()
-	File_proto_basics_proto = out.File
-	file_proto_basics_proto_goTypes = nil
-	file_proto_basics_proto_depIdxs = nil
+	File_basics_proto = out.File
+	file_basics_proto_goTypes = nil
+	file_basics_proto_depIdxs = nil
 }

@@ -1,0 +1,15 @@
+syntax = "proto3";
+package quirks.v1;
+
+option go_package = "internal/api/v1";
+
+message Void {}
+
+message Message {
+    string name = 1;
+}
+
+enum Position {
+    TOP = 0;
+    BOTTOM = 1;
+}
