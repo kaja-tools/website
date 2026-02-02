@@ -10,6 +10,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/kaja-tools/website/v2/internal/api"
 	"github.com/kaja-tools/website/v2/internal/model"
+	"github.com/kaja-tools/website/v2/internal/users"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -41,8 +42,15 @@ func main() {
 	// Create teams model
 	teams := model.NewTeams(db)
 
+	// Create users client for cross-service validation
+	usersServiceURL := os.Getenv("USERS_SERVICE_URL")
+	if usersServiceURL == "" {
+		usersServiceURL = "http://users-service" // Default k8s service name
+	}
+	usersClient := users.NewClient(usersServiceURL)
+
 	// Create gRPC server
-	srv := api.NewTeamsServer(teams)
+	srv := api.NewTeamsServer(teams, usersClient)
 
 	// Create TCP listener
 	lis, err := net.Listen("tcp", ":50052") // Different port from users service

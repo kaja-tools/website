@@ -6,17 +6,19 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/kaja-tools/website/v2/internal/model"
+	"github.com/kaja-tools/website/v2/internal/users"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 type teamsServer struct {
 	UnimplementedTeamsServer
-	model *model.Teams
+	model       *model.Teams
+	usersClient *users.Client
 }
 
-func NewTeamsServer(model *model.Teams) TeamsServer {
-	return &teamsServer{model: model}
+func NewTeamsServer(model *model.Teams, usersClient *users.Client) TeamsServer {
+	return &teamsServer{model: model, usersClient: usersClient}
 }
 
 func (s *teamsServer) CreateTeam(ctx context.Context, req *CreateTeamRequest) (*CreateTeamResponse, error) {
@@ -102,6 +104,26 @@ func (s *teamsServer) AddTeamMember(ctx context.Context, req *AddTeamMemberReque
 	}
 	if req.Role == Role_ROLE_UNKNOWN {
 		return nil, status.Errorf(codes.InvalidArgument, "role cannot be UNKNOWN")
+	}
+
+	// Verify team exists first
+	teamResult, err := s.model.Get(req.TeamId)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get team: %v", err)
+	}
+	if !teamResult.Found {
+		return nil, status.Errorf(codes.NotFound, "team not found")
+	}
+
+	// Verify user exists in users service
+	if s.usersClient != nil {
+		userExists, err := s.usersClient.UserExists(ctx, req.UserId)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "failed to verify user: %v", err)
+		}
+		if !userExists {
+			return nil, status.Errorf(codes.NotFound, "user not found")
+		}
 	}
 
 	member := model.TeamMember{

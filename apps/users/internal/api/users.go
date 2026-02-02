@@ -18,6 +18,10 @@ func NewUsersHandler(model *model.Users) *UsersHandler {
 }
 
 func (h *UsersHandler) CreateUser(ctx context.Context, req *CreateUserRequest) (*CreateUserResponse, error) {
+	if req.Name == "" {
+		return nil, twirp.InvalidArgumentError("name", "cannot be empty")
+	}
+
 	id := uuid.New().String()
 	user := model.User{
 		ID:   id,
@@ -32,6 +36,10 @@ func (h *UsersHandler) CreateUser(ctx context.Context, req *CreateUserRequest) (
 }
 
 func (h *UsersHandler) GetUser(ctx context.Context, req *GetUserRequest) (*GetUserResponse, error) {
+	if req.Id == "" {
+		return nil, twirp.InvalidArgumentError("id", "cannot be empty")
+	}
+
 	userResult, err := h.model.Get(req.Id)
 
 	if err != nil {
@@ -48,6 +56,13 @@ func (h *UsersHandler) GetUser(ctx context.Context, req *GetUserRequest) (*GetUs
 }
 
 func (u *UsersHandler) UpdateUser(ctx context.Context, req *UpdateUserRequest) (*UpdateUserResponse, error) {
+	if req.Id == "" {
+		return nil, twirp.InvalidArgumentError("id", "cannot be empty")
+	}
+	if req.Name == "" {
+		return nil, twirp.InvalidArgumentError("name", "cannot be empty")
+	}
+
 	userResult, err := u.model.Get(req.Id)
 
 	if err != nil {
@@ -68,6 +83,10 @@ func (u *UsersHandler) UpdateUser(ctx context.Context, req *UpdateUserRequest) (
 }
 
 func (u *UsersHandler) DeleteUser(ctx context.Context, req *DeleteUserRequest) (*DeleteUserResponse, error) {
+	if req.Id == "" {
+		return nil, twirp.InvalidArgumentError("id", "cannot be empty")
+	}
+
 	userResult, err := u.model.Get(req.Id)
 
 	if err != nil {
