@@ -8,6 +8,7 @@ resources:
 - ingress.yaml
 - ingress-grpc.yaml
 - kaja.yaml
+- kaja-auto-update.yaml
 - teams.yaml
 - twirp-quirks.yaml
 - users.yaml

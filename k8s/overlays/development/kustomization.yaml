@@ -12,6 +12,30 @@ patches:
       metadata:
         name: letsencrypt-production
   - patch: |
+      $patch: delete
+      apiVersion: v1
+      kind: ServiceAccount
+      metadata:
+        name: kaja-auto-update
+  - patch: |
+      $patch: delete
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: Role
+      metadata:
+        name: kaja-auto-update
+  - patch: |
+      $patch: delete
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: RoleBinding
+      metadata:
+        name: kaja-auto-update
+  - patch: |
+      $patch: delete
+      apiVersion: batch/v1
+      kind: CronJob
+      metadata:
+        name: kaja-auto-update
+  - patch: |
       apiVersion: networking.k8s.io/v1
       kind: Ingress
       metadata:
