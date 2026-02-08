@@ -10,7 +10,7 @@ metadata:
 rules:
   - apiGroups: ["apps"]
     resources: ["deployments"]
-    resourceNames: ["kaja-deployment"]
+    resourceNames: ["kaja-deployment", "home-deployment", "teams-deployment", "users-deployment", "twirp-quirks-deployment", "grpc-quirks-deployment"]
     verbs: ["get", "patch"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -43,7 +43,12 @@ spec:
             - name: kubectl
               image: bitnami/kubectl:latest
               command:
-                - kubectl
-                - rollout
-                - restart
-                - deployment/kaja-deployment
+                - /bin/sh
+                - -c
+                - |
+                  kubectl rollout restart deployment/kaja-deployment
+                  kubectl rollout restart deployment/home-deployment
+                  kubectl rollout restart deployment/teams-deployment
+                  kubectl rollout restart deployment/users-deployment
+                  kubectl rollout restart deployment/twirp-quirks-deployment
+                  kubectl rollout restart deployment/grpc-quirks-deployment
