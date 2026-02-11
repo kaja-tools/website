@@ -31,10 +31,12 @@ metadata:
   name: kaja-auto-update
 spec:
   schedule: "0 4 * * *"
+  concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 3
   jobTemplate:
     spec:
+      activeDeadlineSeconds: 300
       template:
         spec:
           serviceAccountName: kaja-auto-update
@@ -46,6 +48,7 @@ spec:
                 - /bin/sh
                 - -c
                 - |
+                  set -e
                   kubectl rollout restart deployment/kaja-deployment
                   kubectl rollout restart deployment/home-deployment
                   kubectl rollout restart deployment/teams-deployment
