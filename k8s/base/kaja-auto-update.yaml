@@ -1,3 +1,12 @@
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: kaja-auto-update
+value: 1000
+globalDefault: false
+preemptionPolicy: PreemptLowerPriority
+description: "Priority class for the auto-update CronJob to preempt app pods on a full node."
+---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -10,8 +19,18 @@ metadata:
 rules:
   - apiGroups: ["apps"]
     resources: ["deployments"]
+    verbs: ["list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
     resourceNames: ["kaja-deployment", "home-deployment", "teams-deployment", "users-deployment", "twirp-quirks-deployment", "grpc-quirks-deployment"]
     verbs: ["get", "patch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments/scale"]
+    resourceNames: ["kaja-deployment", "home-deployment", "teams-deployment", "users-deployment", "twirp-quirks-deployment", "grpc-quirks-deployment"]
+    verbs: ["get", "update", "patch"]
+  - apiGroups: ["apps"]
+    resources: ["replicasets"]
+    verbs: ["get", "list", "watch"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -36,10 +55,12 @@ spec:
   failedJobsHistoryLimit: 3
   jobTemplate:
     spec:
-      activeDeadlineSeconds: 300
+      activeDeadlineSeconds: 900
+      ttlSecondsAfterFinished: 60
       template:
         spec:
           serviceAccountName: kaja-auto-update
+          priorityClassName: kaja-auto-update
           restartPolicy: OnFailure
           containers:
             - name: kubectl
@@ -49,9 +70,33 @@ spec:
                 - -c
                 - |
                   set -e
-                  kubectl rollout restart deployment/kaja-deployment
-                  kubectl rollout restart deployment/home-deployment
-                  kubectl rollout restart deployment/teams-deployment
-                  kubectl rollout restart deployment/users-deployment
-                  kubectl rollout restart deployment/twirp-quirks-deployment
-                  kubectl rollout restart deployment/grpc-quirks-deployment
+                  DEPLOYMENTS="kaja-deployment home-deployment teams-deployment users-deployment twirp-quirks-deployment grpc-quirks-deployment"
+
+                  echo "Scaling down all deployments..."
+                  for deploy in $DEPLOYMENTS; do
+                    kubectl scale deployment/$deploy --replicas=0
+                  done
+                  for deploy in $DEPLOYMENTS; do
+                    kubectl rollout status deployment/$deploy --timeout=60s
+                  done
+
+                  echo "Scaling up all deployments..."
+                  for deploy in $DEPLOYMENTS; do
+                    kubectl scale deployment/$deploy --replicas=1
+                  done
+
+                  set +e
+                  FAILED=0
+                  for deploy in $DEPLOYMENTS; do
+                    if kubectl rollout status deployment/$deploy --timeout=120s; then
+                      echo "$deploy restarted successfully."
+                    else
+                      echo "$deploy did not become ready yet (will resolve when job pod exits)."
+                      FAILED=$((FAILED + 1))
+                    fi
+                  done
+
+                  if [ "$FAILED" -gt 1 ]; then
+                    echo "Error: $FAILED deployments failed to become ready."
+                    exit 1
+                  fi
