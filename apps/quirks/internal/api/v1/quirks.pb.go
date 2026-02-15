@@ -117,6 +117,226 @@ func (x *SumStringsResponse) GetResult() string {
 	return ""
 }
 
+type GenerateRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Count         int32                  `protobuf:"varint,1,opt,name=count,proto3" json:"count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GenerateRequest) Reset() {
+	*x = GenerateRequest{}
+	mi := &file_v1_quirks_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GenerateRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GenerateRequest) ProtoMessage() {}
+
+func (x *GenerateRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_quirks_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GenerateRequest.ProtoReflect.Descriptor instead.
+func (*GenerateRequest) Descriptor() ([]byte, []int) {
+	return file_v1_quirks_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *GenerateRequest) GetCount() int32 {
+	if x != nil {
+		return x.Count
+	}
+	return 0
+}
+
+type GenerateResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Number        int32                  `protobuf:"varint,1,opt,name=number,proto3" json:"number,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GenerateResponse) Reset() {
+	*x = GenerateResponse{}
+	mi := &file_v1_quirks_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GenerateResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GenerateResponse) ProtoMessage() {}
+
+func (x *GenerateResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_quirks_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GenerateResponse.ProtoReflect.Descriptor instead.
+func (*GenerateResponse) Descriptor() ([]byte, []int) {
+	return file_v1_quirks_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *GenerateResponse) GetNumber() int32 {
+	if x != nil {
+		return x.Number
+	}
+	return 0
+}
+
+type AccumulateRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Number        int32                  `protobuf:"varint,1,opt,name=number,proto3" json:"number,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AccumulateRequest) Reset() {
+	*x = AccumulateRequest{}
+	mi := &file_v1_quirks_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AccumulateRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AccumulateRequest) ProtoMessage() {}
+
+func (x *AccumulateRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_quirks_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AccumulateRequest.ProtoReflect.Descriptor instead.
+func (*AccumulateRequest) Descriptor() ([]byte, []int) {
+	return file_v1_quirks_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *AccumulateRequest) GetNumber() int32 {
+	if x != nil {
+		return x.Number
+	}
+	return 0
+}
+
+type AccumulateResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Total         int32                  `protobuf:"varint,1,opt,name=total,proto3" json:"total,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AccumulateResponse) Reset() {
+	*x = AccumulateResponse{}
+	mi := &file_v1_quirks_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AccumulateResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AccumulateResponse) ProtoMessage() {}
+
+func (x *AccumulateResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_quirks_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AccumulateResponse.ProtoReflect.Descriptor instead.
+func (*AccumulateResponse) Descriptor() ([]byte, []int) {
+	return file_v1_quirks_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *AccumulateResponse) GetTotal() int32 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+type EchoMessage struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Content       string                 `protobuf:"bytes,1,opt,name=content,proto3" json:"content,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EchoMessage) Reset() {
+	*x = EchoMessage{}
+	mi := &file_v1_quirks_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EchoMessage) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EchoMessage) ProtoMessage() {}
+
+func (x *EchoMessage) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_quirks_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EchoMessage.ProtoReflect.Descriptor instead.
+func (*EchoMessage) Descriptor() ([]byte, []int) {
+	return file_v1_quirks_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *EchoMessage) GetContent() string {
+	if x != nil {
+		return x.Content
+	}
+	return ""
+}
+
 var File_v1_quirks_proto protoreflect.FileDescriptor
 
 const file_v1_quirks_proto_rawDesc = "" +
@@ -126,10 +346,23 @@ const file_v1_quirks_proto_rawDesc = "" +
 	"\x01a\x18\x01 \x01(\tR\x01a\x12\f\n" +
 	"\x01b\x18\x02 \x01(\tR\x01b\",\n" +
 	"\x12SumStringsResponse\x12\x16\n" +
-	"\x06result\x18\x01 \x01(\tR\x06result2\x96\x01\n" +
+	"\x06result\x18\x01 \x01(\tR\x06result\"'\n" +
+	"\x0fGenerateRequest\x12\x14\n" +
+	"\x05count\x18\x01 \x01(\x05R\x05count\"*\n" +
+	"\x10GenerateResponse\x12\x16\n" +
+	"\x06number\x18\x01 \x01(\x05R\x06number\"+\n" +
+	"\x11AccumulateRequest\x12\x16\n" +
+	"\x06number\x18\x01 \x01(\x05R\x06number\"*\n" +
+	"\x12AccumulateResponse\x12\x14\n" +
+	"\x05total\x18\x01 \x01(\x05R\x05total\"'\n" +
+	"\vEchoMessage\x12\x18\n" +
+	"\acontent\x18\x01 \x01(\tR\acontent2\xf0\x02\n" +
 	"\x06Quirks\x12H\n" +
 	"-MethodWithAReallyLongNameGmthggupcbmnphflnnvu\x12\t.lib.Void\x1a\f.lib.Message\x12B\n" +
-	"\x03Sum\x12\x1c.quirks.v1.SumStringsRequest\x1a\x1d.quirks.v1.SumStringsResponse23\n" +
+	"\x03Sum\x12\x1c.quirks.v1.SumStringsRequest\x1a\x1d.quirks.v1.SumStringsResponse\x12L\n" +
+	"\x0fGenerateNumbers\x12\x1a.quirks.v1.GenerateRequest\x1a\x1b.quirks.v1.GenerateResponse0\x01\x12N\n" +
+	"\rAccumulateSum\x12\x1c.quirks.v1.AccumulateRequest\x1a\x1d.quirks.v1.AccumulateResponse(\x01\x12:\n" +
+	"\x04Echo\x12\x16.quirks.v1.EchoMessage\x1a\x16.quirks.v1.EchoMessage(\x010\x0123\n" +
 	"\bquirks_2\x12'\n" +
 	"\x0fcamelCaseMethod\x12\t.lib.Void\x1a\t.lib.VoidB\x11Z\x0finternal/api/v1b\x06proto3"
 
@@ -145,22 +378,33 @@ func file_v1_quirks_proto_rawDescGZIP() []byte {
 	return file_v1_quirks_proto_rawDescData
 }
 
-var file_v1_quirks_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_v1_quirks_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_v1_quirks_proto_goTypes = []any{
 	(*SumStringsRequest)(nil),  // 0: quirks.v1.SumStringsRequest
 	(*SumStringsResponse)(nil), // 1: quirks.v1.SumStringsResponse
-	(*Void)(nil),               // 2: lib.Void
-	(*Message)(nil),            // 3: lib.Message
+	(*GenerateRequest)(nil),    // 2: quirks.v1.GenerateRequest
+	(*GenerateResponse)(nil),   // 3: quirks.v1.GenerateResponse
+	(*AccumulateRequest)(nil),  // 4: quirks.v1.AccumulateRequest
+	(*AccumulateResponse)(nil), // 5: quirks.v1.AccumulateResponse
+	(*EchoMessage)(nil),        // 6: quirks.v1.EchoMessage
+	(*Void)(nil),               // 7: lib.Void
+	(*Message)(nil),            // 8: lib.Message
 }
 var file_v1_quirks_proto_depIdxs = []int32{
-	2, // 0: quirks.v1.Quirks.MethodWithAReallyLongNameGmthggupcbmnphflnnvu:input_type -> lib.Void
+	7, // 0: quirks.v1.Quirks.MethodWithAReallyLongNameGmthggupcbmnphflnnvu:input_type -> lib.Void
 	0, // 1: quirks.v1.Quirks.Sum:input_type -> quirks.v1.SumStringsRequest
-	2, // 2: quirks.v1.quirks_2.camelCaseMethod:input_type -> lib.Void
-	3, // 3: quirks.v1.Quirks.MethodWithAReallyLongNameGmthggupcbmnphflnnvu:output_type -> lib.Message
-	1, // 4: quirks.v1.Quirks.Sum:output_type -> quirks.v1.SumStringsResponse
-	2, // 5: quirks.v1.quirks_2.camelCaseMethod:output_type -> lib.Void
-	3, // [3:6] is the sub-list for method output_type
-	0, // [0:3] is the sub-list for method input_type
+	2, // 2: quirks.v1.Quirks.GenerateNumbers:input_type -> quirks.v1.GenerateRequest
+	4, // 3: quirks.v1.Quirks.AccumulateSum:input_type -> quirks.v1.AccumulateRequest
+	6, // 4: quirks.v1.Quirks.Echo:input_type -> quirks.v1.EchoMessage
+	7, // 5: quirks.v1.quirks_2.camelCaseMethod:input_type -> lib.Void
+	8, // 6: quirks.v1.Quirks.MethodWithAReallyLongNameGmthggupcbmnphflnnvu:output_type -> lib.Message
+	1, // 7: quirks.v1.Quirks.Sum:output_type -> quirks.v1.SumStringsResponse
+	3, // 8: quirks.v1.Quirks.GenerateNumbers:output_type -> quirks.v1.GenerateResponse
+	5, // 9: quirks.v1.Quirks.AccumulateSum:output_type -> quirks.v1.AccumulateResponse
+	6, // 10: quirks.v1.Quirks.Echo:output_type -> quirks.v1.EchoMessage
+	7, // 11: quirks.v1.quirks_2.camelCaseMethod:output_type -> lib.Void
+	6, // [6:12] is the sub-list for method output_type
+	0, // [0:6] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -178,7 +422,7 @@ func file_v1_quirks_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_quirks_proto_rawDesc), len(file_v1_quirks_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   2,
 		},
