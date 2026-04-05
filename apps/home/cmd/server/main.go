@@ -21,8 +21,14 @@ func main() {
 		// Check if the file exists
 		fullPath := filepath.Join(staticDir, path)
 		if _, err := os.Stat(fullPath); os.IsNotExist(err) {
-			// Serve index.html for SPA-like behavior
 			if path != "/" && filepath.Ext(path) == "" {
+				// Check if a matching .html file exists
+				htmlPath := filepath.Join(staticDir, path+".html")
+				if _, err := os.Stat(htmlPath); err == nil {
+					http.ServeFile(w, r, htmlPath)
+					return
+				}
+				// Serve index.html for SPA-like behavior
 				http.ServeFile(w, r, filepath.Join(staticDir, "index.html"))
 				return
 			}
