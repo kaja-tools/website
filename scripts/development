@@ -60,20 +60,32 @@ kubectl cp apps/kaja/kaja.json $POD_NAME:/workspace/kaja.json
 kubectl cp apps/teams/proto/teams.proto $POD_NAME:/workspace/teams/teams.proto
 kubectl cp apps/users/proto/users.proto $POD_NAME:/workspace/users/users.proto
 
-# Rebuild and update teams service
-echo "Rebuilding teams service Docker image..."
-docker build -t kajatools/website-teams:latest ./apps/teams
+# Rebuild each service image, load it into the kind-mode Kubernetes node's
+# containerd (Docker Desktop's k8s no longer shares the Docker image store),
+# and restart the deployment.
+#
+# Usage: build_and_deploy <image-tag> <build-context> <deployment> [<deployment>...]
+build_and_deploy() {
+    local image="$1"
+    local context="$2"
+    shift 2
 
-echo "Updating teams-deployment in cluster..."
-kubectl rollout restart deployment teams-deployment
-kubectl rollout status deployment teams-deployment
+    echo "Rebuilding $image..."
+    docker build -t "$image" "$context"
 
-# Rebuild and update users service
-echo "Rebuilding users service Docker image..."
-docker build -t kajatools/website-users:latest ./apps/users
+    echo "Loading $image into desktop-control-plane..."
+    docker save "$image" | docker exec -i desktop-control-plane ctr -n k8s.io images import -
 
-echo "Updating users-deployment in cluster..."
-kubectl rollout restart deployment users-deployment
-kubectl rollout status deployment users-deployment
+    for deployment in "$@"; do
+        echo "Restarting deployment $deployment..."
+        kubectl rollout restart "deployment/$deployment"
+        kubectl rollout status "deployment/$deployment"
+    done
+}
+
+build_and_deploy kajatools/website-home:latest   ./apps/home   home-deployment
+build_and_deploy kajatools/website-quirks:latest ./apps/quirks grpc-quirks-deployment twirp-quirks-deployment
+build_and_deploy kajatools/website-teams:latest  ./apps/teams  teams-deployment
+build_and_deploy kajatools/website-users:latest  ./apps/users  users-deployment
 
 echo "Done"
