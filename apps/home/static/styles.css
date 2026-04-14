@@ -159,6 +159,72 @@ main {
     top: -2px;
 }
 
+/* Mac App Store Button */
+.btn-app-store {
+    background: #000;
+    color: var(--color-text);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    padding: 0.625rem 1.25rem;
+    gap: 0.75rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.btn-app-store::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: 10px;
+    padding: 1px;
+    background: var(--gradient);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.btn-app-store:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(139, 59, 200, 0.35);
+    border-color: transparent;
+}
+
+.btn-app-store:hover::before {
+    opacity: 1;
+}
+
+.btn-app-store .apple-icon {
+    width: 28px;
+    height: 28px;
+    top: 0;
+    flex-shrink: 0;
+}
+
+.app-store-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    line-height: 1.1;
+    text-align: left;
+}
+
+.app-store-small {
+    font-size: 0.7rem;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    opacity: 0.85;
+    text-transform: uppercase;
+}
+
+.app-store-large {
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+}
+
 /* Slideshow */
 .slideshow-container {
     padding: 1rem 0 3rem;
