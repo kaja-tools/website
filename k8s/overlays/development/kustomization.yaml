@@ -157,3 +157,45 @@ patches:
     target:
       kind: Deployment
       name: grpc-quirks-deployment
+  - patch: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: theatre-deployment
+      spec:
+        template:
+          spec:
+            containers:
+            - name: theatre
+              imagePullPolicy: Never
+    target:
+      kind: Deployment
+      name: theatre-deployment
+  - patch: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: seating-deployment
+      spec:
+        template:
+          spec:
+            containers:
+            - name: seating
+              imagePullPolicy: Never
+    target:
+      kind: Deployment
+      name: seating-deployment
+  - patch: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: boxoffice-deployment
+      spec:
+        template:
+          spec:
+            containers:
+            - name: boxoffice
+              imagePullPolicy: Never
+    target:
+      kind: Deployment
+      name: boxoffice-deployment

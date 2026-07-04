@@ -40,6 +40,14 @@ spec:
             name: teams-service
             port:
               number: 80
+      # Seating service
+      - path: /seating.Seating/
+        pathType: Prefix
+        backend:
+          service:
+            name: seating-service
+            port:
+              number: 80
       # Quirks service
       - path: /quirks.v1.Basics/
         pathType: Prefix
