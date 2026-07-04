@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: theatre-deployment
+  labels:
+    app: theatre
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: theatre
+  template:
+    metadata:
+      labels:
+        app: theatre
+    spec:
+      containers:
+      - name: theatre
+        image: kajatools/website-theatre:latest
+        imagePullPolicy: Always
+        env:
+        - name: PUBLIC_BASE_URL
+          value: "https://kaja.tools/theatre"
+        ports:
+        - containerPort: 41530
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: theatre-service
+spec:
+  selector:
+    app: theatre
+  ports:
+    - port: 80
+      targetPort: 41530
+  type: ClusterIP

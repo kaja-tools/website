@@ -12,6 +12,23 @@
       "protocol": "RPC_PROTOCOL_TWIRP",
       "url": "https://kaja.tools/users",
       "protoDir": "users"
+    },
+    {
+      "name": "theatre",
+      "protocol": "RPC_PROTOCOL_OPENAPI",
+      "url": "https://kaja.tools/theatre/openapi.yaml"
+    },
+    {
+      "name": "seating",
+      "protocol": "RPC_PROTOCOL_GRPC",
+      "url": "dns:kaja.tools:443",
+      "protoDir": "seating"
+    },
+    {
+      "name": "boxoffice",
+      "protocol": "RPC_PROTOCOL_TWIRP",
+      "url": "https://kaja.tools/boxoffice",
+      "protoDir": "boxoffice"
     }
   ]
 }

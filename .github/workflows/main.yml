@@ -46,3 +46,24 @@ jobs:
           push: ${{ github.event_name == 'push' }}
           tags: |
             kajatools/website-quirks:latest
+      - name: Build and push website-theatre
+        uses: docker/build-push-action@v3
+        with:
+          context: ./apps/theatre
+          push: ${{ github.event_name == 'push' }}
+          tags: |
+            kajatools/website-theatre:latest
+      - name: Build and push website-seating
+        uses: docker/build-push-action@v3
+        with:
+          context: ./apps/seating
+          push: ${{ github.event_name == 'push' }}
+          tags: |
+            kajatools/website-seating:latest
+      - name: Build and push website-boxoffice
+        uses: docker/build-push-action@v3
+        with:
+          context: ./apps/boxoffice
+          push: ${{ github.event_name == 'push' }}
+          tags: |
+            kajatools/website-boxoffice:latest

@@ -36,6 +36,20 @@ spec:
             name: twirp-quirks-service
             port:
               number: 80
+      - path: /theatre
+        pathType: Prefix
+        backend:
+          service:
+            name: theatre-service
+            port:
+              number: 80
+      - path: /boxoffice
+        pathType: Prefix
+        backend:
+          service:
+            name: boxoffice-service
+            port:
+              number: 80
       - path: /
         pathType: Prefix
         backend:
