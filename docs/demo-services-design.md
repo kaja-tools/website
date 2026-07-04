@@ -1,9 +1,9 @@
-# Demo Services Redesign: The "Ship It" Trio
+# Demo Services Redesign: The Box Office Trio
 
 A proposal for the three demo services behind the kaja.tools live demo — one Twirp,
 one gRPC, one OpenAPI — designed from scratch so that each protocol is shown where it
-shines, and so that a single script in the kaja editor can chain all three into one
-story.
+shines, the domain is instantly understandable to *anyone* (not just developers), and
+a single script in the kaja editor can chain all three into one story.
 
 ## Why redesign at all
 
@@ -19,166 +19,184 @@ limitations as a demo:
    team" — a foreign-key join, not a workflow.
 
 Adding OpenAPI is the moment to fix this: pick a domain where the three protocols
-have naturally different jobs, and where the output of one call is the natural input
-of the next.
+have naturally different jobs, where the output of one call is the natural input of
+the next, and where no explanation is needed to understand what's going on.
 
-## The proposal: an internal CI/delivery platform
+## The proposal: a theatre box office
 
-The fictional "internal microservices group" becomes the delivery platform of a small
-software company. Three services around the act of shipping software:
+The fictional "internal microservices group" becomes the ticketing platform of a
+small venue — say, **The Kaja Theatre**. Everyone on earth understands browsing
+shows, watching seats sell out, and racing to buy a ticket.
 
 | Service | Protocol | Role | Why this protocol |
 |---|---|---|---|
-| `builds` | **Twirp** | CI orchestrator: trigger, list, cancel, retry builds | Twirp's sweet spot: boring internal request/response commands, JSON-curl-able |
-| `logs` | **gRPC** | Log pipeline: tail, follow, search build logs | Streaming is gRPC's unique power, and `tail -f` is the most intuitive streaming API there is |
-| `releases` | **OpenAPI** | Artifact registry / release catalog | Registries are REST-shaped in real life (GitHub Releases, npm, Docker registry): resources, path params, pagination, 404s |
+| `events` | **OpenAPI** | The public catalog: shows, performances, venue info | Catalogs are REST-shaped in real life: resources, path params, filtering, pagination, images |
+| `seating` | **gRPC** | The live seat map: watch seats get held and sold in real time | Streaming is gRPC's unique power, and a seat map filling up live is self-explanatory drama |
+| `boxoffice` | **Twirp** | The counter: reserve seats, purchase, cancel | Twirp's sweet spot: simple, curl-able transactional commands |
 
-This mirrors how real companies actually mix protocols — internal RPC commands over
-Twirp, high-throughput streaming over gRPC, and a resource catalog over REST — so the
-demo doubles as the *argument* for kaja.
-
-The domain is also self-referential in a charming way: the seeded projects are
-`website`, `kaja`, and `quirks` — the demo builds the very software you're looking at.
+The killer ingredient is **the crowd**: a background simulation of other customers
+buying tickets through the same APIs. It's what makes the demo alive before the
+visitor types anything, it's what makes the seat-map stream worth watching, and —
+best of all — it means the visitor can *lose a race for a seat*, turning error
+handling into a story instead of a footnote.
 
 ### The money-shot script
 
-The demo the landing page screenshots should show — one script, three protocols, one
-real workflow, with live streaming in the middle:
+The demo the landing page screenshots should show — one script, three protocols,
+one real workflow, with live streaming and a race in the middle:
 
 ```ts
-// Kick off a build (Twirp)
-const { build } = await builds.createBuild({ project: "website", branch: "main" });
+// Find tonight's hot show (OpenAPI)
+const { items } = await events.listEvents({ date: "today" });
+const show = items[0];
 
-// Tail its logs live as it runs (gRPC server streaming)
-for await (const line of logs.tail({ buildId: build.id, follow: true })) {
-  console.log(line.text);
+// Watch the seat map live as the crowd buys (gRPC server streaming)
+for await (const change of seating.watchSeats({ performanceId: show.performances[0].id })) {
+  console.log(`${change.seatId}: ${change.status}`);   // F7: HELD, F7: SOLD, B2: HELD...
 }
 
-// The build passed — fetch the release it published (OpenAPI)
-const { build: finished } = await builds.getBuild({ id: build.id });
-const release = await releases.getRelease({ project: "website", version: finished.version });
-console.log(release.changelog);
+// Race the crowd for two good seats (Twirp)
+const { reservation } = await boxoffice.reserve({
+  performanceId: show.performances[0].id,
+  seatIds: ["F7", "F8"],
+  customerName: "Ada",
+});
+const { tickets } = await boxoffice.purchase({ reservationId: reservation.id });
+console.log(tickets[0].confirmationCode);
 ```
 
 Every step's output feeds the next step's input, the middle section visibly streams
-for ~30 seconds, and the ending is a satisfying artifact. No CRUD demo can match the
-"it's alive" feeling of log lines arriving in real time in an editor.
+seat updates in real time, and the ending is either a confirmation code or a
+`seat_already_taken` error because a simulated buyer got there first — both are
+great demo outcomes.
 
 ## Service designs
 
-### `builds` (Twirp)
+### `events` (OpenAPI 3.1)
 
-```proto
-syntax = "proto3";
-package builds;
-
-service Builds {
-  rpc GetAllBuilds(GetAllBuildsRequest) returns (GetAllBuildsResponse); // newest first, filter by project/status
-  rpc GetBuild(GetBuildRequest) returns (GetBuildResponse);
-  rpc CreateBuild(CreateBuildRequest) returns (CreateBuildResponse);    // project + branch -> queued build
-  rpc CancelBuild(CancelBuildRequest) returns (CancelBuildResponse);
-  rpc RetryBuild(RetryBuildRequest) returns (RetryBuildResponse);       // failed build -> new build
-  rpc GetProjects(GetProjectsRequest) returns (GetProjectsResponse);    // seeded: website, kaja, quirks
-}
-
-message Build {
-  string id = 1;
-  string project = 2;
-  string branch = 3;
-  BuildStatus status = 4;          // QUEUED, RUNNING, PASSED, FAILED, CANCELED
-  string commit_sha = 5;           // fake but plausible
-  repeated BuildStep steps = 6;    // checkout, deps, compile, test, package
-  string version = 7;              // semver, set when PASSED
-  string created_at = 8;
-  string finished_at = 9;
-}
-
-message BuildStep {
-  string name = 1;
-  BuildStatus status = 2;
-  int32 duration_ms = 3;
-}
-```
-
-**The simulation engine is the heart of the demo.** `CreateBuild` starts a goroutine
-that walks the build through its steps over ~30–60 seconds (randomized), emitting
-crafted log lines into the `logs` service as it goes. Roughly 15% of builds fail on a
-flaky test — failures are part of the demo (they give `RetryBuild` a purpose and give
-the REST API a natural 404 to show). On success, the build mints the project's next
-semver version and `POST`s a release to the `releases` service — the services
-*really* call each other, so the microservices story is true, not staged.
-
-A background **release train** creates a build on a random project every few minutes.
-This is what fixes the "static demo" problem: a visitor's very first `GetAllBuilds`
-returns a believable, populated history, and there's usually a build running *right
-now* to tail.
-
-### `logs` (gRPC)
-
-```proto
-syntax = "proto3";
-package logs;
-
-service Logs {
-  // Server streaming: the tail -f of the demo. follow=true keeps the stream open
-  // while the build runs; on a finished build it replays instantly and closes.
-  rpc Tail(TailRequest) returns (stream LogLine);
-  // Unary grep across a build's (or all recent) logs.
-  rpc Search(SearchRequest) returns (SearchResponse);
-  // Client streaming: how a build agent pushes lines. Used by the builds service
-  // for real, and demoable by visitors ("be your own CI agent").
-  rpc Push(stream LogLine) returns (PushResponse);
-}
-
-message LogLine {
-  string build_id = 1;
-  int64 seq = 2;
-  string timestamp = 3;
-  Level level = 4;      // DEBUG, INFO, WARN, ERROR
-  string step = 5;      // which build step emitted it
-  string text = 6;
-}
-```
-
-`Tail` with `follow: true` on a RUNNING build is the wow moment. The fake log lines
-deserve real craft — plausible compiler/test-runner output with the occasional
-easter egg — because streaming log output is what people will screenshot.
-
-Covering server streaming, client streaming, and unary in one small service also
-replaces most of what `quirks` v1 demonstrates, but with meaning attached.
-
-### `releases` (OpenAPI 3.1)
-
-Spec-first, mirroring the proto-first ethos: `apps/releases/openapi/openapi.yaml`
-is the source of truth, Go server generated with `oapi-codegen` via a `scripts/openapi`
+Spec-first, mirroring the proto-first ethos: `apps/events/openapi/openapi.yaml` is
+the source of truth, Go server generated with `oapi-codegen` via a `scripts/openapi`
 sibling of `scripts/protoc`. The spec itself is served at
-`https://kaja.tools/releases/openapi.yaml` — that URL is what kaja loads.
+`https://kaja.tools/events/openapi.yaml` — that URL is what kaja loads.
 
 ```
-GET    /projects                                  → all projects with latest version
-GET    /projects/{project}/releases               → paginated (?page, ?per_page)
-GET    /projects/{project}/releases/latest
-GET    /projects/{project}/releases/{version}
-GET    /projects/{project}/releases/{version}/artifact   → binary .tar.gz download
-POST   /projects/{project}/releases               → 201 (called by builds; 409 on duplicate version)
-DELETE /projects/{project}/releases/{version}     → 204 ("yank a release")
+GET    /venue                                → the theatre: name, address, seat-map layout
+GET    /events                               → paginated (?page, ?per_page, ?genre, ?date)
+GET    /events/{eventId}
+GET    /events/{eventId}/poster              → binary image download
+GET    /events/{eventId}/performances        → showtimes with id, starts_at, availability summary
+GET    /performances/{performanceId}
 ```
 
 The schema deliberately exercises things protobuf can't express, so the OpenAPI
 support in kaja gets a real workout:
 
-- `version` with a semver `pattern`, `format: date-time` timestamps, `format: uri` links
-- a markdown `changelog` field (generated from the build's fake commits)
-- `artifacts[]` with `sha256` and `size_bytes`
-- string enums (`status: published | yanked`)
-- RFC 7807 `application/problem+json` error bodies for 404/409 — showing how kaja
-  renders REST errors next to Twirp errors and gRPC status codes
-- pagination via query params + `Link` header
-- one binary (non-JSON) response
+- string enums (`genre: concert | theatre | comedy | opera`), `format: date-time`,
+  `format: uri`
+- a markdown `description` field per event
+- query-param filtering and pagination via `Link` header
+- RFC 7807 `application/problem+json` for 404 (unknown event) and 410 (past
+  performance) — showing how kaja renders REST errors next to Twirp errors and gRPC
+  status codes
+- one binary (non-JSON) response: the poster image
 
-The link back is `build_id` on every release — REST → Twirp composition in the
-reverse direction (`releases.getRelease(...)` → `builds.getBuild({ id: release.buildId })`
-→ `logs.tail(...)`: "why does v1.4.2 crash? read its build logs").
+The link forward is `performances[].id` on every event — the exact value the gRPC
+and Twirp services take as input.
+
+### `seating` (gRPC)
+
+```proto
+syntax = "proto3";
+package seating;
+
+service Seating {
+  // Unary: full snapshot of a performance's seat map.
+  rpc GetSeatMap(GetSeatMapRequest) returns (GetSeatMapResponse);
+  // Server streaming: the wow moment. Sends a snapshot, then pushes every
+  // hold/sale/release live until the client disconnects.
+  rpc WatchSeats(WatchSeatsRequest) returns (stream SeatChange);
+  // Bidirectional streaming (stretch): an interactive picking session — the client
+  // streams hold/release commands while the server streams everyone's changes back.
+  rpc PickSeats(stream PickCommand) returns (stream SeatChange);
+}
+
+message Seat {
+  string id = 1;            // "F7" — row letter + seat number
+  string section = 2;       // ORCHESTRA, BALCONY
+  SeatStatus status = 3;    // AVAILABLE, HELD, SOLD
+  int32 price_cents = 4;
+}
+
+message SeatChange {
+  string performance_id = 1;
+  string seat_id = 2;
+  SeatStatus status = 3;
+  string changed_at = 4;
+}
+```
+
+The seat map is small enough to read in a response and big enough to feel real:
+orchestra rows A–M × seats 1–20 plus a balcony. `WatchSeats` on a hot performance
+shows a steady drip of `HELD`/`SOLD` changes from the crowd; unary `GetSeatMap`
+covers the plain-RPC case. `PickSeats` is the optional bidi showcase — worth having
+because nothing else in the demo exercises bidirectional streaming (today only
+quirks does).
+
+`seating` **owns seat state**. Holds and sales only enter through its internal API,
+which is what makes the race honest: the visitor's reserve and the crowd's reserves
+contend on the same state.
+
+### `boxoffice` (Twirp)
+
+```proto
+syntax = "proto3";
+package boxoffice;
+
+service BoxOffice {
+  rpc Reserve(ReserveRequest) returns (ReserveResponse);          // hold seats, 2-minute TTL
+  rpc Purchase(PurchaseRequest) returns (PurchaseResponse);       // reservation -> tickets
+  rpc CancelReservation(CancelReservationRequest) returns (CancelReservationResponse);
+  rpc GetOrder(GetOrderRequest) returns (GetOrderResponse);       // look up by confirmation code
+}
+
+message Reservation {
+  string id = 1;
+  string performance_id = 2;
+  repeated string seat_ids = 3;
+  string customer_name = 4;
+  string expires_at = 5;      // holds auto-release, keeping the demo self-healing
+  int32 total_cents = 6;
+}
+
+message Ticket {
+  string confirmation_code = 1;   // "KAJA-7F3B"
+  string event_id = 2;            // links back to the REST catalog
+  string performance_id = 3;
+  string seat_id = 4;
+}
+```
+
+`Reserve` returns a proper Twirp error (`already_exists`, message
+`seat F7 was just taken`) when the crowd wins the race — error handling demoed on
+the Twirp side, complementing the REST 404/410 on the OpenAPI side. Tickets carry
+`event_id`, so composition also runs backwards: look up an order (Twirp) → fetch the
+event and poster (REST) → watch the remaining seats (gRPC).
+
+### The crowd (simulation engine)
+
+The crowd is part of the `boxoffice` service and buys through the same internal path
+as real visitors — dogfooding, and it keeps the microservices story honest:
+
+- Each performance gets a demand profile: a Friday-night headliner sells fast, a
+  Tuesday matinee dribbles. Simulated buyers reserve 1–4 adjacent seats, sometimes
+  abandon their hold (which visibly frees seats again), mostly purchase.
+- **Rolling schedule**: `events` always maintains ~7 days of upcoming performances,
+  generating new ones as old ones pass. Hot shows selling out is realistic and fine —
+  there's always another performance with seats.
+- Holds expire after 2 minutes, so no one can brick a performance by hoarding holds.
+
+Seeded content is fictional and a little charming — acts worth naming well, across
+genres, at The Kaja Theatre. Posters generated once and committed as static assets.
 
 ## What happens to users, teams, and quirks
 
@@ -187,64 +205,70 @@ reverse direction (`releases.getRelease(...)` → `builds.getBuild({ id: release
   us the patterns (pebble storage, Twirp path prefixes, gRPC ingress) that the trio
   reuses.
 - **quirks**: keep, but as the edge-case test harness it already is rather than part
-  of the headline demo. Its streaming RPCs, odd names, and v1/v2 packages are for
-  exercising kaja itself. Optionally keep it in the demo config as a fourth,
-  clearly-labeled "kitchen sink" project.
+  of the headline demo. Optionally keep it in the demo config as a clearly-labeled
+  "kitchen sink" project.
 
 ## Infrastructure plan
 
 Everything follows existing patterns in this repo:
 
-- `apps/builds` — Twirp server with `twirp.WithServerPathPrefix("/builds/twirp")`,
-  pebble DB on the workspace volume, `k8s/base/builds.yaml`, path `/builds` in
-  `k8s/base/ingress.yaml`.
-- `apps/logs` — gRPC server, `k8s/base/logs.yaml`, path `/logs.Logs/` in
+- `apps/events` — plain HTTP server (chi + oapi-codegen), `k8s/base/events.yaml`,
+  path `/events` in `k8s/base/ingress.yaml`, serving both the API and
+  `/events/openapi.yaml`.
+- `apps/seating` — gRPC server, `k8s/base/seating.yaml`, path `/seating.Seating/` in
   `k8s/base/ingress-grpc.yaml`. If teams is retired, repoint the gRPC reflection
-  paths (currently → `teams-service`) at `logs-service`.
-- `apps/releases` — plain HTTP server (chi + oapi-codegen), `k8s/base/releases.yaml`,
-  path `/releases` in `k8s/base/ingress.yaml`, serving both the API and
-  `/releases/openapi.yaml`.
-- `apps/kaja/kaja.json` — three projects: `builds` (`RPC_PROTOCOL_TWIRP`,
-  `https://kaja.tools/builds`), `logs` (`RPC_PROTOCOL_GRPC`, `dns:kaja.tools:443`),
-  `releases` (the new OpenAPI protocol enum, pointed at the spec URL).
+  paths (currently → `teams-service`) at `seating-service`.
+- `apps/boxoffice` — Twirp server with
+  `twirp.WithServerPathPrefix("/boxoffice/twirp")`, `k8s/base/boxoffice.yaml`, path
+  `/boxoffice` in `k8s/base/ingress.yaml`.
+- `apps/kaja/kaja.json` — three projects: `events` (the new OpenAPI protocol enum,
+  pointed at the spec URL), `seating` (`RPC_PROTOCOL_GRPC`, `dns:kaja.tools:443`),
+  `boxoffice` (`RPC_PROTOCOL_TWIRP`, `https://kaja.tools/boxoffice`).
   *Assumption: kaja's config gains an OpenAPI protocol value; the exact enum name
   follows whatever kaja ships.*
-- Inter-service calls (`builds → logs`, `builds → releases`) go over in-cluster
-  service DNS using the services' own public APIs — dogfooding, and it keeps the
-  "these are real microservices" story honest.
+- Storage: pebble per service on the workspace volume, like users today.
+- Inter-service calls (`boxoffice → seating` for holds/sales, both → `events` for
+  the schedule) go over in-cluster service DNS.
 
 ### Public-demo hygiene
 
 The demo is on the open internet, so the trio is self-maintaining:
 
-- Seed on boot if the DB is empty; the release train keeps data fresh.
-- Rolling GC: keep the last ~200 builds and their logs, ~50 releases per project.
-- Caps: max concurrent simulated builds (e.g. 5), length limits on all user-supplied
-  strings, a modest global rate limit on `CreateBuild`.
-- Everything user-created is disposable by design — a nightly reset is acceptable
-  and invisible because seeded data looks the same as organic data.
+- Rolling performance window + hold TTLs mean the demo can never be bricked; a
+  nightly reset is acceptable and invisible because seeded data looks the same as
+  organic data.
+- Caps: max 6 seats per reservation, length limits on `customer_name` (the only
+  user-supplied string), a modest rate limit on `Reserve`.
+- Rolling GC: archive performances older than a day, drop their seat state and
+  orders.
 
 ## Alternatives considered
 
-- **Keep users/teams, add an OpenAPI booking/rooms service** ("book a meeting room
-  for a team"). Cheapest option and a coherent story, but it stays all-unary CRUD —
-  it never shows streaming, never shows *why* the protocols differ, and the demo
-  stays static.
-- **Delivery/logistics** (orders via Twirp, courier GPS stream via gRPC, catalog via
-  REST). Understandable to everyone, but streaming coordinates are just numbers;
-  streaming *log lines* are self-explanatory and native to the audience.
-- **Observability** (metrics stream, incidents, status page). Good fit but overlaps
-  with what real vendors demo; CI is closer to kaja's own build-and-ship identity.
-
-The CI trio wins because kaja's audience is developers who live in exactly this
-workflow, and because it gives each protocol a job only it can do.
+- **CI/delivery platform** (builds = Twirp, log tailing = gRPC, release registry =
+  OpenAPI). The strongest *developer*-facing option — it mirrors kaja's audience's
+  actual stack — and an earlier draft of this proposal. Ruled out for being
+  insider-facing: a demo anyone can understand at a glance beats one that requires
+  living in CI. The box office keeps its best ideas (lifecycle simulation, background
+  activity, cross-protocol chaining) in a universally legible costume.
+- **Radio station / jukebox** (REST music catalog, Twirp song requests, gRPC
+  now-playing broadcast you tail until your song plays). Charming and alive by
+  definition; close second. The box office won on drama — a race with a possible
+  409-style loss beats passive waiting.
+- **Food delivery** (REST menu, Twirp orders, gRPC pizza-tracker stream). Universally
+  understood but tutorial-flavored territory, adjacent to the pet-store cliché.
+- **Mission control** (REST missions, Twirp launch scheduling, gRPC countdown
+  telemetry). The most screenshotable, but a costume more than a domain — no natural
+  REST catalog anyone would browse, and no user-vs-world contention.
+- **Keep users/teams, add an OpenAPI booking service.** Cheapest option, but it stays
+  all-unary CRUD — it never shows streaming and never answers why the protocols
+  differ.
 
 ## Suggested build order
 
-1. `releases` (OpenAPI) alone with hand-seeded data — it's the new protocol and can
-   ship to the demo first as a standalone project.
-2. `builds` + the simulation engine + release train, POSTing to `releases`.
-3. `logs` + wire the simulator's log lines through `Push`/`Tail`.
+1. `events` (OpenAPI) alone with the seeded catalog and rolling schedule — it's the
+   new protocol and can ship to the demo first as a standalone project.
+2. `seating` with seat maps and `WatchSeats`, fed by a first cut of the crowd.
+3. `boxoffice` + the full crowd simulation contending with real visitors.
 4. Swap `apps/kaja/kaja.json` to the trio, retire users/teams from the demo, update
    ingress and reflection routing.
 5. Refresh landing-page screenshots/demo video around the money-shot script.
