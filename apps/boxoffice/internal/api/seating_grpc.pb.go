@@ -19,12 +19,13 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Seating_GetSeatMap_FullMethodName   = "/seating.Seating/GetSeatMap"
-	Seating_HoldSeats_FullMethodName    = "/seating.Seating/HoldSeats"
-	Seating_ConfirmSeats_FullMethodName = "/seating.Seating/ConfirmSeats"
-	Seating_ReleaseSeats_FullMethodName = "/seating.Seating/ReleaseSeats"
-	Seating_WatchSeats_FullMethodName   = "/seating.Seating/WatchSeats"
-	Seating_PickSeats_FullMethodName    = "/seating.Seating/PickSeats"
+	Seating_GetSeatMap_FullMethodName      = "/seating.Seating/GetSeatMap"
+	Seating_PollSeatChanges_FullMethodName = "/seating.Seating/PollSeatChanges"
+	Seating_HoldSeats_FullMethodName       = "/seating.Seating/HoldSeats"
+	Seating_ConfirmSeats_FullMethodName    = "/seating.Seating/ConfirmSeats"
+	Seating_ReleaseSeats_FullMethodName    = "/seating.Seating/ReleaseSeats"
+	Seating_WatchSeats_FullMethodName      = "/seating.Seating/WatchSeats"
+	Seating_PickSeats_FullMethodName       = "/seating.Seating/PickSeats"
 )
 
 // SeatingClient is the client API for Seating service.
@@ -34,21 +35,34 @@ const (
 // Live seat inventory for The Kaja Theatre. Seat state is owned here;
 // the boxoffice service places holds and sales through the same RPCs
 // that are exposed publicly.
+//
+// The unary RPCs below are a complete, self-contained API: browse, follow
+// a filling house by polling, hold, and buy — everything works without
+// streaming, so the web demo is fully functional. The two streaming RPCs
+// (WatchSeats, PickSeats) are a real-time bonus for the desktop app, which
+// supports gRPC streaming; they add nothing you can't do by polling.
 type SeatingClient interface {
-	// Full snapshot of a performance's seat map.
+	// Full snapshot of a performance's seat map. The response carries a
+	// cursor; pass it to PollSeatChanges to follow the house from here.
 	GetSeatMap(ctx context.Context, in *GetSeatMapRequest, opts ...grpc.CallOption) (*GetSeatMapResponse, error)
+	// Poll for seat changes since a cursor. Call it on a timer to watch the
+	// crowd fill a house without streaming. This is the web-friendly
+	// counterpart to WatchSeats.
+	PollSeatChanges(ctx context.Context, in *PollSeatChangesRequest, opts ...grpc.CallOption) (*PollSeatChangesResponse, error)
 	// Place a hold on specific seats. Holds expire automatically.
 	HoldSeats(ctx context.Context, in *HoldSeatsRequest, opts ...grpc.CallOption) (*HoldSeatsResponse, error)
 	// Turn a hold into a sale.
 	ConfirmSeats(ctx context.Context, in *ConfirmSeatsRequest, opts ...grpc.CallOption) (*ConfirmSeatsResponse, error)
 	// Release a hold early, freeing its seats.
 	ReleaseSeats(ctx context.Context, in *ReleaseSeatsRequest, opts ...grpc.CallOption) (*ReleaseSeatsResponse, error)
-	// Server streaming: sends a snapshot, then every hold/sale/release
-	// live until the client disconnects.
+	// Server streaming: sends a snapshot, then every hold/sale/release live
+	// until the client disconnects. The real-time version of
+	// GetSeatMap + PollSeatChanges.
 	WatchSeats(ctx context.Context, in *WatchSeatsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[SeatUpdate], error)
 	// Bidirectional streaming: an interactive picking session. Stream
 	// commands in (watch, hold, release, confirm) and receive everyone's
-	// seat changes plus your own results back.
+	// seat changes plus your own results back. Equivalent to combining the
+	// unary hold/confirm/release calls with WatchSeats.
 	PickSeats(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[PickSeatsCommand, SeatUpdate], error)
 }
 
@@ -64,6 +78,16 @@ func (c *seatingClient) GetSeatMap(ctx context.Context, in *GetSeatMapRequest, o
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetSeatMapResponse)
 	err := c.cc.Invoke(ctx, Seating_GetSeatMap_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *seatingClient) PollSeatChanges(ctx context.Context, in *PollSeatChangesRequest, opts ...grpc.CallOption) (*PollSeatChangesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PollSeatChangesResponse)
+	err := c.cc.Invoke(ctx, Seating_PollSeatChanges_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -139,21 +163,34 @@ type Seating_PickSeatsClient = grpc.BidiStreamingClient[PickSeatsCommand, SeatUp
 // Live seat inventory for The Kaja Theatre. Seat state is owned here;
 // the boxoffice service places holds and sales through the same RPCs
 // that are exposed publicly.
+//
+// The unary RPCs below are a complete, self-contained API: browse, follow
+// a filling house by polling, hold, and buy — everything works without
+// streaming, so the web demo is fully functional. The two streaming RPCs
+// (WatchSeats, PickSeats) are a real-time bonus for the desktop app, which
+// supports gRPC streaming; they add nothing you can't do by polling.
 type SeatingServer interface {
-	// Full snapshot of a performance's seat map.
+	// Full snapshot of a performance's seat map. The response carries a
+	// cursor; pass it to PollSeatChanges to follow the house from here.
 	GetSeatMap(context.Context, *GetSeatMapRequest) (*GetSeatMapResponse, error)
+	// Poll for seat changes since a cursor. Call it on a timer to watch the
+	// crowd fill a house without streaming. This is the web-friendly
+	// counterpart to WatchSeats.
+	PollSeatChanges(context.Context, *PollSeatChangesRequest) (*PollSeatChangesResponse, error)
 	// Place a hold on specific seats. Holds expire automatically.
 	HoldSeats(context.Context, *HoldSeatsRequest) (*HoldSeatsResponse, error)
 	// Turn a hold into a sale.
 	ConfirmSeats(context.Context, *ConfirmSeatsRequest) (*ConfirmSeatsResponse, error)
 	// Release a hold early, freeing its seats.
 	ReleaseSeats(context.Context, *ReleaseSeatsRequest) (*ReleaseSeatsResponse, error)
-	// Server streaming: sends a snapshot, then every hold/sale/release
-	// live until the client disconnects.
+	// Server streaming: sends a snapshot, then every hold/sale/release live
+	// until the client disconnects. The real-time version of
+	// GetSeatMap + PollSeatChanges.
 	WatchSeats(*WatchSeatsRequest, grpc.ServerStreamingServer[SeatUpdate]) error
 	// Bidirectional streaming: an interactive picking session. Stream
 	// commands in (watch, hold, release, confirm) and receive everyone's
-	// seat changes plus your own results back.
+	// seat changes plus your own results back. Equivalent to combining the
+	// unary hold/confirm/release calls with WatchSeats.
 	PickSeats(grpc.BidiStreamingServer[PickSeatsCommand, SeatUpdate]) error
 	mustEmbedUnimplementedSeatingServer()
 }
@@ -167,6 +204,9 @@ type UnimplementedSeatingServer struct{}
 
 func (UnimplementedSeatingServer) GetSeatMap(context.Context, *GetSeatMapRequest) (*GetSeatMapResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetSeatMap not implemented")
+}
+func (UnimplementedSeatingServer) PollSeatChanges(context.Context, *PollSeatChangesRequest) (*PollSeatChangesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method PollSeatChanges not implemented")
 }
 func (UnimplementedSeatingServer) HoldSeats(context.Context, *HoldSeatsRequest) (*HoldSeatsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method HoldSeats not implemented")
@@ -218,6 +258,24 @@ func _Seating_GetSeatMap_Handler(srv interface{}, ctx context.Context, dec func(
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SeatingServer).GetSeatMap(ctx, req.(*GetSeatMapRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Seating_PollSeatChanges_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PollSeatChangesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SeatingServer).PollSeatChanges(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Seating_PollSeatChanges_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SeatingServer).PollSeatChanges(ctx, req.(*PollSeatChangesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -304,6 +362,10 @@ var Seating_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetSeatMap",
 			Handler:    _Seating_GetSeatMap_Handler,
+		},
+		{
+			MethodName: "PollSeatChanges",
+			Handler:    _Seating_PollSeatChanges_Handler,
 		},
 		{
 			MethodName: "HoldSeats",

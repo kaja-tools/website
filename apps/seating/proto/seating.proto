@@ -9,21 +9,39 @@ option go_package = "internal/api";
 // Live seat inventory for The Kaja Theatre. Seat state is owned here;
 // the boxoffice service places holds and sales through the same RPCs
 // that are exposed publicly.
+//
+// The unary RPCs below are a complete, self-contained API: browse, follow
+// a filling house by polling, hold, and buy — everything works without
+// streaming, so the web demo is fully functional. The two streaming RPCs
+// (WatchSeats, PickSeats) are a real-time bonus for the desktop app, which
+// supports gRPC streaming; they add nothing you can't do by polling.
 service Seating {
-    // Full snapshot of a performance's seat map.
+    // --- Unary API (works everywhere, including the web demo) ---
+
+    // Full snapshot of a performance's seat map. The response carries a
+    // cursor; pass it to PollSeatChanges to follow the house from here.
     rpc GetSeatMap(GetSeatMapRequest) returns (GetSeatMapResponse);
+    // Poll for seat changes since a cursor. Call it on a timer to watch the
+    // crowd fill a house without streaming. This is the web-friendly
+    // counterpart to WatchSeats.
+    rpc PollSeatChanges(PollSeatChangesRequest) returns (PollSeatChangesResponse);
     // Place a hold on specific seats. Holds expire automatically.
     rpc HoldSeats(HoldSeatsRequest) returns (HoldSeatsResponse);
     // Turn a hold into a sale.
     rpc ConfirmSeats(ConfirmSeatsRequest) returns (ConfirmSeatsResponse);
     // Release a hold early, freeing its seats.
     rpc ReleaseSeats(ReleaseSeatsRequest) returns (ReleaseSeatsResponse);
-    // Server streaming: sends a snapshot, then every hold/sale/release
-    // live until the client disconnects.
+
+    // --- Streaming bonus (desktop app only; not needed for the demo) ---
+
+    // Server streaming: sends a snapshot, then every hold/sale/release live
+    // until the client disconnects. The real-time version of
+    // GetSeatMap + PollSeatChanges.
     rpc WatchSeats(WatchSeatsRequest) returns (stream SeatUpdate);
     // Bidirectional streaming: an interactive picking session. Stream
     // commands in (watch, hold, release, confirm) and receive everyone's
-    // seat changes plus your own results back.
+    // seat changes plus your own results back. Equivalent to combining the
+    // unary hold/confirm/release calls with WatchSeats.
     rpc PickSeats(stream PickSeatsCommand) returns (stream SeatUpdate);
 }
 
@@ -75,6 +93,9 @@ message SeatMap {
     int32 sold = 5;
     // Available seat counts keyed by section name, e.g. "ORCHESTRA" -> 96.
     map<string, int32> available_by_section = 6;
+    // The sequence of the most recent change reflected in this snapshot.
+    // Pass it to PollSeatChanges (or WatchSeats changes_only) to continue.
+    int64 cursor = 7;
 }
 
 message SeatChange {
@@ -83,6 +104,8 @@ message SeatChange {
     SeatStatus status = 3;
     ChangeReason reason = 4;
     google.protobuf.Timestamp changed_at = 5;
+    // Monotonic per-performance sequence number, usable as a poll cursor.
+    int64 seq = 6;
 }
 
 message Hold {
@@ -99,6 +122,23 @@ message GetSeatMapRequest {
 
 message GetSeatMapResponse {
     SeatMap seat_map = 1;
+}
+
+message PollSeatChangesRequest {
+    string performance_id = 1;
+    // The last seq you saw (from GetSeatMap's cursor or a prior poll).
+    // 0 starts from the latest change, returning none.
+    int64 cursor = 2;
+}
+
+message PollSeatChangesResponse {
+    // Changes after the requested cursor, in ascending seq order.
+    repeated SeatChange changes = 1;
+    // Pass this back as the cursor on your next poll.
+    int64 cursor = 2;
+    // True if you polled from too far back and missed some changes; call
+    // GetSeatMap to resync from a fresh snapshot.
+    bool reset = 3;
 }
 
 message HoldSeatsRequest {

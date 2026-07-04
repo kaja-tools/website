@@ -375,8 +375,11 @@ type SeatMap struct {
 	Sold          int32                  `protobuf:"varint,5,opt,name=sold,proto3" json:"sold,omitempty"`
 	// Available seat counts keyed by section name, e.g. "ORCHESTRA" -> 96.
 	AvailableBySection map[string]int32 `protobuf:"bytes,6,rep,name=available_by_section,json=availableBySection,proto3" json:"available_by_section,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	// The sequence of the most recent change reflected in this snapshot.
+	// Pass it to PollSeatChanges (or WatchSeats changes_only) to continue.
+	Cursor        int64 `protobuf:"varint,7,opt,name=cursor,proto3" json:"cursor,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *SeatMap) Reset() {
@@ -451,6 +454,13 @@ func (x *SeatMap) GetAvailableBySection() map[string]int32 {
 	return nil
 }
 
+func (x *SeatMap) GetCursor() int64 {
+	if x != nil {
+		return x.Cursor
+	}
+	return 0
+}
+
 type SeatChange struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	PerformanceId string                 `protobuf:"bytes,1,opt,name=performance_id,json=performanceId,proto3" json:"performance_id,omitempty"`
@@ -458,6 +468,8 @@ type SeatChange struct {
 	Status        SeatStatus             `protobuf:"varint,3,opt,name=status,proto3,enum=seating.SeatStatus" json:"status,omitempty"`
 	Reason        ChangeReason           `protobuf:"varint,4,opt,name=reason,proto3,enum=seating.ChangeReason" json:"reason,omitempty"`
 	ChangedAt     *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=changed_at,json=changedAt,proto3" json:"changed_at,omitempty"`
+	// Monotonic per-performance sequence number, usable as a poll cursor.
+	Seq           int64 `protobuf:"varint,6,opt,name=seq,proto3" json:"seq,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -525,6 +537,13 @@ func (x *SeatChange) GetChangedAt() *timestamppb.Timestamp {
 		return x.ChangedAt
 	}
 	return nil
+}
+
+func (x *SeatChange) GetSeq() int64 {
+	if x != nil {
+		return x.Seq
+	}
+	return 0
 }
 
 type Hold struct {
@@ -691,6 +710,124 @@ func (x *GetSeatMapResponse) GetSeatMap() *SeatMap {
 	return nil
 }
 
+type PollSeatChangesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PerformanceId string                 `protobuf:"bytes,1,opt,name=performance_id,json=performanceId,proto3" json:"performance_id,omitempty"`
+	// The last seq you saw (from GetSeatMap's cursor or a prior poll).
+	// 0 starts from the latest change, returning none.
+	Cursor        int64 `protobuf:"varint,2,opt,name=cursor,proto3" json:"cursor,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PollSeatChangesRequest) Reset() {
+	*x = PollSeatChangesRequest{}
+	mi := &file_seating_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PollSeatChangesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PollSeatChangesRequest) ProtoMessage() {}
+
+func (x *PollSeatChangesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_seating_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PollSeatChangesRequest.ProtoReflect.Descriptor instead.
+func (*PollSeatChangesRequest) Descriptor() ([]byte, []int) {
+	return file_seating_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *PollSeatChangesRequest) GetPerformanceId() string {
+	if x != nil {
+		return x.PerformanceId
+	}
+	return ""
+}
+
+func (x *PollSeatChangesRequest) GetCursor() int64 {
+	if x != nil {
+		return x.Cursor
+	}
+	return 0
+}
+
+type PollSeatChangesResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Changes after the requested cursor, in ascending seq order.
+	Changes []*SeatChange `protobuf:"bytes,1,rep,name=changes,proto3" json:"changes,omitempty"`
+	// Pass this back as the cursor on your next poll.
+	Cursor int64 `protobuf:"varint,2,opt,name=cursor,proto3" json:"cursor,omitempty"`
+	// True if you polled from too far back and missed some changes; call
+	// GetSeatMap to resync from a fresh snapshot.
+	Reset_        bool `protobuf:"varint,3,opt,name=reset,proto3" json:"reset,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PollSeatChangesResponse) Reset() {
+	*x = PollSeatChangesResponse{}
+	mi := &file_seating_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PollSeatChangesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PollSeatChangesResponse) ProtoMessage() {}
+
+func (x *PollSeatChangesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_seating_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PollSeatChangesResponse.ProtoReflect.Descriptor instead.
+func (*PollSeatChangesResponse) Descriptor() ([]byte, []int) {
+	return file_seating_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *PollSeatChangesResponse) GetChanges() []*SeatChange {
+	if x != nil {
+		return x.Changes
+	}
+	return nil
+}
+
+func (x *PollSeatChangesResponse) GetCursor() int64 {
+	if x != nil {
+		return x.Cursor
+	}
+	return 0
+}
+
+func (x *PollSeatChangesResponse) GetReset_() bool {
+	if x != nil {
+		return x.Reset_
+	}
+	return false
+}
+
 type HoldSeatsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	PerformanceId string                 `protobuf:"bytes,1,opt,name=performance_id,json=performanceId,proto3" json:"performance_id,omitempty"`
@@ -701,7 +838,7 @@ type HoldSeatsRequest struct {
 
 func (x *HoldSeatsRequest) Reset() {
 	*x = HoldSeatsRequest{}
-	mi := &file_seating_proto_msgTypes[8]
+	mi := &file_seating_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -713,7 +850,7 @@ func (x *HoldSeatsRequest) String() string {
 func (*HoldSeatsRequest) ProtoMessage() {}
 
 func (x *HoldSeatsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_seating_proto_msgTypes[8]
+	mi := &file_seating_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -726,7 +863,7 @@ func (x *HoldSeatsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HoldSeatsRequest.ProtoReflect.Descriptor instead.
 func (*HoldSeatsRequest) Descriptor() ([]byte, []int) {
-	return file_seating_proto_rawDescGZIP(), []int{8}
+	return file_seating_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *HoldSeatsRequest) GetPerformanceId() string {
@@ -752,7 +889,7 @@ type HoldSeatsResponse struct {
 
 func (x *HoldSeatsResponse) Reset() {
 	*x = HoldSeatsResponse{}
-	mi := &file_seating_proto_msgTypes[9]
+	mi := &file_seating_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -764,7 +901,7 @@ func (x *HoldSeatsResponse) String() string {
 func (*HoldSeatsResponse) ProtoMessage() {}
 
 func (x *HoldSeatsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_seating_proto_msgTypes[9]
+	mi := &file_seating_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -777,7 +914,7 @@ func (x *HoldSeatsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HoldSeatsResponse.ProtoReflect.Descriptor instead.
 func (*HoldSeatsResponse) Descriptor() ([]byte, []int) {
-	return file_seating_proto_rawDescGZIP(), []int{9}
+	return file_seating_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *HoldSeatsResponse) GetHold() *Hold {
@@ -796,7 +933,7 @@ type ConfirmSeatsRequest struct {
 
 func (x *ConfirmSeatsRequest) Reset() {
 	*x = ConfirmSeatsRequest{}
-	mi := &file_seating_proto_msgTypes[10]
+	mi := &file_seating_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -808,7 +945,7 @@ func (x *ConfirmSeatsRequest) String() string {
 func (*ConfirmSeatsRequest) ProtoMessage() {}
 
 func (x *ConfirmSeatsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_seating_proto_msgTypes[10]
+	mi := &file_seating_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -821,7 +958,7 @@ func (x *ConfirmSeatsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfirmSeatsRequest.ProtoReflect.Descriptor instead.
 func (*ConfirmSeatsRequest) Descriptor() ([]byte, []int) {
-	return file_seating_proto_rawDescGZIP(), []int{10}
+	return file_seating_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *ConfirmSeatsRequest) GetHoldId() string {
@@ -840,7 +977,7 @@ type ConfirmSeatsResponse struct {
 
 func (x *ConfirmSeatsResponse) Reset() {
 	*x = ConfirmSeatsResponse{}
-	mi := &file_seating_proto_msgTypes[11]
+	mi := &file_seating_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -852,7 +989,7 @@ func (x *ConfirmSeatsResponse) String() string {
 func (*ConfirmSeatsResponse) ProtoMessage() {}
 
 func (x *ConfirmSeatsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_seating_proto_msgTypes[11]
+	mi := &file_seating_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -865,7 +1002,7 @@ func (x *ConfirmSeatsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfirmSeatsResponse.ProtoReflect.Descriptor instead.
 func (*ConfirmSeatsResponse) Descriptor() ([]byte, []int) {
-	return file_seating_proto_rawDescGZIP(), []int{11}
+	return file_seating_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *ConfirmSeatsResponse) GetSeats() []*Seat {
@@ -884,7 +1021,7 @@ type ReleaseSeatsRequest struct {
 
 func (x *ReleaseSeatsRequest) Reset() {
 	*x = ReleaseSeatsRequest{}
-	mi := &file_seating_proto_msgTypes[12]
+	mi := &file_seating_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -896,7 +1033,7 @@ func (x *ReleaseSeatsRequest) String() string {
 func (*ReleaseSeatsRequest) ProtoMessage() {}
 
 func (x *ReleaseSeatsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_seating_proto_msgTypes[12]
+	mi := &file_seating_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -909,7 +1046,7 @@ func (x *ReleaseSeatsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReleaseSeatsRequest.ProtoReflect.Descriptor instead.
 func (*ReleaseSeatsRequest) Descriptor() ([]byte, []int) {
-	return file_seating_proto_rawDescGZIP(), []int{12}
+	return file_seating_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *ReleaseSeatsRequest) GetHoldId() string {
@@ -927,7 +1064,7 @@ type ReleaseSeatsResponse struct {
 
 func (x *ReleaseSeatsResponse) Reset() {
 	*x = ReleaseSeatsResponse{}
-	mi := &file_seating_proto_msgTypes[13]
+	mi := &file_seating_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -939,7 +1076,7 @@ func (x *ReleaseSeatsResponse) String() string {
 func (*ReleaseSeatsResponse) ProtoMessage() {}
 
 func (x *ReleaseSeatsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_seating_proto_msgTypes[13]
+	mi := &file_seating_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -952,7 +1089,7 @@ func (x *ReleaseSeatsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReleaseSeatsResponse.ProtoReflect.Descriptor instead.
 func (*ReleaseSeatsResponse) Descriptor() ([]byte, []int) {
-	return file_seating_proto_rawDescGZIP(), []int{13}
+	return file_seating_proto_rawDescGZIP(), []int{15}
 }
 
 type WatchSeatsRequest struct {
@@ -966,7 +1103,7 @@ type WatchSeatsRequest struct {
 
 func (x *WatchSeatsRequest) Reset() {
 	*x = WatchSeatsRequest{}
-	mi := &file_seating_proto_msgTypes[14]
+	mi := &file_seating_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -978,7 +1115,7 @@ func (x *WatchSeatsRequest) String() string {
 func (*WatchSeatsRequest) ProtoMessage() {}
 
 func (x *WatchSeatsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_seating_proto_msgTypes[14]
+	mi := &file_seating_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -991,7 +1128,7 @@ func (x *WatchSeatsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchSeatsRequest.ProtoReflect.Descriptor instead.
 func (*WatchSeatsRequest) Descriptor() ([]byte, []int) {
-	return file_seating_proto_rawDescGZIP(), []int{14}
+	return file_seating_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *WatchSeatsRequest) GetPerformanceId() string {
@@ -1024,7 +1161,7 @@ type SeatUpdate struct {
 
 func (x *SeatUpdate) Reset() {
 	*x = SeatUpdate{}
-	mi := &file_seating_proto_msgTypes[15]
+	mi := &file_seating_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1036,7 +1173,7 @@ func (x *SeatUpdate) String() string {
 func (*SeatUpdate) ProtoMessage() {}
 
 func (x *SeatUpdate) ProtoReflect() protoreflect.Message {
-	mi := &file_seating_proto_msgTypes[15]
+	mi := &file_seating_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1049,7 +1186,7 @@ func (x *SeatUpdate) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeatUpdate.ProtoReflect.Descriptor instead.
 func (*SeatUpdate) Descriptor() ([]byte, []int) {
-	return file_seating_proto_rawDescGZIP(), []int{15}
+	return file_seating_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *SeatUpdate) GetUpdate() isSeatUpdate_Update {
@@ -1135,7 +1272,7 @@ type Rejection struct {
 
 func (x *Rejection) Reset() {
 	*x = Rejection{}
-	mi := &file_seating_proto_msgTypes[16]
+	mi := &file_seating_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1147,7 +1284,7 @@ func (x *Rejection) String() string {
 func (*Rejection) ProtoMessage() {}
 
 func (x *Rejection) ProtoReflect() protoreflect.Message {
-	mi := &file_seating_proto_msgTypes[16]
+	mi := &file_seating_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1160,7 +1297,7 @@ func (x *Rejection) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Rejection.ProtoReflect.Descriptor instead.
 func (*Rejection) Descriptor() ([]byte, []int) {
-	return file_seating_proto_rawDescGZIP(), []int{16}
+	return file_seating_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *Rejection) GetReason() string {
@@ -1192,7 +1329,7 @@ type PickSeatsCommand struct {
 
 func (x *PickSeatsCommand) Reset() {
 	*x = PickSeatsCommand{}
-	mi := &file_seating_proto_msgTypes[17]
+	mi := &file_seating_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1204,7 +1341,7 @@ func (x *PickSeatsCommand) String() string {
 func (*PickSeatsCommand) ProtoMessage() {}
 
 func (x *PickSeatsCommand) ProtoReflect() protoreflect.Message {
-	mi := &file_seating_proto_msgTypes[17]
+	mi := &file_seating_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1217,7 +1354,7 @@ func (x *PickSeatsCommand) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PickSeatsCommand.ProtoReflect.Descriptor instead.
 func (*PickSeatsCommand) Descriptor() ([]byte, []int) {
-	return file_seating_proto_rawDescGZIP(), []int{17}
+	return file_seating_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *PickSeatsCommand) GetCommand() isPickSeatsCommand_Command {
@@ -1300,7 +1437,7 @@ type WatchCommand struct {
 
 func (x *WatchCommand) Reset() {
 	*x = WatchCommand{}
-	mi := &file_seating_proto_msgTypes[18]
+	mi := &file_seating_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1312,7 +1449,7 @@ func (x *WatchCommand) String() string {
 func (*WatchCommand) ProtoMessage() {}
 
 func (x *WatchCommand) ProtoReflect() protoreflect.Message {
-	mi := &file_seating_proto_msgTypes[18]
+	mi := &file_seating_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1325,7 +1462,7 @@ func (x *WatchCommand) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchCommand.ProtoReflect.Descriptor instead.
 func (*WatchCommand) Descriptor() ([]byte, []int) {
-	return file_seating_proto_rawDescGZIP(), []int{18}
+	return file_seating_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *WatchCommand) GetPerformanceId() string {
@@ -1344,7 +1481,7 @@ type HoldCommand struct {
 
 func (x *HoldCommand) Reset() {
 	*x = HoldCommand{}
-	mi := &file_seating_proto_msgTypes[19]
+	mi := &file_seating_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1356,7 +1493,7 @@ func (x *HoldCommand) String() string {
 func (*HoldCommand) ProtoMessage() {}
 
 func (x *HoldCommand) ProtoReflect() protoreflect.Message {
-	mi := &file_seating_proto_msgTypes[19]
+	mi := &file_seating_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1369,7 +1506,7 @@ func (x *HoldCommand) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HoldCommand.ProtoReflect.Descriptor instead.
 func (*HoldCommand) Descriptor() ([]byte, []int) {
-	return file_seating_proto_rawDescGZIP(), []int{19}
+	return file_seating_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *HoldCommand) GetSeatIds() []string {
@@ -1388,7 +1525,7 @@ type ReleaseCommand struct {
 
 func (x *ReleaseCommand) Reset() {
 	*x = ReleaseCommand{}
-	mi := &file_seating_proto_msgTypes[20]
+	mi := &file_seating_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1400,7 +1537,7 @@ func (x *ReleaseCommand) String() string {
 func (*ReleaseCommand) ProtoMessage() {}
 
 func (x *ReleaseCommand) ProtoReflect() protoreflect.Message {
-	mi := &file_seating_proto_msgTypes[20]
+	mi := &file_seating_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1413,7 +1550,7 @@ func (x *ReleaseCommand) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReleaseCommand.ProtoReflect.Descriptor instead.
 func (*ReleaseCommand) Descriptor() ([]byte, []int) {
-	return file_seating_proto_rawDescGZIP(), []int{20}
+	return file_seating_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *ReleaseCommand) GetHoldId() string {
@@ -1432,7 +1569,7 @@ type ConfirmCommand struct {
 
 func (x *ConfirmCommand) Reset() {
 	*x = ConfirmCommand{}
-	mi := &file_seating_proto_msgTypes[21]
+	mi := &file_seating_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1444,7 +1581,7 @@ func (x *ConfirmCommand) String() string {
 func (*ConfirmCommand) ProtoMessage() {}
 
 func (x *ConfirmCommand) ProtoReflect() protoreflect.Message {
-	mi := &file_seating_proto_msgTypes[21]
+	mi := &file_seating_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1457,7 +1594,7 @@ func (x *ConfirmCommand) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfirmCommand.ProtoReflect.Descriptor instead.
 func (*ConfirmCommand) Descriptor() ([]byte, []int) {
-	return file_seating_proto_rawDescGZIP(), []int{21}
+	return file_seating_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *ConfirmCommand) GetHoldId() string {
@@ -1486,17 +1623,18 @@ const file_seating_proto_rawDesc = "" +
 	"\n" +
 	"SectionMap\x12*\n" +
 	"\asection\x18\x01 \x01(\x0e2\x10.seating.SectionR\asection\x12 \n" +
-	"\x04rows\x18\x02 \x03(\v2\f.seating.RowR\x04rows\"\xca\x02\n" +
+	"\x04rows\x18\x02 \x03(\v2\f.seating.RowR\x04rows\"\xe2\x02\n" +
 	"\aSeatMap\x12%\n" +
 	"\x0eperformance_id\x18\x01 \x01(\tR\rperformanceId\x12/\n" +
 	"\bsections\x18\x02 \x03(\v2\x13.seating.SectionMapR\bsections\x12\x1c\n" +
 	"\tavailable\x18\x03 \x01(\x05R\tavailable\x12\x12\n" +
 	"\x04held\x18\x04 \x01(\x05R\x04held\x12\x12\n" +
 	"\x04sold\x18\x05 \x01(\x05R\x04sold\x12Z\n" +
-	"\x14available_by_section\x18\x06 \x03(\v2(.seating.SeatMap.AvailableBySectionEntryR\x12availableBySection\x1aE\n" +
+	"\x14available_by_section\x18\x06 \x03(\v2(.seating.SeatMap.AvailableBySectionEntryR\x12availableBySection\x12\x16\n" +
+	"\x06cursor\x18\a \x01(\x03R\x06cursor\x1aE\n" +
 	"\x17AvailableBySectionEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\x05R\x05value:\x028\x01\"\xe3\x01\n" +
+	"\x05value\x18\x02 \x01(\x05R\x05value:\x028\x01\"\xf5\x01\n" +
 	"\n" +
 	"SeatChange\x12%\n" +
 	"\x0eperformance_id\x18\x01 \x01(\tR\rperformanceId\x12\x17\n" +
@@ -1504,7 +1642,8 @@ const file_seating_proto_rawDesc = "" +
 	"\x06status\x18\x03 \x01(\x0e2\x13.seating.SeatStatusR\x06status\x12-\n" +
 	"\x06reason\x18\x04 \x01(\x0e2\x15.seating.ChangeReasonR\x06reason\x129\n" +
 	"\n" +
-	"changed_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tchangedAt\"\xbf\x01\n" +
+	"changed_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tchangedAt\x12\x10\n" +
+	"\x03seq\x18\x06 \x01(\x03R\x03seq\"\xbf\x01\n" +
 	"\x04Hold\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12%\n" +
 	"\x0eperformance_id\x18\x02 \x01(\tR\rperformanceId\x12\x19\n" +
@@ -1515,7 +1654,14 @@ const file_seating_proto_rawDesc = "" +
 	"\x11GetSeatMapRequest\x12%\n" +
 	"\x0eperformance_id\x18\x01 \x01(\tR\rperformanceId\"A\n" +
 	"\x12GetSeatMapResponse\x12+\n" +
-	"\bseat_map\x18\x01 \x01(\v2\x10.seating.SeatMapR\aseatMap\"T\n" +
+	"\bseat_map\x18\x01 \x01(\v2\x10.seating.SeatMapR\aseatMap\"W\n" +
+	"\x16PollSeatChangesRequest\x12%\n" +
+	"\x0eperformance_id\x18\x01 \x01(\tR\rperformanceId\x12\x16\n" +
+	"\x06cursor\x18\x02 \x01(\x03R\x06cursor\"v\n" +
+	"\x17PollSeatChangesResponse\x12-\n" +
+	"\achanges\x18\x01 \x03(\v2\x13.seating.SeatChangeR\achanges\x12\x16\n" +
+	"\x06cursor\x18\x02 \x01(\x03R\x06cursor\x12\x14\n" +
+	"\x05reset\x18\x03 \x01(\bR\x05reset\"T\n" +
 	"\x10HoldSeatsRequest\x12%\n" +
 	"\x0eperformance_id\x18\x01 \x01(\tR\rperformanceId\x12\x19\n" +
 	"\bseat_ids\x18\x02 \x03(\tR\aseatIds\"6\n" +
@@ -1570,10 +1716,11 @@ const file_seating_proto_rawDesc = "" +
 	"\x12CHANGE_REASON_HOLD\x10\x01\x12\x1a\n" +
 	"\x16CHANGE_REASON_PURCHASE\x10\x02\x12\x19\n" +
 	"\x15CHANGE_REASON_RELEASE\x10\x03\x12\x18\n" +
-	"\x14CHANGE_REASON_EXPIRE\x10\x042\xb0\x03\n" +
+	"\x14CHANGE_REASON_EXPIRE\x10\x042\x86\x04\n" +
 	"\aSeating\x12E\n" +
 	"\n" +
-	"GetSeatMap\x12\x1a.seating.GetSeatMapRequest\x1a\x1b.seating.GetSeatMapResponse\x12B\n" +
+	"GetSeatMap\x12\x1a.seating.GetSeatMapRequest\x1a\x1b.seating.GetSeatMapResponse\x12T\n" +
+	"\x0fPollSeatChanges\x12\x1f.seating.PollSeatChangesRequest\x1a .seating.PollSeatChangesResponse\x12B\n" +
 	"\tHoldSeats\x12\x19.seating.HoldSeatsRequest\x1a\x1a.seating.HoldSeatsResponse\x12K\n" +
 	"\fConfirmSeats\x12\x1c.seating.ConfirmSeatsRequest\x1a\x1d.seating.ConfirmSeatsResponse\x12K\n" +
 	"\fReleaseSeats\x12\x1c.seating.ReleaseSeatsRequest\x1a\x1d.seating.ReleaseSeatsResponse\x12?\n" +
@@ -1594,35 +1741,37 @@ func file_seating_proto_rawDescGZIP() []byte {
 }
 
 var file_seating_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_seating_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
+var file_seating_proto_msgTypes = make([]protoimpl.MessageInfo, 25)
 var file_seating_proto_goTypes = []any{
-	(SeatStatus)(0),               // 0: seating.SeatStatus
-	(Section)(0),                  // 1: seating.Section
-	(ChangeReason)(0),             // 2: seating.ChangeReason
-	(*Seat)(nil),                  // 3: seating.Seat
-	(*Row)(nil),                   // 4: seating.Row
-	(*SectionMap)(nil),            // 5: seating.SectionMap
-	(*SeatMap)(nil),               // 6: seating.SeatMap
-	(*SeatChange)(nil),            // 7: seating.SeatChange
-	(*Hold)(nil),                  // 8: seating.Hold
-	(*GetSeatMapRequest)(nil),     // 9: seating.GetSeatMapRequest
-	(*GetSeatMapResponse)(nil),    // 10: seating.GetSeatMapResponse
-	(*HoldSeatsRequest)(nil),      // 11: seating.HoldSeatsRequest
-	(*HoldSeatsResponse)(nil),     // 12: seating.HoldSeatsResponse
-	(*ConfirmSeatsRequest)(nil),   // 13: seating.ConfirmSeatsRequest
-	(*ConfirmSeatsResponse)(nil),  // 14: seating.ConfirmSeatsResponse
-	(*ReleaseSeatsRequest)(nil),   // 15: seating.ReleaseSeatsRequest
-	(*ReleaseSeatsResponse)(nil),  // 16: seating.ReleaseSeatsResponse
-	(*WatchSeatsRequest)(nil),     // 17: seating.WatchSeatsRequest
-	(*SeatUpdate)(nil),            // 18: seating.SeatUpdate
-	(*Rejection)(nil),             // 19: seating.Rejection
-	(*PickSeatsCommand)(nil),      // 20: seating.PickSeatsCommand
-	(*WatchCommand)(nil),          // 21: seating.WatchCommand
-	(*HoldCommand)(nil),           // 22: seating.HoldCommand
-	(*ReleaseCommand)(nil),        // 23: seating.ReleaseCommand
-	(*ConfirmCommand)(nil),        // 24: seating.ConfirmCommand
-	nil,                           // 25: seating.SeatMap.AvailableBySectionEntry
-	(*timestamppb.Timestamp)(nil), // 26: google.protobuf.Timestamp
+	(SeatStatus)(0),                 // 0: seating.SeatStatus
+	(Section)(0),                    // 1: seating.Section
+	(ChangeReason)(0),               // 2: seating.ChangeReason
+	(*Seat)(nil),                    // 3: seating.Seat
+	(*Row)(nil),                     // 4: seating.Row
+	(*SectionMap)(nil),              // 5: seating.SectionMap
+	(*SeatMap)(nil),                 // 6: seating.SeatMap
+	(*SeatChange)(nil),              // 7: seating.SeatChange
+	(*Hold)(nil),                    // 8: seating.Hold
+	(*GetSeatMapRequest)(nil),       // 9: seating.GetSeatMapRequest
+	(*GetSeatMapResponse)(nil),      // 10: seating.GetSeatMapResponse
+	(*PollSeatChangesRequest)(nil),  // 11: seating.PollSeatChangesRequest
+	(*PollSeatChangesResponse)(nil), // 12: seating.PollSeatChangesResponse
+	(*HoldSeatsRequest)(nil),        // 13: seating.HoldSeatsRequest
+	(*HoldSeatsResponse)(nil),       // 14: seating.HoldSeatsResponse
+	(*ConfirmSeatsRequest)(nil),     // 15: seating.ConfirmSeatsRequest
+	(*ConfirmSeatsResponse)(nil),    // 16: seating.ConfirmSeatsResponse
+	(*ReleaseSeatsRequest)(nil),     // 17: seating.ReleaseSeatsRequest
+	(*ReleaseSeatsResponse)(nil),    // 18: seating.ReleaseSeatsResponse
+	(*WatchSeatsRequest)(nil),       // 19: seating.WatchSeatsRequest
+	(*SeatUpdate)(nil),              // 20: seating.SeatUpdate
+	(*Rejection)(nil),               // 21: seating.Rejection
+	(*PickSeatsCommand)(nil),        // 22: seating.PickSeatsCommand
+	(*WatchCommand)(nil),            // 23: seating.WatchCommand
+	(*HoldCommand)(nil),             // 24: seating.HoldCommand
+	(*ReleaseCommand)(nil),          // 25: seating.ReleaseCommand
+	(*ConfirmCommand)(nil),          // 26: seating.ConfirmCommand
+	nil,                             // 27: seating.SeatMap.AvailableBySectionEntry
+	(*timestamppb.Timestamp)(nil),   // 28: google.protobuf.Timestamp
 }
 var file_seating_proto_depIdxs = []int32{
 	1,  // 0: seating.Seat.section:type_name -> seating.Section
@@ -1631,39 +1780,42 @@ var file_seating_proto_depIdxs = []int32{
 	1,  // 3: seating.SectionMap.section:type_name -> seating.Section
 	4,  // 4: seating.SectionMap.rows:type_name -> seating.Row
 	5,  // 5: seating.SeatMap.sections:type_name -> seating.SectionMap
-	25, // 6: seating.SeatMap.available_by_section:type_name -> seating.SeatMap.AvailableBySectionEntry
+	27, // 6: seating.SeatMap.available_by_section:type_name -> seating.SeatMap.AvailableBySectionEntry
 	0,  // 7: seating.SeatChange.status:type_name -> seating.SeatStatus
 	2,  // 8: seating.SeatChange.reason:type_name -> seating.ChangeReason
-	26, // 9: seating.SeatChange.changed_at:type_name -> google.protobuf.Timestamp
-	26, // 10: seating.Hold.expires_at:type_name -> google.protobuf.Timestamp
+	28, // 9: seating.SeatChange.changed_at:type_name -> google.protobuf.Timestamp
+	28, // 10: seating.Hold.expires_at:type_name -> google.protobuf.Timestamp
 	6,  // 11: seating.GetSeatMapResponse.seat_map:type_name -> seating.SeatMap
-	8,  // 12: seating.HoldSeatsResponse.hold:type_name -> seating.Hold
-	3,  // 13: seating.ConfirmSeatsResponse.seats:type_name -> seating.Seat
-	6,  // 14: seating.SeatUpdate.snapshot:type_name -> seating.SeatMap
-	7,  // 15: seating.SeatUpdate.change:type_name -> seating.SeatChange
-	8,  // 16: seating.SeatUpdate.hold:type_name -> seating.Hold
-	19, // 17: seating.SeatUpdate.rejection:type_name -> seating.Rejection
-	21, // 18: seating.PickSeatsCommand.watch:type_name -> seating.WatchCommand
-	22, // 19: seating.PickSeatsCommand.hold:type_name -> seating.HoldCommand
-	23, // 20: seating.PickSeatsCommand.release:type_name -> seating.ReleaseCommand
-	24, // 21: seating.PickSeatsCommand.confirm:type_name -> seating.ConfirmCommand
-	9,  // 22: seating.Seating.GetSeatMap:input_type -> seating.GetSeatMapRequest
-	11, // 23: seating.Seating.HoldSeats:input_type -> seating.HoldSeatsRequest
-	13, // 24: seating.Seating.ConfirmSeats:input_type -> seating.ConfirmSeatsRequest
-	15, // 25: seating.Seating.ReleaseSeats:input_type -> seating.ReleaseSeatsRequest
-	17, // 26: seating.Seating.WatchSeats:input_type -> seating.WatchSeatsRequest
-	20, // 27: seating.Seating.PickSeats:input_type -> seating.PickSeatsCommand
-	10, // 28: seating.Seating.GetSeatMap:output_type -> seating.GetSeatMapResponse
-	12, // 29: seating.Seating.HoldSeats:output_type -> seating.HoldSeatsResponse
-	14, // 30: seating.Seating.ConfirmSeats:output_type -> seating.ConfirmSeatsResponse
-	16, // 31: seating.Seating.ReleaseSeats:output_type -> seating.ReleaseSeatsResponse
-	18, // 32: seating.Seating.WatchSeats:output_type -> seating.SeatUpdate
-	18, // 33: seating.Seating.PickSeats:output_type -> seating.SeatUpdate
-	28, // [28:34] is the sub-list for method output_type
-	22, // [22:28] is the sub-list for method input_type
-	22, // [22:22] is the sub-list for extension type_name
-	22, // [22:22] is the sub-list for extension extendee
-	0,  // [0:22] is the sub-list for field type_name
+	7,  // 12: seating.PollSeatChangesResponse.changes:type_name -> seating.SeatChange
+	8,  // 13: seating.HoldSeatsResponse.hold:type_name -> seating.Hold
+	3,  // 14: seating.ConfirmSeatsResponse.seats:type_name -> seating.Seat
+	6,  // 15: seating.SeatUpdate.snapshot:type_name -> seating.SeatMap
+	7,  // 16: seating.SeatUpdate.change:type_name -> seating.SeatChange
+	8,  // 17: seating.SeatUpdate.hold:type_name -> seating.Hold
+	21, // 18: seating.SeatUpdate.rejection:type_name -> seating.Rejection
+	23, // 19: seating.PickSeatsCommand.watch:type_name -> seating.WatchCommand
+	24, // 20: seating.PickSeatsCommand.hold:type_name -> seating.HoldCommand
+	25, // 21: seating.PickSeatsCommand.release:type_name -> seating.ReleaseCommand
+	26, // 22: seating.PickSeatsCommand.confirm:type_name -> seating.ConfirmCommand
+	9,  // 23: seating.Seating.GetSeatMap:input_type -> seating.GetSeatMapRequest
+	11, // 24: seating.Seating.PollSeatChanges:input_type -> seating.PollSeatChangesRequest
+	13, // 25: seating.Seating.HoldSeats:input_type -> seating.HoldSeatsRequest
+	15, // 26: seating.Seating.ConfirmSeats:input_type -> seating.ConfirmSeatsRequest
+	17, // 27: seating.Seating.ReleaseSeats:input_type -> seating.ReleaseSeatsRequest
+	19, // 28: seating.Seating.WatchSeats:input_type -> seating.WatchSeatsRequest
+	22, // 29: seating.Seating.PickSeats:input_type -> seating.PickSeatsCommand
+	10, // 30: seating.Seating.GetSeatMap:output_type -> seating.GetSeatMapResponse
+	12, // 31: seating.Seating.PollSeatChanges:output_type -> seating.PollSeatChangesResponse
+	14, // 32: seating.Seating.HoldSeats:output_type -> seating.HoldSeatsResponse
+	16, // 33: seating.Seating.ConfirmSeats:output_type -> seating.ConfirmSeatsResponse
+	18, // 34: seating.Seating.ReleaseSeats:output_type -> seating.ReleaseSeatsResponse
+	20, // 35: seating.Seating.WatchSeats:output_type -> seating.SeatUpdate
+	20, // 36: seating.Seating.PickSeats:output_type -> seating.SeatUpdate
+	30, // [30:37] is the sub-list for method output_type
+	23, // [23:30] is the sub-list for method input_type
+	23, // [23:23] is the sub-list for extension type_name
+	23, // [23:23] is the sub-list for extension extendee
+	0,  // [0:23] is the sub-list for field type_name
 }
 
 func init() { file_seating_proto_init() }
@@ -1671,13 +1823,13 @@ func file_seating_proto_init() {
 	if File_seating_proto != nil {
 		return
 	}
-	file_seating_proto_msgTypes[15].OneofWrappers = []any{
+	file_seating_proto_msgTypes[17].OneofWrappers = []any{
 		(*SeatUpdate_Snapshot)(nil),
 		(*SeatUpdate_Change)(nil),
 		(*SeatUpdate_Hold)(nil),
 		(*SeatUpdate_Rejection)(nil),
 	}
-	file_seating_proto_msgTypes[17].OneofWrappers = []any{
+	file_seating_proto_msgTypes[19].OneofWrappers = []any{
 		(*PickSeatsCommand_Watch)(nil),
 		(*PickSeatsCommand_Hold)(nil),
 		(*PickSeatsCommand_Release)(nil),
@@ -1689,7 +1841,7 @@ func file_seating_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_seating_proto_rawDesc), len(file_seating_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   23,
+			NumMessages:   25,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

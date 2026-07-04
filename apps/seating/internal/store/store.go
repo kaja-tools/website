@@ -23,6 +23,10 @@ const (
 	MaxSeatsPerHold = 6
 	// Slow watchers get this much channel buffer before being dropped.
 	watchBuffer = 256
+	// How many recent changes we keep per performance for pollers to catch
+	// up on. A polling client that falls further behind than this gets a
+	// reset and re-fetches the snapshot.
+	changeLogSize = 512
 )
 
 // The house layout. This mirrors GET /venue in the theatre catalog; the two
@@ -62,6 +66,10 @@ type performance struct {
 	id       string
 	seats    map[string]*seat
 	watchers map[chan *api.SeatUpdate]struct{}
+	// seq is a monotonic counter; log holds the last changeLogSize changes
+	// in ascending seq order so unary pollers can catch up without a stream.
+	seq int64
+	log []*api.SeatChange
 }
 
 type Store struct {
@@ -161,19 +169,30 @@ func (p *performance) snapshotLocked() *api.SeatMap {
 		}
 		m.Sections = append(m.Sections, sectionMap)
 	}
+	m.Cursor = p.seq
 	return m
 }
 
-// emitLocked fans a seat change out to every watcher. Watchers that cannot
-// keep up are dropped so a stuck stream never blocks the house.
+// emitLocked records a seat change in the poll log and fans it out to every
+// watcher. Watchers that cannot keep up are dropped so a stuck stream never
+// blocks the house.
 func (p *performance) emitLocked(seatID string, st api.SeatStatus, reason api.ChangeReason) {
-	update := &api.SeatUpdate{Update: &api.SeatUpdate_Change{Change: &api.SeatChange{
+	p.seq++
+	change := &api.SeatChange{
 		PerformanceId: p.id,
 		SeatId:        seatID,
 		Status:        st,
 		Reason:        reason,
 		ChangedAt:     timestamppb.Now(),
-	}}}
+		Seq:           p.seq,
+	}
+
+	p.log = append(p.log, change)
+	if len(p.log) > changeLogSize {
+		p.log = p.log[len(p.log)-changeLogSize:]
+	}
+
+	update := &api.SeatUpdate{Update: &api.SeatUpdate_Change{Change: change}}
 	for ch := range p.watchers {
 		select {
 		case ch <- update:
@@ -193,6 +212,35 @@ func (s *Store) SeatMap(perfID string) (*api.SeatMap, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return p.snapshotLocked(), nil
+}
+
+// Changes returns the seat changes after cursor, the current cursor to poll
+// from next, and whether the caller fell behind the retained log (in which
+// case it should re-fetch a snapshot). A cursor of 0 starts from the latest
+// change, returning none. This is the unary, web-friendly counterpart to
+// WatchSeats.
+func (s *Store) Changes(perfID string, cursor int64) (changes []*api.SeatChange, next int64, reset bool, err error) {
+	p, err := s.perf(perfID)
+	if err != nil {
+		return nil, 0, false, err
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if cursor == 0 || len(p.log) == 0 {
+		return nil, p.seq, false, nil
+	}
+	// log seqs are contiguous and ascending; if the requested cursor sits
+	// before the oldest retained change, some were evicted — signal a reset.
+	if cursor < p.log[0].Seq-1 {
+		return nil, p.seq, true, nil
+	}
+	for _, c := range p.log {
+		if c.Seq > cursor {
+			changes = append(changes, c)
+		}
+	}
+	return changes, p.seq, false, nil
 }
 
 // Subscribe returns a consistent snapshot plus a channel of every change

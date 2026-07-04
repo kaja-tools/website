@@ -27,6 +27,14 @@ func (s *Server) GetSeatMap(ctx context.Context, req *api.GetSeatMapRequest) (*a
 	return &api.GetSeatMapResponse{SeatMap: m}, nil
 }
 
+func (s *Server) PollSeatChanges(ctx context.Context, req *api.PollSeatChangesRequest) (*api.PollSeatChangesResponse, error) {
+	changes, next, reset, err := s.store.Changes(req.PerformanceId, req.Cursor)
+	if err != nil {
+		return nil, err
+	}
+	return &api.PollSeatChangesResponse{Changes: changes, Cursor: next, Reset_: reset}, nil
+}
+
 func (s *Server) HoldSeats(ctx context.Context, req *api.HoldSeatsRequest) (*api.HoldSeatsResponse, error) {
 	h, err := s.store.Hold(req.PerformanceId, req.SeatIds)
 	if err != nil {
