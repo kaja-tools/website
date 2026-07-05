@@ -13,11 +13,11 @@ import (
 	"github.com/kaja-tools/website/v2/openapi"
 )
 
-// Server exposes the theatre catalog under the /theatre path prefix, so the
-// same paths work whether reached directly or via the public hostname.
+// Server exposes the theatre catalog at the root of its host
+// (e.g. https://theatre.kaja.tools).
 type Server struct {
-	// baseURL is the public URL of the /theatre prefix, used to build
-	// absolute posterUrl links.
+	// baseURL is the public base URL of the service, used to build absolute
+	// posterUrl links.
 	baseURL string
 	now     func() time.Time
 }
@@ -28,12 +28,12 @@ func New(baseURL string) *Server {
 
 func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /theatre/openapi.yaml", s.getSpec)
-	mux.HandleFunc("GET /theatre/venue", s.getVenue)
-	mux.HandleFunc("GET /theatre/events", s.listEvents)
-	mux.HandleFunc("GET /theatre/events/{eventId}", s.getEvent)
-	mux.HandleFunc("GET /theatre/events/{eventId}/poster.svg", s.getPoster)
-	mux.HandleFunc("GET /theatre/performances/{performanceId}", s.getPerformance)
+	mux.HandleFunc("GET /openapi.yaml", s.getSpec)
+	mux.HandleFunc("GET /venue", s.getVenue)
+	mux.HandleFunc("GET /events", s.listEvents)
+	mux.HandleFunc("GET /events/{eventId}", s.getEvent)
+	mux.HandleFunc("GET /events/{eventId}/poster.svg", s.getPoster)
+	mux.HandleFunc("GET /performances/{performanceId}", s.getPerformance)
 	return logRequests(mux)
 }
 

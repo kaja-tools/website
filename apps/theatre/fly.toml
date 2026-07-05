@@ -1,4 +1,4 @@
-# Theatre OpenAPI service. Public at theatre.kaja.tools (serves under /theatre).
+# Theatre OpenAPI service. Public at theatre.kaja.tools.
 #   fly certs add theatre.kaja.tools --app kaja-theatre
 app = "kaja-theatre"
 primary_region = "iad"
@@ -6,7 +6,7 @@ primary_region = "iad"
 [build]
 
 [env]
-  PUBLIC_BASE_URL = "https://theatre.kaja.tools/theatre"
+  PUBLIC_BASE_URL = "https://theatre.kaja.tools"
 
 [http_service]
   internal_port = 41530

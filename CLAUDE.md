@@ -29,17 +29,14 @@ there is no shared gateway. Service-to-service calls stay on Fly's private
 network via `<app>.internal` DNS. See [docs/deployment.md](docs/deployment.md)
 for the full map of apps, hostnames, and ports.
 
-Each app keeps its original internal path prefix, so a service reachable at
-`theatre.kaja.tools` still serves its routes under `/theatre`.
+Each service is served at the root of its own hostname (no per-service path
+prefix), e.g. the theatre catalog lives at `https://theatre.kaja.tools/events`.
 
-### Twirp path prefix
-A Twirp service registers under a path prefix that its public URL includes:
-```go
-twirp.WithServerPathPrefix("/boxoffice/twirp")
-```
-This makes the service respond at `/boxoffice/twirp/ServiceName/Method`, i.e.
-`https://boxoffice.kaja.tools/boxoffice/twirp/...`. `apps/kaja/kaja.json` points
-kaja at the base URL (`https://boxoffice.kaja.tools/boxoffice`).
+### Twirp
+A Twirp service uses the standard `/twirp` prefix (no custom path prefix), so it
+responds at `/twirp/package.Service/Method`, i.e.
+`https://boxoffice.kaja.tools/twirp/...`. `apps/kaja/kaja.json` points kaja at
+the host base URL (`https://boxoffice.kaja.tools`).
 
 ### gRPC
 gRPC needs HTTP/2 end to end. A gRPC app sets `http_options.h2_backend = true`
@@ -59,5 +56,5 @@ grpcurl -import-path apps/quirks/proto -proto v1/quirks.proto grpc-quirks.kaja.t
 ```
 
 ### Testing services
-- **Twirp**: `curl -X POST https://boxoffice.kaja.tools/boxoffice/twirp/boxoffice.BoxOffice/GetOrder -H "Content-Type: application/json" -d '{}'`
+- **Twirp**: `curl -X POST https://boxoffice.kaja.tools/twirp/boxoffice.BoxOffice/GetOrder -H "Content-Type: application/json" -d '{}'`
 - **gRPC**: `grpcurl -import-path apps/seating/proto -proto seating.proto seating.kaja.tools:443 seating.Seating/GetSeatMap`

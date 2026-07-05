@@ -1,5 +1,4 @@
-# Quirks Twirp server. Public at twirp-quirks.kaja.tools (serves under
-# /twirp-quirks/twirp).
+# Quirks Twirp server. Public at twirp-quirks.kaja.tools (Twirp under /twirp).
 # Deploy with: fly deploy apps/quirks --config apps/quirks/fly.twirp.toml
 #   fly certs add twirp-quirks.kaja.tools --app kaja-quirks-twirp
 app = "kaja-quirks-twirp"

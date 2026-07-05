@@ -1,10 +1,10 @@
 {
-  "pathPrefix": "/demo",
+  "pathPrefix": "/",
   "projects": [
     {
       "name": "theatre",
       "protocol": "RPC_PROTOCOL_OPENAPI",
-      "url": "https://theatre.kaja.tools/theatre/openapi.yaml"
+      "url": "https://theatre.kaja.tools/openapi.yaml"
     },
     {
       "name": "seating",
@@ -15,7 +15,7 @@
     {
       "name": "boxoffice",
       "protocol": "RPC_PROTOCOL_TWIRP",
-      "url": "https://boxoffice.kaja.tools/boxoffice",
+      "url": "https://boxoffice.kaja.tools",
       "protoDir": "boxoffice"
     }
   ]

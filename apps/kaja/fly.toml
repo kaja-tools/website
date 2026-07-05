@@ -1,4 +1,4 @@
-# kaja demo IDE. Public at demo.kaja.tools (the IDE serves under /demo, see
+# kaja demo IDE. Public at demo.kaja.tools (served at the host root, see
 # kaja.json "pathPrefix").
 #   fly certs add demo.kaja.tools --app kaja-demo
 #

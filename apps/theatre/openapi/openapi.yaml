@@ -12,7 +12,7 @@ info:
 
     Performance IDs returned by this API are the input to both other services.
 servers:
-  - url: https://theatre.kaja.tools/theatre
+  - url: https://theatre.kaja.tools
 tags:
   - name: venue
   - name: events

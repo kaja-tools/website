@@ -10,16 +10,17 @@ single-domain nginx-ingress that ran on Azure Kubernetes.
 | Fly app             | Source           | Public hostname            | Notes                                   |
 | ------------------- | ---------------- | -------------------------- | --------------------------------------- |
 | `kaja-home`         | `apps/home`      | `kaja.tools`, `www`        | static marketing site                   |
-| `kaja-demo`         | `apps/kaja`      | `demo.kaja.tools`          | the IDE, served under `/demo`           |
-| `kaja-theatre`      | `apps/theatre`   | `theatre.kaja.tools`       | OpenAPI, served under `/theatre`        |
-| `kaja-boxoffice`    | `apps/boxoffice` | `boxoffice.kaja.tools`     | Twirp, served under `/boxoffice/twirp`  |
+| `kaja-demo`         | `apps/kaja`      | `demo.kaja.tools`          | the IDE                                 |
+| `kaja-theatre`      | `apps/theatre`   | `theatre.kaja.tools`       | OpenAPI (e.g. `/openapi.yaml`, `/events`) |
+| `kaja-boxoffice`    | `apps/boxoffice` | `boxoffice.kaja.tools`     | Twirp under `/twirp`                    |
 | `kaja-seating`      | `apps/seating`   | `seating.kaja.tools`       | gRPC over TLS on :443                    |
 | `kaja-quirks-grpc`  | `apps/quirks`    | `grpc-quirks.kaja.tools`   | gRPC over TLS on :443                    |
-| `kaja-quirks-twirp` | `apps/quirks`    | `twirp-quirks.kaja.tools`  | Twirp, served under `/twirp-quirks/twirp` |
+| `kaja-quirks-twirp` | `apps/quirks`    | `twirp-quirks.kaja.tools`  | Twirp under `/twirp`                    |
 
-Each app keeps its original internal path prefix (e.g. `/theatre`), so its full
-public URL is `https://theatre.kaja.tools/theatre/...`. `apps/kaja/kaja.json`
-and the theatre OpenAPI `servers` URL point at these hostnames.
+Each service is served at the root of its own hostname (e.g. the theatre spec
+is at `https://theatre.kaja.tools/openapi.yaml`, Twirp uses the standard
+`/twirp/...` prefix). `apps/kaja/kaja.json` and the theatre OpenAPI `servers`
+URL point at these hostnames.
 
 ### East-west (service-to-service) traffic
 

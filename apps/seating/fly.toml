@@ -7,7 +7,7 @@ primary_region = "iad"
 [build]
 
 [env]
-  THEATRE_URL = "http://kaja-theatre.internal:41530/theatre"
+  THEATRE_URL = "http://kaja-theatre.internal:41530"
 
 # gRPC needs HTTP/2 end to end: the Fly edge advertises h2 via ALPN and forwards
 # HTTP/2 cleartext to the app.

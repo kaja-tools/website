@@ -11,7 +11,6 @@ import (
 	"github.com/kaja-tools/website/v2/internal/crowd"
 	"github.com/kaja-tools/website/v2/internal/office"
 	"github.com/kaja-tools/website/v2/internal/theatre"
-	"github.com/twitchtv/twirp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -25,8 +24,8 @@ func env(key, def string) string {
 
 func main() {
 	addr := env("ADDR", ":41531")
-	theatreURL := env("THEATRE_URL", "http://localhost:41530/theatre")
-	publicTheatreURL := env("PUBLIC_THEATRE_URL", "https://theatre.kaja.tools/theatre")
+	theatreURL := env("THEATRE_URL", "http://localhost:41530")
+	publicTheatreURL := env("PUBLIC_THEATRE_URL", "https://theatre.kaja.tools")
 	seatingAddr := env("SEATING_ADDR", "localhost:50053")
 
 	conn, err := grpc.NewClient(seatingAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -42,7 +41,7 @@ func main() {
 	}
 
 	boxOffice := office.New(seating, theatreClient, publicTheatreURL)
-	server := api.NewBoxOfficeServer(boxOffice, twirp.WithServerPathPrefix("/boxoffice/twirp"))
+	server := api.NewBoxOfficeServer(boxOffice)
 
 	mux := http.NewServeMux()
 	fmt.Printf("Handling BoxOfficeServer on %s\n", server.PathPrefix())
