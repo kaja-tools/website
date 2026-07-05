@@ -10,7 +10,7 @@ To regenerate proto files after modifying `.proto` definitions, run:
 This script:
 - Installs a consistent version of `protoc` into the `build/` directory (supports Linux and macOS)
 - Installs the required Go plugins (`protoc-gen-go`, `protoc-gen-go-grpc`, `protoc-gen-twirp`)
-- Regenerates all proto files for teams, users, and quirks services
+- Regenerates all proto files for the quirks, seating, and boxoffice services
 
 Do not use system-installed protoc or manually run protoc commands.
 
@@ -21,33 +21,42 @@ Structure for `apps/home/static/`:
 - Root level: `index.html`, `styles.css`, `script.js`, `favicon.ico`, `favicon.svg`, `logo.svg`
 - `/assets/`: Screenshots and demo videos only
 
-## Ingress and Service Routing
+## Deployment and Service Routing
 
-### Twirp behind ingress
-When a Twirp service runs behind an ingress with path-based routing (e.g., `/users`), configure the server with a matching path prefix:
+kaja.tools is deployed to Fly.io. Every service is its own Fly app, and a
+single public Caddy **gateway** (`apps/gateway`) owns `kaja.tools`, terminates
+TLS, and path-routes to the private backend apps over Fly's private network
+(`<app>.internal`). See [docs/deployment.md](docs/deployment.md) for the full
+map of apps, ports, and routed paths.
+
+### Twirp behind the gateway
+When a Twirp service is routed by path (e.g., `/boxoffice`), configure the
+server with a matching path prefix:
 ```go
-twirp.WithServerPathPrefix("/users/twirp")
+twirp.WithServerPathPrefix("/boxoffice/twirp")
 ```
-This makes the service respond at `/users/twirp/ServiceName/Method`.
+This makes the service respond at `/boxoffice/twirp/ServiceName/Method`, and the
+gateway forwards `/boxoffice/*` to it.
 
-### gRPC with nginx-ingress
-gRPC requires a **separate ingress resource** with the annotation:
-```yaml
-nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
-```
-This annotation applies to all backends in an ingress, so HTTP and gRPC services cannot share the same ingress.
+### gRPC through the gateway
+gRPC needs HTTP/2 end to end. The gateway advertises `h2` via ALPN and forwards
+HTTP/2 cleartext (h2c) to the backends (`reverse_proxy h2c://...`). gRPC paths
+follow the format `/package.Service/Method` (e.g., `/seating.Seating/ReserveSeat`).
 
-gRPC paths follow the format `/package.Service/Method` (e.g., `/teams.Teams/GetAllTeams`).
+**Important:** When adding a new gRPC service, add a route for each of its
+`/package.Service/*` paths to `apps/gateway/Caddyfile`, pointing at the new
+app's `<app>.internal:<port>` with the `h2c://` scheme. Use the full
+`package.Service` format.
 
-**Important:** When adding a new gRPC service, you must add paths to `k8s/base/ingress-grpc.yaml` for each service in the proto files (e.g., `/mypackage.MyService/`). Remember to use the full `package.Service` format.
-
-**gRPC Reflection limitation:** Reflection paths (`/grpc.reflection.v1.ServerReflection/` and `/grpc.reflection.v1alpha.ServerReflection/`) can only route to one backend per ingress. Currently they route to `teams-service`. For `grpcurl` on other services, use the `-import-path` flag with proto files:
+**gRPC Reflection limitation:** Reflection paths
+(`/grpc.reflection.v1.ServerReflection/` and
+`/grpc.reflection.v1alpha.ServerReflection/`) can only route to one backend.
+They currently route to `kaja-seating`. For `grpcurl` on other services, use
+the `-import-path` flag with proto files:
 ```bash
-grpcurl -plaintext -import-path apps/quirks/proto -proto v1/quirks.proto localhost:80 quirks.v1.Quirks/Sum
+grpcurl -import-path apps/quirks/proto -proto v1/quirks.proto kaja.tools:443 quirks.v1.Quirks/Sum
 ```
 
-### Testing services locally
-- **Twirp**: `curl -X POST http://localhost/users/twirp/Users/GetAllUsers -H "Content-Type: application/json" -d '{}'`
-- **gRPC**: `grpcurl -plaintext -import-path apps/teams/proto -proto teams.proto localhost:80 teams.Teams/GetAllTeams`
-
-- Run against the k8s cluster on localhost
+### Testing services
+- **Twirp**: `curl -X POST https://kaja.tools/boxoffice/twirp/boxoffice.BoxOffice/GetOrder -H "Content-Type: application/json" -d '{}'`
+- **gRPC**: `grpcurl -import-path apps/seating/proto -proto seating.proto kaja.tools:443 seating.Seating/GetSeatMap`

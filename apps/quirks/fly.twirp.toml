@@ -1,0 +1,14 @@
+# Quirks Twirp server. Private app: reached by the gateway at
+# kaja-quirks-twirp.internal:41523 (serves under /twirp-quirks/twirp).
+# Deploy with: fly deploy apps/quirks --config apps/quirks/fly.twirp.toml
+app = "kaja-quirks-twirp"
+primary_region = "iad"
+
+[build]
+
+[processes]
+  app = "/app/twirp-server"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"

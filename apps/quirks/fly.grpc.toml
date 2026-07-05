@@ -1,0 +1,16 @@
+# Quirks gRPC server. Private app: reached by the gateway at
+# kaja-quirks-grpc.internal:50053.
+# Deploy with: fly deploy apps/quirks --config apps/quirks/fly.grpc.toml
+app = "kaja-quirks-grpc"
+primary_region = "iad"
+
+[build]
+
+# The quirks image ships both the gRPC and Twirp binaries with no default CMD,
+# so each app selects its process here.
+[processes]
+  app = "/app/grpc-server"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"

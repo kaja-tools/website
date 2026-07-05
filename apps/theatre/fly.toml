@@ -1,0 +1,13 @@
+# Theatre OpenAPI service. Private app: reached by the gateway (and by seating /
+# boxoffice) at kaja-theatre.internal:41530.
+app = "kaja-theatre"
+primary_region = "iad"
+
+[build]
+
+[env]
+  PUBLIC_BASE_URL = "https://kaja.tools/theatre"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"

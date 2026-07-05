@@ -1,0 +1,47 @@
+#!/bin/bash
+# One-time Fly.io setup: create every app (without deploying) and wire up the
+# gateway's public domain + secrets. Safe to re-run; `fly apps create` is
+# skipped for apps that already exist.
+#
+# Requires flyctl installed and authenticated (fly auth login), and an
+# organization selected via FLY_ORG (defaults to "personal").
+set -e
+cd "$(dirname "$0")/.."
+
+ORG="${FLY_ORG:-personal}"
+
+APPS=(
+  kaja-gateway
+  kaja-home
+  kaja-demo
+  kaja-theatre
+  kaja-seating
+  kaja-boxoffice
+  kaja-quirks-grpc
+  kaja-quirks-twirp
+)
+
+for app in "${APPS[@]}"; do
+  if flyctl apps list | grep -qw "$app"; then
+    echo "App $app already exists, skipping create"
+  else
+    echo "Creating app $app"
+    flyctl apps create "$app" --org "$ORG"
+  fi
+done
+
+# Only the gateway gets public IP addresses; every other app stays private and
+# is reachable over Fly's private network (<app>.internal).
+echo "Allocating public IPs for kaja-gateway"
+flyctl ips allocate-v4 --shared --app kaja-gateway || true
+flyctl ips allocate-v6 --app kaja-gateway || true
+
+cat <<'EOF'
+
+Next steps:
+  1. Deploy everything:      scripts/deploy
+  2. Set the kaja AI key:    fly secrets set AI_API_KEY=... --app kaja-demo
+  3. Attach the domain:      fly certs add kaja.tools --app kaja-gateway
+  4. Point kaja.tools A/AAAA DNS records at the gateway IPs (fly ips list --app kaja-gateway)
+  5. Add a FLY_API_TOKEN repo secret for CI (fly tokens create deploy)
+EOF

@@ -1,0 +1,13 @@
+# Seating gRPC service. Private app: reached by the gateway and boxoffice at
+# kaja-seating.internal:50053.
+app = "kaja-seating"
+primary_region = "iad"
+
+[build]
+
+[env]
+  THEATRE_URL = "http://kaja-theatre.internal:41530/theatre"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"

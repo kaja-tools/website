@@ -3,67 +3,33 @@ on:
   push:
     branches:
       - "main"
-  pull_request:
-    branches:
-      - "main"
 jobs:
-  docker:
+  deploy:
+    name: Deploy ${{ matrix.name }}
     runs-on: ubuntu-latest
+    # Fly deploys of the same app must not overlap.
+    concurrency: deploy-${{ matrix.name }}
+    strategy:
+      # Deploy every app, even if one fails, so a single flaky deploy doesn't
+      # block the rest.
+      fail-fast: false
+      matrix:
+        include:
+          - { name: gateway, dir: apps/gateway }
+          - { name: home, dir: apps/home }
+          - { name: theatre, dir: apps/theatre }
+          - { name: seating, dir: apps/seating }
+          - { name: boxoffice, dir: apps/boxoffice }
+          - { name: quirks-grpc, dir: apps/quirks, config: apps/quirks/fly.grpc.toml }
+          - { name: quirks-twirp, dir: apps/quirks, config: apps/quirks/fly.twirp.toml }
+          # kaja bakes proto files from sibling apps, so it builds from the repo root.
+          - { name: kaja, dir: ".", config: apps/kaja/fly.toml }
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
-      - name: Login to Docker Hub
-        if: github.event_name == 'push'
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-      - name: Build and push website-home
-        uses: docker/build-push-action@v3
-        with:
-          context: ./apps/home
-          push: ${{ github.event_name == 'push' }}
-          tags: |
-            kajatools/website-home:latest
-      - name: Build and push website-teams
-        uses: docker/build-push-action@v3
-        with:
-          context: ./apps/teams
-          push: ${{ github.event_name == 'push' }}
-          tags: |
-            kajatools/website-teams:latest
-      - name: Build and push website-users
-        uses: docker/build-push-action@v3
-        with:
-          context: ./apps/users
-          push: ${{ github.event_name == 'push' }}
-          tags: |
-            kajatools/website-users:latest
-      - name: Build and push website-quirks
-        uses: docker/build-push-action@v3
-        with:
-          context: ./apps/quirks
-          push: ${{ github.event_name == 'push' }}
-          tags: |
-            kajatools/website-quirks:latest
-      - name: Build and push website-theatre
-        uses: docker/build-push-action@v3
-        with:
-          context: ./apps/theatre
-          push: ${{ github.event_name == 'push' }}
-          tags: |
-            kajatools/website-theatre:latest
-      - name: Build and push website-seating
-        uses: docker/build-push-action@v3
-        with:
-          context: ./apps/seating
-          push: ${{ github.event_name == 'push' }}
-          tags: |
-            kajatools/website-seating:latest
-      - name: Build and push website-boxoffice
-        uses: docker/build-push-action@v3
-        with:
-          context: ./apps/boxoffice
-          push: ${{ github.event_name == 'push' }}
-          tags: |
-            kajatools/website-boxoffice:latest
+        uses: actions/checkout@v4
+      - name: Set up flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+      - name: Deploy
+        run: flyctl deploy ${{ matrix.dir }} ${{ matrix.config && format('--config {0}', matrix.config) || '' }} --remote-only
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

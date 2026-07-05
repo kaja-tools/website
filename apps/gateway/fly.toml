@@ -1,0 +1,30 @@
+# Public edge gateway for kaja.tools.
+#
+# This is the only public app. It terminates TLS at the Fly edge and reverse
+# proxies to the private backend apps (see Caddyfile). After first deploy, run:
+#   fly certs add kaja.tools --app kaja-gateway
+# and point kaja.tools A/AAAA records at this app's IPs (fly ips list).
+app = "kaja-gateway"
+primary_region = "iad"
+
+[build]
+
+[http_service]
+  internal_port = 80
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+
+  # Forward decrypted traffic to Caddy as HTTP/2 cleartext so gRPC (which needs
+  # HTTP/2 end to end) works through the gateway.
+  [http_service.http_options]
+    h2_backend = true
+
+  # Advertise both protocols to clients: gRPC uses h2, browsers/Twirp use either.
+  [http_service.tls_options]
+    alpn = ["h2", "http/1.1"]
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"

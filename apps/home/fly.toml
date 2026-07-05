@@ -1,0 +1,10 @@
+# Home static site. Private app: reached by the gateway at
+# kaja-home.internal:8080. No public services.
+app = "kaja-home"
+primary_region = "iad"
+
+[build]
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"

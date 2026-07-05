@@ -1,0 +1,16 @@
+# Box office Twirp service. Private app: reached by the gateway at
+# kaja-boxoffice.internal:41531. Talks to theatre (HTTP) and seating (gRPC)
+# over the private network.
+app = "kaja-boxoffice"
+primary_region = "iad"
+
+[build]
+
+[env]
+  THEATRE_URL = "http://kaja-theatre.internal:41530/theatre"
+  PUBLIC_THEATRE_URL = "https://kaja.tools/theatre"
+  SEATING_ADDR = "kaja-seating.internal:50053"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"

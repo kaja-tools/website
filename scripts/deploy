@@ -1,0 +1,30 @@
+#!/bin/bash
+# Deploy every app to Fly.io. Mirrors the CI matrix in .github/workflows/main.yml.
+# Requires flyctl to be installed and authenticated (fly auth login).
+#
+# Pass an app name to deploy just one, e.g. `scripts/deploy gateway`.
+set -e
+cd "$(dirname "$0")/.."
+
+deploy() {
+    local name="$1"; shift
+    if [[ -n "$ONLY" && "$ONLY" != "$name" ]]; then
+        return
+    fi
+    echo "==> Deploying $name"
+    flyctl deploy "$@" --remote-only
+}
+
+ONLY="$1"
+
+deploy gateway      apps/gateway
+deploy home         apps/home
+deploy theatre      apps/theatre
+deploy seating      apps/seating
+deploy boxoffice    apps/boxoffice
+deploy quirks-grpc  apps/quirks --config apps/quirks/fly.grpc.toml
+deploy quirks-twirp apps/quirks --config apps/quirks/fly.twirp.toml
+# kaja bakes proto files from sibling apps, so it builds from the repo root.
+deploy kaja         . --config apps/kaja/fly.toml
+
+echo "Done"
