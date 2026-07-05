@@ -1,40 +1,44 @@
 # Deployment (Fly.io)
 
-kaja.tools runs on [Fly.io](https://fly.io). Every service is its own Fly app.
-A single public **gateway** app (Caddy) owns the `kaja.tools` domain and TLS
-certificate and reverse-proxies each path to the matching backend app over
-Fly's private network. This replaces the old nginx-ingress on Azure
-Kubernetes without changing any public URL or application code.
+kaja.tools runs on [Fly.io](https://fly.io). Every service is its own Fly app
+with its own public hostname under `kaja.tools`. There is no shared gateway —
+each app terminates TLS at the Fly edge for its own subdomain. This replaces the
+single-domain nginx-ingress that ran on Azure Kubernetes.
 
 ## Apps
 
-| Fly app             | Source              | Visibility | Internal address                 | Routed paths                              |
-| ------------------- | ------------------- | ---------- | -------------------------------- | ----------------------------------------- |
-| `kaja-gateway`      | `apps/gateway`      | public     | —                                | owns `kaja.tools`, terminates TLS         |
-| `kaja-home`         | `apps/home`         | private    | `kaja-home.internal:8080`        | `/` (everything not matched below)        |
-| `kaja-demo`         | `apps/kaja`         | private    | `kaja-demo.internal:41520`       | `/demo`                                   |
-| `kaja-theatre`      | `apps/theatre`      | private    | `kaja-theatre.internal:41530`    | `/theatre`                                |
-| `kaja-boxoffice`    | `apps/boxoffice`    | private    | `kaja-boxoffice.internal:41531`  | `/boxoffice` (Twirp)                      |
-| `kaja-seating`      | `apps/seating`      | private    | `kaja-seating.internal:50053`    | `/seating.Seating/*` (gRPC)               |
-| `kaja-quirks-grpc`  | `apps/quirks`       | private    | `kaja-quirks-grpc.internal:50053`| `/quirks.v1.*`, `/quirks.v2.*` (gRPC)     |
-| `kaja-quirks-twirp` | `apps/quirks`       | private    | `kaja-quirks-twirp.internal:41523`| `/twirp-quirks` (Twirp)                  |
+| Fly app             | Source           | Public hostname            | Notes                                   |
+| ------------------- | ---------------- | -------------------------- | --------------------------------------- |
+| `kaja-home`         | `apps/home`      | `kaja.tools`, `www`        | static marketing site                   |
+| `kaja-demo`         | `apps/kaja`      | `demo.kaja.tools`          | the IDE, served under `/demo`           |
+| `kaja-theatre`      | `apps/theatre`   | `theatre.kaja.tools`       | OpenAPI, served under `/theatre`        |
+| `kaja-boxoffice`    | `apps/boxoffice` | `boxoffice.kaja.tools`     | Twirp, served under `/boxoffice/twirp`  |
+| `kaja-seating`      | `apps/seating`   | `seating.kaja.tools`       | gRPC over TLS on :443                    |
+| `kaja-quirks-grpc`  | `apps/quirks`    | `grpc-quirks.kaja.tools`   | gRPC over TLS on :443                    |
+| `kaja-quirks-twirp` | `apps/quirks`    | `twirp-quirks.kaja.tools`  | Twirp, served under `/twirp-quirks/twirp` |
 
-Only `kaja-gateway` has public IPs. Backends are reachable only over Fly's 6PN
-private network via their `<app>.internal` DNS names, so the gateway is the
-single ingress point — mirroring the old `ClusterIP` + ingress model.
+Each app keeps its original internal path prefix (e.g. `/theatre`), so its full
+public URL is `https://theatre.kaja.tools/theatre/...`. `apps/kaja/kaja.json`
+and the theatre OpenAPI `servers` URL point at these hostnames.
 
-### gRPC through the gateway
+### East-west (service-to-service) traffic
 
-gRPC needs HTTP/2 end to end. The gateway's `[http_service]` sets
-`h2_backend = true` and advertises `alpn = ["h2", "http/1.1"]`, so the Fly edge
-forwards HTTP/2 cleartext (h2c) to Caddy, which proxies to the gRPC backends
-over h2c (`reverse_proxy h2c://...`). gRPC clients dial `kaja.tools:443`
-(see `apps/kaja/kaja.json`).
+`boxoffice` calls `theatre` (HTTP) and `seating` (gRPC), and `seating` calls
+`theatre` (HTTP). Those calls stay on Fly's private network via `<app>.internal`
+DNS (`kaja-theatre.internal:41530`, `kaja-seating.internal:50053`) — they never
+leave the org, so only public browser/IDE traffic goes through the edge.
+
+### gRPC
+
+gRPC needs HTTP/2 end to end. The gRPC apps (`kaja-seating`, `kaja-quirks-grpc`)
+set `http_options.h2_backend = true` and `tls_options.alpn = ["h2"]` in their
+`fly.toml`, so the Fly edge negotiates HTTP/2 with clients and forwards HTTP/2
+cleartext to the app. Clients dial `seating.kaja.tools:443` (see `kaja.json`).
 
 ## First-time setup
 
 ```bash
-# 1. Create the apps and allocate the gateway's public IPs.
+# 1. Create the apps, allocate IPs, and attach each hostname's certificate.
 scripts/fly-setup
 
 # 2. Deploy everything.
@@ -43,9 +47,10 @@ scripts/deploy
 # 3. Provide the kaja IDE's AI key (kept as a Fly secret, never committed).
 fly secrets set AI_API_KEY=... --app kaja-demo
 
-# 4. Attach the domain and point DNS at the gateway.
-fly certs add kaja.tools --app kaja-gateway
-fly ips list --app kaja-gateway   # create A/AAAA records for kaja.tools
+# 4. DNS: point each hostname at its app.
+#      - Apex kaja.tools: A/AAAA records to kaja-home's IPs (fly ips list --app kaja-home)
+#      - Subdomains: CNAME <sub>.kaja.tools -> <app>.fly.dev
+#    Verify with: fly certs check <hostname> --app <app>
 
 # 5. Create a deploy token and add it to the repo as the FLY_API_TOKEN secret
 #    so GitHub Actions can deploy on push to main.
@@ -61,7 +66,7 @@ To deploy manually:
 
 ```bash
 scripts/deploy            # all apps
-scripts/deploy gateway    # a single app
+scripts/deploy theatre    # a single app
 ```
 
 ## Notes
@@ -71,5 +76,5 @@ scripts/deploy gateway    # a single app
   (`apps/kaja/Dockerfile`), so kaja builds from the repo root:
   `fly deploy . --config apps/kaja/fly.toml`.
 - `primary_region` is set to `iad` in every `fly.toml`. Change it to match the
-  region you host in; keeping all apps in one region keeps the gateway ⇄ backend
-  private-network hops fast.
+  region you host in; keeping all apps in one region keeps the private-network
+  (east-west) hops fast.

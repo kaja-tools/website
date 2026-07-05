@@ -15,7 +15,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { name: gateway, dir: apps/gateway }
           - { name: home, dir: apps/home }
           - { name: theatre, dir: apps/theatre }
           - { name: seating, dir: apps/seating }

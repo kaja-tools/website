@@ -26,7 +26,7 @@ func env(key, def string) string {
 func main() {
 	addr := env("ADDR", ":41531")
 	theatreURL := env("THEATRE_URL", "http://localhost:41530/theatre")
-	publicTheatreURL := env("PUBLIC_THEATRE_URL", "https://kaja.tools/theatre")
+	publicTheatreURL := env("PUBLIC_THEATRE_URL", "https://theatre.kaja.tools/theatre")
 	seatingAddr := env("SEATING_ADDR", "localhost:50053")
 
 	conn, err := grpc.NewClient(seatingAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))

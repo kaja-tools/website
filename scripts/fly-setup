@@ -1,7 +1,7 @@
 #!/bin/bash
-# One-time Fly.io setup: create every app (without deploying) and wire up the
-# gateway's public domain + secrets. Safe to re-run; `fly apps create` is
-# skipped for apps that already exist.
+# One-time Fly.io setup: create every app (without deploying), give each one a
+# public hostname under kaja.tools, and allocate IPs. Safe to re-run;
+# `fly apps create` and `fly certs add` are idempotent.
 #
 # Requires flyctl installed and authenticated (fly auth login), and an
 # organization selected via FLY_ORG (defaults to "personal").
@@ -10,38 +10,45 @@ cd "$(dirname "$0")/.."
 
 ORG="${FLY_ORG:-personal}"
 
-APPS=(
-  kaja-gateway
-  kaja-home
-  kaja-demo
-  kaja-theatre
-  kaja-seating
-  kaja-boxoffice
-  kaja-quirks-grpc
-  kaja-quirks-twirp
+# app -> public hostname
+declare -A HOSTS=(
+  [kaja-home]="kaja.tools"
+  [kaja-demo]="demo.kaja.tools"
+  [kaja-theatre]="theatre.kaja.tools"
+  [kaja-boxoffice]="boxoffice.kaja.tools"
+  [kaja-seating]="seating.kaja.tools"
+  [kaja-quirks-grpc]="grpc-quirks.kaja.tools"
+  [kaja-quirks-twirp]="twirp-quirks.kaja.tools"
 )
 
-for app in "${APPS[@]}"; do
+for app in "${!HOSTS[@]}"; do
   if flyctl apps list | grep -qw "$app"; then
     echo "App $app already exists, skipping create"
   else
     echo "Creating app $app"
     flyctl apps create "$app" --org "$ORG"
   fi
+
+  # A dedicated IPv6 (free) plus a shared IPv4 is enough for a public app.
+  flyctl ips allocate-v6 --app "$app" || true
+  flyctl ips allocate-v4 --shared --app "$app" || true
+
+  echo "Attaching ${HOSTS[$app]} to $app"
+  flyctl certs add "${HOSTS[$app]}" --app "$app" || true
 done
 
-# Only the gateway gets public IP addresses; every other app stays private and
-# is reachable over Fly's private network (<app>.internal).
-echo "Allocating public IPs for kaja-gateway"
-flyctl ips allocate-v4 --shared --app kaja-gateway || true
-flyctl ips allocate-v6 --app kaja-gateway || true
+# The apex also answers on www.
+flyctl certs add www.kaja.tools --app kaja-home || true
 
 cat <<'EOF'
 
 Next steps:
-  1. Deploy everything:      scripts/deploy
-  2. Set the kaja AI key:    fly secrets set AI_API_KEY=... --app kaja-demo
-  3. Attach the domain:      fly certs add kaja.tools --app kaja-gateway
-  4. Point kaja.tools A/AAAA DNS records at the gateway IPs (fly ips list --app kaja-gateway)
-  5. Add a FLY_API_TOKEN repo secret for CI (fly tokens create deploy)
+  1. Deploy everything:    scripts/deploy
+  2. Set the kaja AI key:  fly secrets set AI_API_KEY=... --app kaja-demo
+  3. DNS: point each hostname at its app.
+       - Apex kaja.tools: A/AAAA records to kaja-home's IPs (fly ips list --app kaja-home)
+       - Subdomains: CNAME <sub>.kaja.tools -> <app>.fly.dev
+         (e.g. theatre.kaja.tools -> kaja-theatre.fly.dev)
+     Check issuance with: fly certs check <hostname> --app <app>
+  4. Add a FLY_API_TOKEN repo secret for CI (fly tokens create deploy)
 EOF

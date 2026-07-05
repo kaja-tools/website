@@ -13,8 +13,8 @@ import (
 	"github.com/kaja-tools/website/v2/openapi"
 )
 
-// Server exposes the theatre catalog under the /theatre path prefix, which
-// matches the ingress route so the same paths work in and out of cluster.
+// Server exposes the theatre catalog under the /theatre path prefix, so the
+// same paths work whether reached directly or via the public hostname.
 type Server struct {
 	// baseURL is the public URL of the /theatre prefix, used to build
 	// absolute posterUrl links.

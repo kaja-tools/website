@@ -1,6 +1,7 @@
-# Box office Twirp service. Private app: reached by the gateway at
-# kaja-boxoffice.internal:41531. Talks to theatre (HTTP) and seating (gRPC)
-# over the private network.
+# Box office Twirp service. Public at boxoffice.kaja.tools (serves under
+# /boxoffice/twirp). Talks to theatre (HTTP) and seating (gRPC) over Fly's
+# private network.
+#   fly certs add boxoffice.kaja.tools --app kaja-boxoffice
 app = "kaja-boxoffice"
 primary_region = "iad"
 
@@ -8,8 +9,16 @@ primary_region = "iad"
 
 [env]
   THEATRE_URL = "http://kaja-theatre.internal:41530/theatre"
-  PUBLIC_THEATRE_URL = "https://kaja.tools/theatre"
+  PUBLIC_THEATRE_URL = "https://theatre.kaja.tools/theatre"
   SEATING_ADDR = "kaja-seating.internal:50053"
+
+[http_service]
+  internal_port = 41531
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  # Keep one machine up so the background "crowd" simulation keeps running.
+  min_machines_running = 1
 
 [[vm]]
   size = "shared-cpu-1x"

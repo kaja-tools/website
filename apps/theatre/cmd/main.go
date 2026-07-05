@@ -11,7 +11,7 @@ import (
 func main() {
 	baseURL := os.Getenv("PUBLIC_BASE_URL")
 	if baseURL == "" {
-		baseURL = "https://kaja.tools/theatre"
+		baseURL = "https://theatre.kaja.tools/theatre"
 	}
 
 	addr := os.Getenv("ADDR")

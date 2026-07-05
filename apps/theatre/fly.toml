@@ -1,12 +1,19 @@
-# Theatre OpenAPI service. Private app: reached by the gateway (and by seating /
-# boxoffice) at kaja-theatre.internal:41530.
+# Theatre OpenAPI service. Public at theatre.kaja.tools (serves under /theatre).
+#   fly certs add theatre.kaja.tools --app kaja-theatre
 app = "kaja-theatre"
 primary_region = "iad"
 
 [build]
 
 [env]
-  PUBLIC_BASE_URL = "https://kaja.tools/theatre"
+  PUBLIC_BASE_URL = "https://theatre.kaja.tools/theatre"
+
+[http_service]
+  internal_port = 41530
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 1
 
 [[vm]]
   size = "shared-cpu-1x"

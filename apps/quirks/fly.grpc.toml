@@ -1,6 +1,6 @@
-# Quirks gRPC server. Private app: reached by the gateway at
-# kaja-quirks-grpc.internal:50053.
+# Quirks gRPC server. Public at grpc-quirks.kaja.tools:443 (gRPC over TLS).
 # Deploy with: fly deploy apps/quirks --config apps/quirks/fly.grpc.toml
+#   fly certs add grpc-quirks.kaja.tools --app kaja-quirks-grpc
 app = "kaja-quirks-grpc"
 primary_region = "iad"
 
@@ -10,6 +10,21 @@ primary_region = "iad"
 # so each app selects its process here.
 [processes]
   app = "/app/grpc-server"
+
+# gRPC needs HTTP/2 end to end (see apps/seating/fly.toml).
+[http_service]
+  internal_port = 50053
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
+
+  [http_service.http_options]
+    h2_backend = true
+
+  [http_service.tls_options]
+    alpn = ["h2"]
 
 [[vm]]
   size = "shared-cpu-1x"

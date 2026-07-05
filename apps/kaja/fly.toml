@@ -1,5 +1,6 @@
-# kaja demo IDE. Private app: reached by the gateway at kaja-demo.internal:41520
-# (served under /demo).
+# kaja demo IDE. Public at demo.kaja.tools (the IDE serves under /demo, see
+# kaja.json "pathPrefix").
+#   fly certs add demo.kaja.tools --app kaja-demo
 #
 # The workspace config and proto files are baked into the image (see Dockerfile),
 # so the build context must be the repository root:
@@ -12,6 +13,13 @@ primary_region = "iad"
 
 [build]
   dockerfile = "apps/kaja/Dockerfile"
+
+[http_service]
+  internal_port = 41520
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 1
 
 [[vm]]
   size = "shared-cpu-1x"
