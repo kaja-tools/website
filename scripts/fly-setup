@@ -10,18 +10,11 @@ cd "$(dirname "$0")/.."
 
 ORG="${FLY_ORG:-personal}"
 
-# app -> public hostname
-declare -A HOSTS=(
-  [kaja-home]="kaja.tools"
-  [kaja-demo]="demo.kaja.tools"
-  [kaja-theatre]="theatre.kaja.tools"
-  [kaja-boxoffice]="boxoffice.kaja.tools"
-  [kaja-seating]="seating.kaja.tools"
-  [kaja-quirks-grpc]="grpc-quirks.kaja.tools"
-  [kaja-quirks-twirp]="twirp-quirks.kaja.tools"
-)
+# "<app> <public hostname>" pairs. Kept as a here-doc (not an associative
+# array) so this runs on the stock Bash 3.2 that ships with macOS.
+while read -r app host; do
+  [ -z "$app" ] && continue
 
-for app in "${!HOSTS[@]}"; do
   if flyctl apps list | grep -qw "$app"; then
     echo "App $app already exists, skipping create"
   else
@@ -33,9 +26,17 @@ for app in "${!HOSTS[@]}"; do
   flyctl ips allocate-v6 --app "$app" || true
   flyctl ips allocate-v4 --shared --app "$app" || true
 
-  echo "Attaching ${HOSTS[$app]} to $app"
-  flyctl certs add "${HOSTS[$app]}" --app "$app" || true
-done
+  echo "Attaching $host to $app"
+  flyctl certs add "$host" --app "$app" || true
+done <<'PAIRS'
+kaja-home         kaja.tools
+kaja-demo         demo.kaja.tools
+kaja-theatre      theatre.kaja.tools
+kaja-boxoffice    boxoffice.kaja.tools
+kaja-seating      seating.kaja.tools
+kaja-quirks-grpc  grpc-quirks.kaja.tools
+kaja-quirks-twirp twirp-quirks.kaja.tools
+PAIRS
 
 # The apex also answers on www.
 flyctl certs add www.kaja.tools --app kaja-home || true
