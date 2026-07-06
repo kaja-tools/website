@@ -76,6 +76,6 @@ scripts/deploy theatre    # a single app
   (`kaja.json`) and demo proto files are baked into the image at build time
   (`apps/kaja/Dockerfile`), so kaja builds from the repo root:
   `fly deploy . --config apps/kaja/fly.toml`.
-- `primary_region` is set to `iad` in every `fly.toml`. Change it to match the
+- `primary_region` is set to `sjc` in every `fly.toml`. Change it to match the
   region you host in; keeping all apps in one region keeps the private-network
   (east-west) hops fast.

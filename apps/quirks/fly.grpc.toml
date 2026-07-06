@@ -2,7 +2,7 @@
 # Deploy with: fly deploy apps/quirks --config apps/quirks/fly.grpc.toml
 #   fly certs add grpc-quirks.kaja.tools --app kaja-quirks-grpc
 app = "kaja-quirks-grpc"
-primary_region = "iad"
+primary_region = "sjc"
 
 [build]
 

@@ -9,7 +9,7 @@
 # The AI API key is provided as a secret, not committed here:
 #   fly secrets set AI_API_KEY=... --app kaja-demo
 app = "kaja-demo"
-primary_region = "iad"
+primary_region = "sjc"
 
 [build]
   dockerfile = "apps/kaja/Dockerfile"
