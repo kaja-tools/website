@@ -5,9 +5,6 @@
 # The workspace config and proto files are baked into the image (see Dockerfile),
 # so the build context must be the repository root:
 #   fly deploy . --config apps/kaja/fly.toml
-#
-# The AI API key is provided as a secret, not committed here:
-#   fly secrets set AI_API_KEY=... --app kaja-demo
 app = "kaja-demo"
 primary_region = "sjc"
 

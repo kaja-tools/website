@@ -45,15 +45,12 @@ scripts/fly-setup
 # 2. Deploy everything.
 scripts/deploy
 
-# 3. Provide the kaja IDE's AI key (kept as a Fly secret, never committed).
-fly secrets set AI_API_KEY=... --app kaja-demo
-
-# 4. DNS: point each hostname at its app.
+# 3. DNS: point each hostname at its app.
 #      - Apex kaja.tools: A/AAAA records to kaja-home's IPs (fly ips list --app kaja-home)
 #      - Subdomains: CNAME <sub>.kaja.tools -> <app>.fly.dev
 #    Verify with: fly certs check <hostname> --app <app>
 
-# 5. Create a deploy token and add it to the repo as the FLY_API_TOKEN secret
+# 4. Create a deploy token and add it to the repo as the FLY_API_TOKEN secret
 #    so GitHub Actions can deploy on push to main.
 fly tokens create deploy
 ```

@@ -44,11 +44,10 @@ cat <<'EOF'
 
 Next steps:
   1. Deploy everything:    scripts/deploy
-  2. Set the kaja AI key:  fly secrets set AI_API_KEY=... --app kaja-demo
-  3. DNS: point each hostname at its app.
+  2. DNS: point each hostname at its app.
        - Apex kaja.tools: A/AAAA records to kaja-home's IPs (fly ips list --app kaja-home)
        - Subdomains: CNAME <sub>.kaja.tools -> <app>.fly.dev
          (e.g. theatre.kaja.tools -> kaja-theatre.fly.dev)
      Check issuance with: fly certs check <hostname> --app <app>
-  4. Add a FLY_API_TOKEN repo secret for CI (fly tokens create deploy)
+  3. Add a FLY_API_TOKEN repo secret for CI (fly tokens create deploy)
 EOF
