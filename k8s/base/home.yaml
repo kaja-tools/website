@@ -6,6 +6,10 @@ metadata:
     app: home
 spec:
   replicas: 1
+  strategy:
+    # Single node at its pod cap: a surge pod can't be scheduled, so replace
+    # the old pod before starting the new one on redeploy.
+    type: Recreate
   selector:
     matchLabels:
       app: home
