@@ -1,0 +1,70 @@
+name: redeploy
+# Manually-triggered workflow that redeploys services to the production
+# cluster by restarting their deployments. Because the images are published
+# with the ":latest" tag by the "main" workflow, a rollout restart pulls the
+# freshly built image for each service.
+#
+# Requires a repository secret named KUBE_CONFIG containing a base64-encoded
+# kubeconfig with access to the "kaja" cluster.
+on:
+  workflow_dispatch:
+    inputs:
+      service:
+        description: "Service to redeploy"
+        required: true
+        default: "all"
+        type: choice
+        options:
+          - all
+          - home
+          - kaja
+          - teams
+          - users
+          - grpc-quirks
+          - twirp-quirks
+          - boxoffice
+          - seating
+          - theatre
+jobs:
+  redeploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p "$HOME/.kube"
+          echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > "$HOME/.kube/config"
+          chmod 600 "$HOME/.kube/config"
+
+      - name: Redeploy service(s)
+        run: |
+          set -e
+          all_deployments=(
+            home-deployment
+            kaja-deployment
+            teams-deployment
+            users-deployment
+            grpc-quirks-deployment
+            twirp-quirks-deployment
+            boxoffice-deployment
+            seating-deployment
+            theatre-deployment
+          )
+
+          if [[ "${{ github.event.inputs.service }}" == "all" ]]; then
+            targets=("${all_deployments[@]}")
+          else
+            targets=("${{ github.event.inputs.service }}-deployment")
+          fi
+
+          for deployment in "${targets[@]}"; do
+            echo "Restarting $deployment"
+            kubectl rollout restart "deployment/$deployment"
+          done
+
+          for deployment in "${targets[@]}"; do
+            echo "Waiting for $deployment to finish rolling out"
+            kubectl rollout status "deployment/$deployment" --timeout=180s
+          done
