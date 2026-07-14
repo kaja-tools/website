@@ -29,6 +29,9 @@ jobs:
   redeploy:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Set up kubectl
         uses: azure/setup-kubectl@v4
 
@@ -37,6 +40,26 @@ jobs:
           mkdir -p "$HOME/.kube"
           echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > "$HOME/.kube/config"
           chmod 600 "$HOME/.kube/config"
+
+      # The /demo app reads its project list from kaja.json and its protos from
+      # the persistent workspace PVC. A rollout restart alone does not touch the
+      # PVC, so seed it here whenever kaja (or all) is redeployed — otherwise the
+      # demo keeps serving whatever config was last copied in.
+      - name: Seed kaja workspace
+        if: ${{ github.event.inputs.service == 'all' || github.event.inputs.service == 'kaja' }}
+        run: |
+          set -e
+          POD_NAME=$(kubectl get pods -l app=kaja --field-selector=status.phase=Running -o jsonpath='{.items[0].metadata.name}')
+          if [[ -z "$POD_NAME" ]]; then
+            echo "::error::No running kaja pod found to seed the workspace"
+            exit 1
+          fi
+          echo "Seeding configuration and proto files into $POD_NAME"
+          kubectl exec "$POD_NAME" -- rm -rf /workspace/teams /workspace/users /workspace/seating /workspace/boxoffice
+          kubectl exec "$POD_NAME" -- mkdir /workspace/seating /workspace/boxoffice
+          kubectl cp apps/kaja/kaja.json "$POD_NAME":/workspace/kaja.json
+          kubectl cp apps/seating/proto/seating.proto "$POD_NAME":/workspace/seating/seating.proto
+          kubectl cp apps/boxoffice/proto/boxoffice.proto "$POD_NAME":/workspace/boxoffice/boxoffice.proto
 
       - name: Redeploy service(s)
         run: |
