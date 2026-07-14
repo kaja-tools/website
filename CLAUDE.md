@@ -1,5 +1,11 @@
 # Agent Guidelines
 
+## Pull Requests
+
+Keep PR descriptions short. Aim for a one-line summary plus a brief bullet list
+of the concrete changes. Skip lengthy background, root-cause narratives, and
+generated-by boilerplate — link to related PRs/issues instead of restating them.
+
 ## Proto Files
 
 To regenerate proto files after modifying `.proto` definitions, run:
