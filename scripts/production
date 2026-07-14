@@ -13,11 +13,13 @@ POD_NAME=$(kubectl get pods -l app=kaja --field-selector=status.phase=Running -o
 echo "Copying configuration and proto files to $POD_NAME"
 kubectl exec $POD_NAME -- rm -rf /workspace/teams
 kubectl exec $POD_NAME -- rm -rf /workspace/users
-kubectl exec $POD_NAME -- mkdir /workspace/teams
-kubectl exec $POD_NAME -- mkdir /workspace/users
+kubectl exec $POD_NAME -- rm -rf /workspace/seating
+kubectl exec $POD_NAME -- rm -rf /workspace/boxoffice
+kubectl exec $POD_NAME -- mkdir /workspace/seating
+kubectl exec $POD_NAME -- mkdir /workspace/boxoffice
 kubectl cp apps/kaja/kaja.json $POD_NAME:/workspace/kaja.json
-kubectl cp apps/teams/proto/teams.proto $POD_NAME:/workspace/teams/teams.proto
-kubectl cp apps/users/proto/users.proto $POD_NAME:/workspace/users/users.proto
+kubectl cp apps/seating/proto/seating.proto $POD_NAME:/workspace/seating/seating.proto
+kubectl cp apps/boxoffice/proto/boxoffice.proto $POD_NAME:/workspace/boxoffice/boxoffice.proto
 
 kubectl delete secret secrets
 kubectl create secret generic secrets --from-literal=AI_API_KEY=$(cat .ai_api_key)
@@ -25,7 +27,8 @@ kubectl create secret generic secrets --from-literal=AI_API_KEY=$(cat .ai_api_ke
 kubectl apply -k k8s/overlays/production
 kubectl rollout restart deployment home-deployment
 kubectl rollout restart deployment kaja-deployment
-kubectl rollout restart deployment teams-deployment
-kubectl rollout restart deployment users-deployment
+kubectl rollout restart deployment theatre-deployment
+kubectl rollout restart deployment seating-deployment
+kubectl rollout restart deployment boxoffice-deployment
 kubectl rollout restart deployment grpc-quirks-deployment
 kubectl rollout restart deployment twirp-quirks-deployment
