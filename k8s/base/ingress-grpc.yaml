@@ -15,29 +15,21 @@ spec:
   - host: kaja.tools
     http:
       paths:
-      # Teams service
-      - path: /teams.Teams/
-        pathType: Prefix
-        backend:
-          service:
-            name: teams-service
-            port:
-              number: 80
-      # gRPC reflection - routes to teams-service
+      # gRPC reflection - routes to seating-service
       # Note: Each reflection path can only route to one backend.
       # For grpcurl without proto files on other services, use -import-path with proto files.
       - path: /grpc.reflection.v1alpha.ServerReflection/
         pathType: Prefix
         backend:
           service:
-            name: teams-service
+            name: seating-service
             port:
               number: 80
       - path: /grpc.reflection.v1.ServerReflection/
         pathType: Prefix
         backend:
           service:
-            name: teams-service
+            name: seating-service
             port:
               number: 80
       # Seating service

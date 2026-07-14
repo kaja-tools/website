@@ -22,11 +22,11 @@ rules:
     verbs: ["list", "watch"]
   - apiGroups: ["apps"]
     resources: ["deployments"]
-    resourceNames: ["kaja-deployment", "home-deployment", "teams-deployment", "users-deployment", "twirp-quirks-deployment", "grpc-quirks-deployment"]
+    resourceNames: ["kaja-deployment", "home-deployment", "twirp-quirks-deployment", "grpc-quirks-deployment"]
     verbs: ["get", "patch"]
   - apiGroups: ["apps"]
     resources: ["deployments/scale"]
-    resourceNames: ["kaja-deployment", "home-deployment", "teams-deployment", "users-deployment", "twirp-quirks-deployment", "grpc-quirks-deployment"]
+    resourceNames: ["kaja-deployment", "home-deployment", "twirp-quirks-deployment", "grpc-quirks-deployment"]
     verbs: ["get", "update", "patch"]
   - apiGroups: ["apps"]
     resources: ["replicasets"]
@@ -70,7 +70,7 @@ spec:
                 - -c
                 - |
                   set -e
-                  DEPLOYMENTS="kaja-deployment home-deployment teams-deployment users-deployment twirp-quirks-deployment grpc-quirks-deployment"
+                  DEPLOYMENTS="kaja-deployment home-deployment twirp-quirks-deployment grpc-quirks-deployment"
 
                   echo "Scaling down all deployments..."
                   for deploy in $DEPLOYMENTS; do
