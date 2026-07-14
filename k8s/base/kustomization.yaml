@@ -11,8 +11,6 @@ resources:
 - kaja.yaml
 - kaja-auto-update.yaml
 - seating.yaml
-- teams.yaml
 - theatre.yaml
 - twirp-quirks.yaml
-- users.yaml
 - workspace-volume.yaml

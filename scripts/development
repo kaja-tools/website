@@ -52,17 +52,11 @@ kubectl wait --for=condition=ready pod -l app=kaja --timeout=120s
 # Get the first pod with a volume mount and copy proto files
 POD_NAME=$(kubectl get pods -l app=kaja -o jsonpath='{.items[0].metadata.name}')
 echo "Copying configuration and proto files to $POD_NAME"
-kubectl exec $POD_NAME -- rm -rf /workspace/teams
-kubectl exec $POD_NAME -- rm -rf /workspace/users
 kubectl exec $POD_NAME -- rm -rf /workspace/seating
 kubectl exec $POD_NAME -- rm -rf /workspace/boxoffice
-kubectl exec $POD_NAME -- mkdir /workspace/teams
-kubectl exec $POD_NAME -- mkdir /workspace/users
 kubectl exec $POD_NAME -- mkdir /workspace/seating
 kubectl exec $POD_NAME -- mkdir /workspace/boxoffice
 kubectl cp apps/kaja/kaja.json $POD_NAME:/workspace/kaja.json
-kubectl cp apps/teams/proto/teams.proto $POD_NAME:/workspace/teams/teams.proto
-kubectl cp apps/users/proto/users.proto $POD_NAME:/workspace/users/users.proto
 kubectl cp apps/seating/proto/seating.proto $POD_NAME:/workspace/seating/seating.proto
 kubectl cp apps/boxoffice/proto/boxoffice.proto $POD_NAME:/workspace/boxoffice/boxoffice.proto
 
@@ -91,8 +85,6 @@ build_and_deploy() {
 
 build_and_deploy kajatools/website-home:latest      ./apps/home      home-deployment
 build_and_deploy kajatools/website-quirks:latest    ./apps/quirks    grpc-quirks-deployment twirp-quirks-deployment
-build_and_deploy kajatools/website-teams:latest     ./apps/teams     teams-deployment
-build_and_deploy kajatools/website-users:latest     ./apps/users     users-deployment
 build_and_deploy kajatools/website-theatre:latest   ./apps/theatre   theatre-deployment
 build_and_deploy kajatools/website-seating:latest   ./apps/seating   seating-deployment
 build_and_deploy kajatools/website-boxoffice:latest ./apps/boxoffice boxoffice-deployment

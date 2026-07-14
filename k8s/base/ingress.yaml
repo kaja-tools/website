@@ -22,13 +22,6 @@ spec:
             name: kaja-service
             port:
               number: 80
-      - path: /users
-        pathType: Prefix
-        backend:
-          service:
-            name: users-service
-            port:
-              number: 80
       - path: /twirp-quirks
         pathType: Prefix
         backend:

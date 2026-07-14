@@ -61,13 +61,7 @@ go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
 
 echo "Generating proto files..."
 
-cd "apps/teams"
-"$PROTOC_BIN" -I"$BUILD_DIR/include" --proto_path=. --plugin=protoc-gen-go="$GOBIN/protoc-gen-go" --go_out=. --plugin=protoc-gen-grpc="$GOBIN/protoc-gen-go-grpc" --grpc_out=. -Iproto/ $(find . -iname "*.proto")
-
-cd "../users"
-"$PROTOC_BIN" -I"$BUILD_DIR/include" --proto_path=. --plugin=protoc-gen-go="$GOBIN/protoc-gen-go" --go_out=. --plugin=protoc-gen-twirp="$GOBIN/protoc-gen-twirp" --twirp_out=. -Iproto/ $(find . -iname "*.proto")
-
-cd "../quirks"
+cd "apps/quirks"
 # Generate v1 proto files (proto_path=proto so files register as v1/quirks.proto, etc.)
 "$PROTOC_BIN" -I"$BUILD_DIR/include" --proto_path=proto --plugin=protoc-gen-go="$GOBIN/protoc-gen-go" --go_out=. --plugin=protoc-gen-grpc="$GOBIN/protoc-gen-go-grpc" --grpc_out=. --plugin=protoc-gen-twirp="$GOBIN/protoc-gen-twirp" --twirp_out=. $(find proto/v1 -name "*.proto")
 

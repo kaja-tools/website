@@ -25,20 +25,6 @@ jobs:
           push: ${{ github.event_name == 'push' }}
           tags: |
             kajatools/website-home:latest
-      - name: Build and push website-teams
-        uses: docker/build-push-action@v3
-        with:
-          context: ./apps/teams
-          push: ${{ github.event_name == 'push' }}
-          tags: |
-            kajatools/website-teams:latest
-      - name: Build and push website-users
-        uses: docker/build-push-action@v3
-        with:
-          context: ./apps/users
-          push: ${{ github.event_name == 'push' }}
-          tags: |
-            kajatools/website-users:latest
       - name: Build and push website-quirks
         uses: docker/build-push-action@v3
         with:

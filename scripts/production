@@ -11,8 +11,6 @@ fi
 # Get the first running pod with a volume mount and copy proto files
 POD_NAME=$(kubectl get pods -l app=kaja --field-selector=status.phase=Running -o jsonpath='{.items[0].metadata.name}')
 echo "Copying configuration and proto files to $POD_NAME"
-kubectl exec $POD_NAME -- rm -rf /workspace/teams
-kubectl exec $POD_NAME -- rm -rf /workspace/users
 kubectl exec $POD_NAME -- rm -rf /workspace/seating
 kubectl exec $POD_NAME -- rm -rf /workspace/boxoffice
 kubectl exec $POD_NAME -- mkdir /workspace/seating
