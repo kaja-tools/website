@@ -1,22 +1,25 @@
 {
   "pathPrefix": "/demo",
-  "projects": [
+  "apps": [
     {
       "name": "theatre",
-      "protocol": "RPC_PROTOCOL_OPENAPI",
-      "url": "https://kaja.tools/theatre/openapi.yaml"
+      "openapi": {
+        "spec_url": "https://kaja.tools/theatre/openapi.yaml"
+      }
     },
     {
       "name": "seating",
-      "protocol": "RPC_PROTOCOL_GRPC",
-      "url": "dns:kaja.tools:443",
-      "protoDir": "seating"
+      "grpc": {
+        "url": "dns:kaja.tools:443",
+        "proto_dir": "seating"
+      }
     },
     {
       "name": "boxoffice",
-      "protocol": "RPC_PROTOCOL_TWIRP",
-      "url": "https://kaja.tools/boxoffice",
-      "protoDir": "boxoffice"
+      "twirp": {
+        "url": "https://kaja.tools/boxoffice",
+        "proto_dir": "boxoffice"
+      }
     }
   ]
 }
