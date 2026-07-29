@@ -1,0 +1,54 @@
+#!/bin/bash
+# One-time Fly.io setup: create every app (without deploying), give each one a
+# public hostname under kaja.tools, and allocate IPs. Safe to re-run;
+# `fly apps create` and `fly certs add` are idempotent.
+#
+# Requires flyctl installed and authenticated (fly auth login), and an
+# organization selected via FLY_ORG (defaults to "personal").
+set -e
+cd "$(dirname "$0")/.."
+
+ORG="${FLY_ORG:-personal}"
+
+# "<app> <public hostname>" pairs. Kept as a here-doc (not an associative
+# array) so this runs on the stock Bash 3.2 that ships with macOS.
+while read -r app host; do
+  [ -z "$app" ] && continue
+
+  if flyctl apps list | grep -qw "$app"; then
+    echo "App $app already exists, skipping create"
+  else
+    echo "Creating app $app"
+    flyctl apps create "$app" --org "$ORG"
+  fi
+
+  # A dedicated IPv6 (free) plus a shared IPv4 is enough for a public app.
+  flyctl ips allocate-v6 --app "$app" || true
+  flyctl ips allocate-v4 --shared --app "$app" || true
+
+  echo "Attaching $host to $app"
+  flyctl certs add "$host" --app "$app" || true
+done <<'PAIRS'
+kaja-home         kaja.tools
+kaja-demo         demo.kaja.tools
+kaja-theatre      theatre.kaja.tools
+kaja-boxoffice    boxoffice.kaja.tools
+kaja-seating      seating.kaja.tools
+kaja-quirks-grpc  grpc-quirks.kaja.tools
+kaja-quirks-twirp twirp-quirks.kaja.tools
+PAIRS
+
+# The apex also answers on www.
+flyctl certs add www.kaja.tools --app kaja-home || true
+
+cat <<'EOF'
+
+Next steps:
+  1. Deploy everything:    scripts/deploy
+  2. DNS: point each hostname at its app.
+       - Apex kaja.tools: A/AAAA records to kaja-home's IPs (fly ips list --app kaja-home)
+       - Subdomains: CNAME <sub>.kaja.tools -> <app>.fly.dev
+         (e.g. theatre.kaja.tools -> kaja-theatre.fly.dev)
+     Check issuance with: fly certs check <hostname> --app <app>
+  3. Add a FLY_API_TOKEN repo secret for CI (fly tokens create deploy)
+EOF

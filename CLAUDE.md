@@ -27,33 +27,40 @@ Structure for `apps/home/static/`:
 - Root level: `index.html`, `styles.css`, `script.js`, `favicon.ico`, `favicon.svg`, `logo.svg`
 - `/assets/`: Screenshots and demo videos only
 
-## Ingress and Service Routing
+## Deployment and Service Routing
 
-### Twirp behind ingress
-When a Twirp service runs behind an ingress with path-based routing (e.g., `/boxoffice`), configure the server with a matching path prefix:
-```go
-twirp.WithServerPathPrefix("/boxoffice/twirp")
-```
-This makes the service respond at `/boxoffice/twirp/ServiceName/Method`.
+kaja.tools is deployed to Fly.io. Every service is its own Fly app with its own
+public hostname under `kaja.tools` (e.g. `theatre.kaja.tools`, `seating.kaja.tools`);
+there is no shared gateway. Service-to-service calls stay on Fly's private
+network via `<app>.internal` DNS. See [docs/deployment.md](docs/deployment.md)
+for the full map of apps, hostnames, and ports.
 
-### gRPC with nginx-ingress
-gRPC requires a **separate ingress resource** with the annotation:
-```yaml
-nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
-```
-This annotation applies to all backends in an ingress, so HTTP and gRPC services cannot share the same ingress.
+Each service is served at the root of its own hostname (no per-service path
+prefix), e.g. the theatre catalog lives at `https://theatre.kaja.tools/events`.
 
-gRPC paths follow the format `/package.Service/Method` (e.g., `/seating.Seating/GetSeatMap`).
+### Twirp
+A Twirp service uses the standard `/twirp` prefix (no custom path prefix), so it
+responds at `/twirp/package.Service/Method`, i.e.
+`https://boxoffice.kaja.tools/twirp/...`. `apps/kaja/kaja.json` points kaja at
+the host base URL (`https://boxoffice.kaja.tools`).
 
-**Important:** When adding a new gRPC service, you must add paths to `k8s/base/ingress-grpc.yaml` for each service in the proto files (e.g., `/mypackage.MyService/`). Remember to use the full `package.Service` format.
+### gRPC
+gRPC needs HTTP/2 end to end. A gRPC app sets `http_options.h2_backend = true`
+and `tls_options.alpn = ["h2"]` in its `fly.toml`, so the Fly edge negotiates
+HTTP/2 with clients and forwards HTTP/2 cleartext to the app. gRPC paths follow
+the format `/package.Service/Method` (e.g. `/seating.Seating/GetSeatMap`).
 
-**gRPC Reflection limitation:** Reflection paths (`/grpc.reflection.v1.ServerReflection/` and `/grpc.reflection.v1alpha.ServerReflection/`) can only route to one backend per ingress. Currently they route to `seating-service`. For `grpcurl` on other services, use the `-import-path` flag with proto files:
+**Important:** When adding a new gRPC service, create a Fly app for it with that
+`h2_backend` + `alpn = ["h2"]` config and attach its hostname
+(`fly certs add <sub>.kaja.tools`).
+
+For `grpcurl`, `seating` registers gRPC reflection so you can list its services
+directly; for services without reflection, pass the proto files with
+`-import-path`:
 ```bash
-grpcurl -plaintext -import-path apps/quirks/proto -proto v1/quirks.proto localhost:80 quirks.v1.Quirks/Sum
+grpcurl -import-path apps/quirks/proto -proto v1/quirks.proto grpc-quirks.kaja.tools:443 quirks.v1.Quirks/Sum
 ```
 
-### Testing services locally
-- **Twirp**: `curl -X POST http://localhost/boxoffice/twirp/BoxOffice/GetOrder -H "Content-Type: application/json" -d '{}'`
-- **gRPC**: `grpcurl -plaintext -import-path apps/seating/proto -proto seating.proto localhost:80 seating.Seating/GetSeatMap`
-
-- Run against the k8s cluster on localhost
+### Testing services
+- **Twirp**: `curl -X POST https://boxoffice.kaja.tools/twirp/boxoffice.BoxOffice/GetOrder -H "Content-Type: application/json" -d '{}'`
+- **gRPC**: `grpcurl -import-path apps/seating/proto -proto seating.proto seating.kaja.tools:443 seating.Seating/GetSeatMap`
