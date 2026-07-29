@@ -1,23 +1,23 @@
 {
-  "pathPrefix": "/demo",
+  "pathPrefix": "/",
   "apps": [
     {
       "name": "theatre",
       "openapi": {
-        "spec_url": "https://kaja.tools/theatre/openapi.yaml"
+        "spec_url": "https://theatre.kaja.tools/openapi.yaml"
       }
     },
     {
       "name": "seating",
       "grpc": {
-        "url": "dns:kaja.tools:443",
+        "url": "dns:seating.kaja.tools:443",
         "proto_dir": "seating"
       }
     },
     {
       "name": "boxoffice",
       "twirp": {
-        "url": "https://kaja.tools/boxoffice",
+        "url": "https://boxoffice.kaja.tools",
         "proto_dir": "boxoffice"
       }
     }
