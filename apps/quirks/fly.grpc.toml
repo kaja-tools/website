@@ -1,5 +1,5 @@
 # Quirks gRPC server. Public at grpc-quirks.kaja.tools:443 (gRPC over TLS).
-# Deploy with: fly deploy apps/quirks --config apps/quirks/fly.grpc.toml
+# Deploy with: fly deploy apps/quirks --config fly.grpc.toml
 #   fly certs add grpc-quirks.kaja.tools --app kaja-quirks-grpc
 app = "kaja-quirks-grpc"
 primary_region = "sjc"

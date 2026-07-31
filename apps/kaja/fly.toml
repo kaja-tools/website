@@ -9,7 +9,9 @@ app = "kaja-demo"
 primary_region = "sjc"
 
 [build]
-  dockerfile = "apps/kaja/Dockerfile"
+  # Resolved relative to this config file's directory; the build context is the
+  # repo root (the "." working directory passed to fly deploy).
+  dockerfile = "Dockerfile"
 
 [http_service]
   internal_port = 41520

@@ -2,7 +2,7 @@
 # Deploy every app to Fly.io. Mirrors the CI matrix in .github/workflows/main.yml.
 # Requires flyctl to be installed and authenticated (fly auth login).
 #
-# Pass an app name to deploy just one, e.g. `scripts/deploy gateway`.
+# Pass an app name to deploy just one, e.g. `scripts/deploy theatre`.
 set -e
 cd "$(dirname "$0")/.."
 
@@ -21,8 +21,10 @@ deploy home         apps/home
 deploy theatre      apps/theatre
 deploy seating      apps/seating
 deploy boxoffice    apps/boxoffice
-deploy quirks-grpc  apps/quirks --config apps/quirks/fly.grpc.toml
-deploy quirks-twirp apps/quirks --config apps/quirks/fly.twirp.toml
+# flyctl resolves --config relative to the working directory argument, so the
+# quirks configs are named relative to apps/quirks.
+deploy quirks-grpc  apps/quirks --config fly.grpc.toml
+deploy quirks-twirp apps/quirks --config fly.twirp.toml
 # kaja bakes proto files from sibling apps, so it builds from the repo root.
 deploy kaja         . --config apps/kaja/fly.toml
 
