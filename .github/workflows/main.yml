@@ -7,49 +7,60 @@ on:
     branches:
       - "main"
 jobs:
-  docker:
+  # Single job (not a matrix) so the required status check context is exactly
+  # "build" — a matrix would report as "build (theatre)" etc. and never satisfy
+  # a rule requiring "build".
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
-      - name: Login to Docker Hub
-        if: github.event_name == 'push'
-        uses: docker/login-action@v2
+        uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-      - name: Build and push website-home
-        uses: docker/build-push-action@v3
-        with:
-          context: ./apps/home
-          push: ${{ github.event_name == 'push' }}
-          tags: |
-            kajatools/website-home:latest
-      - name: Build and push website-quirks
-        uses: docker/build-push-action@v3
-        with:
-          context: ./apps/quirks
-          push: ${{ github.event_name == 'push' }}
-          tags: |
-            kajatools/website-quirks:latest
-      - name: Build and push website-theatre
-        uses: docker/build-push-action@v3
-        with:
-          context: ./apps/theatre
-          push: ${{ github.event_name == 'push' }}
-          tags: |
-            kajatools/website-theatre:latest
-      - name: Build and push website-seating
-        uses: docker/build-push-action@v3
-        with:
-          context: ./apps/seating
-          push: ${{ github.event_name == 'push' }}
-          tags: |
-            kajatools/website-seating:latest
-      - name: Build and push website-boxoffice
-        uses: docker/build-push-action@v3
-        with:
-          context: ./apps/boxoffice
-          push: ${{ github.event_name == 'push' }}
-          tags: |
-            kajatools/website-boxoffice:latest
+          go-version: "1.24"
+      - name: Build and vet
+        run: |
+          set -e
+          for dir in apps/*/; do
+            if [ -f "$dir/go.mod" ]; then
+              echo "==> $dir"
+              (cd "$dir" && go build ./... && go vet ./...)
+            fi
+          done
+          # home has no go.mod: a stdlib-only program built straight from source.
+          echo "==> apps/home"
+          (cd apps/home && go build -o /dev/null cmd/server/main.go)
+
+  deploy:
+    name: Deploy ${{ matrix.name }}
+    # Only deploy from main, and only once the code compiles.
+    if: github.event_name == 'push'
+    needs: build
+    runs-on: ubuntu-latest
+    # Fly deploys of the same app must not overlap.
+    concurrency: deploy-${{ matrix.name }}
+    strategy:
+      # Deploy every app, even if one fails, so a single flaky deploy doesn't
+      # block the rest.
+      fail-fast: false
+      matrix:
+        include:
+          - { name: home, dir: apps/home }
+          - { name: theatre, dir: apps/theatre }
+          - { name: seating, dir: apps/seating }
+          - { name: boxoffice, dir: apps/boxoffice }
+          # flyctl resolves --config relative to the working directory (dir).
+          - { name: quirks-grpc, dir: apps/quirks, config: fly.grpc.toml }
+          - { name: quirks-twirp, dir: apps/quirks, config: fly.twirp.toml }
+          # kaja bakes proto files from sibling apps, so it builds from the repo root.
+          - { name: kaja, dir: ".", config: apps/kaja/fly.toml }
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+      - name: Deploy
+        run: flyctl deploy ${{ matrix.dir }} ${{ matrix.config && format('--config {0}', matrix.config) || '' }} --remote-only
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

@@ -32,10 +32,10 @@ func headerMiddleware(next http.Handler) http.Handler {
 }
 
 func main() {
-	basicsServer := v1.NewBasicsServer(&v1.BasicsService{}, twirp.WithServerPathPrefix("/twirp-quirks/twirp"))
-	quirksServer := v1.NewQuirksServer(&v1.QuirksTwirpService{}, twirp.WithServerPathPrefix("/twirp-quirks/twirp"))
-	quirks_2Server := v1.NewQuirks_2Server(&v1.Quirks_2Service{}, twirp.WithServerPathPrefix("/twirp-quirks/twirp"))
-	quirksV2Server := v2.NewQuirksServer(&v2.QuirksService{}, twirp.WithServerPathPrefix("/twirp-quirks/twirp"))
+	basicsServer := v1.NewBasicsServer(&v1.BasicsService{})
+	quirksServer := v1.NewQuirksServer(&v1.QuirksTwirpService{})
+	quirks_2Server := v1.NewQuirks_2Server(&v1.Quirks_2Service{})
+	quirksV2Server := v2.NewQuirksServer(&v2.QuirksService{})
 
 	mux := http.NewServeMux()
 	fmt.Printf("Handling BasicsServer on %s\n", basicsServer.PathPrefix())

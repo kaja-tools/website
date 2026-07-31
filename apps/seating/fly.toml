@@ -1,0 +1,29 @@
+# Seating gRPC service. Public at seating.kaja.tools:443 (gRPC over TLS).
+# Also reached by boxoffice over the private network (kaja-seating.internal).
+#   fly certs add seating.kaja.tools --app kaja-seating
+app = "kaja-seating"
+primary_region = "sjc"
+
+[build]
+
+[env]
+  THEATRE_URL = "http://kaja-theatre.internal:41530"
+
+# gRPC needs HTTP/2 end to end: the Fly edge advertises h2 via ALPN and forwards
+# HTTP/2 cleartext to the app.
+[http_service]
+  internal_port = 50053
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [http_service.http_options]
+    h2_backend = true
+
+  [http_service.tls_options]
+    alpn = ["h2"]
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"

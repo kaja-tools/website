@@ -1,0 +1,25 @@
+# kaja demo IDE. Public at demo.kaja.tools (served at the host root, see
+# kaja.json "pathPrefix").
+#   fly certs add demo.kaja.tools --app kaja-demo
+#
+# The workspace config and proto files are baked into the image (see Dockerfile),
+# so the build context must be the repository root:
+#   fly deploy . --config apps/kaja/fly.toml
+app = "kaja-demo"
+primary_region = "sjc"
+
+[build]
+  # Resolved relative to this config file's directory; the build context is the
+  # repo root (the "." working directory passed to fly deploy).
+  dockerfile = "Dockerfile"
+
+[http_service]
+  internal_port = 41520
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 1
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"

@@ -18,7 +18,7 @@ import (
 func main() {
 	theatreURL := os.Getenv("THEATRE_URL")
 	if theatreURL == "" {
-		theatreURL = "http://localhost:41530/theatre"
+		theatreURL = "http://localhost:41530"
 	}
 
 	addr := os.Getenv("ADDR")
