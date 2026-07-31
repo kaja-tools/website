@@ -9,16 +9,36 @@ generated-by boilerplate — link to related PRs/issues instead of restating the
 ## Proto Files
 
 To regenerate proto files after modifying `.proto` definitions, run:
+
 ```bash
 ./scripts/protoc
 ```
 
 This script:
+
 - Installs a consistent version of `protoc` into the `build/` directory (supports Linux and macOS)
-- Installs the required Go plugins (`protoc-gen-go`, `protoc-gen-go-grpc`, `protoc-gen-twirp`)
-- Regenerates all proto files for the quirks, seating, and boxoffice services
+- Installs the required Go plugins (`protoc-gen-go`, `protoc-gen-go-grpc`)
+- Regenerates all proto files for the quirks and seating services
 
 Do not use system-installed protoc or manually run protoc commands.
+
+## Demo Services
+
+The public demo is two services and two protocols — gRPC and OpenAPI. Twirp
+is deliberately not part of it.
+
+- `apps/theatre` (OpenAPI) is the programme: `GET /shows` takes no parameters
+  and returns the whole repertoire.
+- `apps/seating` (gRPC) owns live seat state: `GetSeatMap`, `HoldSeats`,
+  `ConfirmSeats`, and the streaming `WatchSeats`.
+
+A show's `id` is the only identifier in the demo: copy it out of `/shows` and
+pass it to seating as `showId`. Keep it that way — the point of this shape is
+that somebody can call the demo without reading anything first. Adding
+methods, identifiers, or required lookups walks it back.
+
+`apps/seating/internal/crowd` simulates other customers in-process so the seat
+map is always moving. `CROWD=off` disables it.
 
 ## Home Page Static Files
 
@@ -36,15 +56,10 @@ network via `<app>.internal` DNS. See [docs/deployment.md](docs/deployment.md)
 for the full map of apps, hostnames, and ports.
 
 Each service is served at the root of its own hostname (no per-service path
-prefix), e.g. the theatre catalog lives at `https://theatre.kaja.tools/events`.
-
-### Twirp
-A Twirp service uses the standard `/twirp` prefix (no custom path prefix), so it
-responds at `/twirp/package.Service/Method`, i.e.
-`https://boxoffice.kaja.tools/twirp/...`. `apps/kaja/kaja.json` points kaja at
-the host base URL (`https://boxoffice.kaja.tools`).
+prefix), e.g. the theatre programme lives at `https://theatre.kaja.tools/shows`.
 
 ### gRPC
+
 gRPC needs HTTP/2 end to end. A gRPC app sets `http_options.h2_backend = true`
 and `tls_options.alpn = ["h2"]` in its `fly.toml`, so the Fly edge negotiates
 HTTP/2 with clients and forwards HTTP/2 cleartext to the app. gRPC paths follow
@@ -57,10 +72,12 @@ the format `/package.Service/Method` (e.g. `/seating.Seating/GetSeatMap`).
 For `grpcurl`, `seating` registers gRPC reflection so you can list its services
 directly; for services without reflection, pass the proto files with
 `-import-path`:
+
 ```bash
 grpcurl -import-path apps/quirks/proto -proto v1/quirks.proto grpc-quirks.kaja.tools:443 quirks.v1.Quirks/Sum
 ```
 
 ### Testing services
-- **Twirp**: `curl -X POST https://boxoffice.kaja.tools/twirp/boxoffice.BoxOffice/GetOrder -H "Content-Type: application/json" -d '{}'`
-- **gRPC**: `grpcurl -import-path apps/seating/proto -proto seating.proto seating.kaja.tools:443 seating.Seating/GetSeatMap`
+
+- **OpenAPI**: `curl https://theatre.kaja.tools/shows`
+- **gRPC**: `grpcurl -d '{"showId":"neon-meridian"}' seating.kaja.tools:443 seating.Seating/GetSeatMap`

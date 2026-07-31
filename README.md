@@ -5,7 +5,7 @@ This repo is the source for the [kaja.tools](https://kaja.tools) website.
 ## Development
 
 ```
-# Re-generate gRPC and Twirp code for all apps. Commit when done.
+# Re-generate gRPC code for all apps. Commit when done.
 scripts/protoc
 ```
 

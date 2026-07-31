@@ -1,12 +1,11 @@
-// Package crowd simulates the theatre's other customers. It buys seats
-// through the same seating gRPC API that kaja visitors use, which keeps the
-// live seat map dramatic and means a visitor can genuinely lose a race for
-// a seat.
+// Package crowd simulates the theatre's other customers. It books seats
+// through the same store the gRPC handlers use, which keeps the seat map
+// moving and means a visitor can genuinely lose a race for a seat.
 //
-// The crowd is a controller, not a firehose: each performance fills toward
-// a target occupancy that grows as showtime approaches (hot shows aim
+// The crowd is a controller, not a firehose: each show fills toward a
+// target occupancy that grows as curtain-up approaches (hot shows aim
 // higher), and once a house is at target the crowd only window-shops —
-// holding seats and letting them go — so streams stay lively without ever
+// holding seats and letting them go — so the map stays lively without ever
 // selling the place out.
 package crowd
 
@@ -17,10 +16,11 @@ import (
 	"time"
 
 	"github.com/kaja-tools/website/v2/internal/api"
+	"github.com/kaja-tools/website/v2/internal/store"
 	"github.com/kaja-tools/website/v2/internal/theatre"
 )
 
-// How much of the house each event's crowd wants, at most.
+// How much of the house each show's crowd wants, at most.
 var demand = map[string]float64{
 	"neon-meridian":          0.85,
 	"milo-frey":              0.70,
@@ -34,12 +34,12 @@ var demand = map[string]float64{
 const defaultDemand = 0.5
 
 type Crowd struct {
-	seating api.SeatingClient
+	seats   *store.Store
 	theatre *theatre.Client
 }
 
-func New(seating api.SeatingClient, theatreClient *theatre.Client) *Crowd {
-	return &Crowd{seating: seating, theatre: theatreClient}
+func New(seats *store.Store, theatreClient *theatre.Client) *Crowd {
+	return &Crowd{seats: seats, theatre: theatreClient}
 }
 
 func (c *Crowd) Run(ctx context.Context) {
@@ -55,38 +55,37 @@ func (c *Crowd) Run(ctx context.Context) {
 }
 
 func (c *Crowd) tick(ctx context.Context) {
-	perfs, err := c.theatre.Upcoming()
-	if err != nil || len(perfs) == 0 {
+	shows, err := c.theatre.Shows()
+	if err != nil || len(shows) == 0 {
 		return
 	}
-	perf := pickWeighted(perfs)
+	show := pickWeighted(shows)
 
-	mapResp, err := c.seating.GetSeatMap(ctx, &api.GetSeatMapRequest{PerformanceId: perf.ID})
+	seatMap, err := c.seats.SeatMap(show.ID)
 	if err != nil {
 		return
 	}
-	seatMap := mapResp.SeatMap
 	capacity := seatMap.Available + seatMap.Held + seatMap.Sold
 	if capacity == 0 {
 		return
 	}
 
-	if float64(seatMap.Sold)/float64(capacity) < targetOccupancy(perf) {
-		c.buy(ctx, perf.ID, seatMap)
+	if float64(seatMap.Sold)/float64(capacity) < targetOccupancy(show) {
+		c.buy(ctx, show.ID, seatMap)
 	} else if rand.Float64() < 0.4 {
-		c.windowShop(ctx, perf.ID, seatMap)
+		c.windowShop(ctx, show.ID, seatMap)
 	}
 }
 
-// targetOccupancy grows linearly from 0 (a week out) to the event's demand
-// cap (at showtime).
-func targetOccupancy(p theatre.Performance) float64 {
-	d, ok := demand[p.EventID]
+// targetOccupancy grows linearly from 0 (a week out) to the show's demand
+// cap (at curtain-up).
+func targetOccupancy(s theatre.Show) float64 {
+	d, ok := demand[s.ID]
 	if !ok {
 		d = defaultDemand
 	}
 	week := 7 * 24 * time.Hour
-	untilShow := time.Until(p.StartsAt)
+	untilShow := time.Until(s.StartsAt)
 	if untilShow < 0 {
 		untilShow = 0
 	}
@@ -97,16 +96,16 @@ func targetOccupancy(p theatre.Performance) float64 {
 	return d * closeness
 }
 
-// pickWeighted prefers hot shows and near showtimes.
-func pickWeighted(perfs []theatre.Performance) theatre.Performance {
-	weights := make([]float64, len(perfs))
+// pickWeighted prefers hot shows and near curtain-ups.
+func pickWeighted(shows []theatre.Show) theatre.Show {
+	weights := make([]float64, len(shows))
 	total := 0.0
-	for i, p := range perfs {
-		d, ok := demand[p.EventID]
+	for i, s := range shows {
+		d, ok := demand[s.ID]
 		if !ok {
 			d = defaultDemand
 		}
-		hoursUntil := time.Until(p.StartsAt).Hours()
+		hoursUntil := time.Until(s.StartsAt).Hours()
 		if hoursUntil < 0 {
 			hoursUntil = 0
 		}
@@ -117,20 +116,20 @@ func pickWeighted(perfs []theatre.Performance) theatre.Performance {
 	for i, w := range weights {
 		roll -= w
 		if roll <= 0 {
-			return perfs[i]
+			return shows[i]
 		}
 	}
-	return perfs[len(perfs)-1]
+	return shows[len(shows)-1]
 }
 
 // buy holds 1-4 adjacent seats, thinks about it like a real customer, then
 // usually pays. Losing the seats to somebody faster is normal and fine.
-func (c *Crowd) buy(ctx context.Context, perfID string, seatMap *api.SeatMap) {
+func (c *Crowd) buy(ctx context.Context, showID string, seatMap *api.SeatMap) {
 	seats := adjacentAvailable(seatMap, 1+rand.Intn(4))
 	if len(seats) == 0 {
 		return
 	}
-	resp, err := c.seating.HoldSeats(ctx, &api.HoldSeatsRequest{PerformanceId: perfID, SeatIds: seats})
+	h, err := c.seats.Hold(showID, seats)
 	if err != nil {
 		return // beaten to the seats; the crowd shrugs
 	}
@@ -141,21 +140,21 @@ func (c *Crowd) buy(ctx context.Context, perfID string, seatMap *api.SeatMap) {
 		case <-time.After(time.Duration(4+rand.Intn(9)) * time.Second):
 		}
 		if rand.Float64() < 0.85 {
-			c.seating.ConfirmSeats(ctx, &api.ConfirmSeatsRequest{HoldId: resp.Hold.Id}) //nolint:errcheck
+			c.seats.Confirm(h.Id) //nolint:errcheck // the hold may have expired
 		} else {
-			c.seating.ReleaseSeats(ctx, &api.ReleaseSeatsRequest{HoldId: resp.Hold.Id}) //nolint:errcheck
+			c.seats.Release(h.Id) //nolint:errcheck
 		}
 	}()
 }
 
 // windowShop holds seats and always lets them go, so a full house still has
 // a moving seat map.
-func (c *Crowd) windowShop(ctx context.Context, perfID string, seatMap *api.SeatMap) {
+func (c *Crowd) windowShop(ctx context.Context, showID string, seatMap *api.SeatMap) {
 	seats := adjacentAvailable(seatMap, 1+rand.Intn(2))
 	if len(seats) == 0 {
 		return
 	}
-	resp, err := c.seating.HoldSeats(ctx, &api.HoldSeatsRequest{PerformanceId: perfID, SeatIds: seats})
+	h, err := c.seats.Hold(showID, seats)
 	if err != nil {
 		return
 	}
@@ -165,7 +164,7 @@ func (c *Crowd) windowShop(ctx context.Context, perfID string, seatMap *api.Seat
 			return
 		case <-time.After(time.Duration(5+rand.Intn(10)) * time.Second):
 		}
-		c.seating.ReleaseSeats(ctx, &api.ReleaseSeatsRequest{HoldId: resp.Hold.Id}) //nolint:errcheck
+		c.seats.Release(h.Id) //nolint:errcheck
 	}()
 }
 

@@ -17,7 +17,7 @@ var genrePalettes = map[string][2]string{
 
 // poster renders a simple generated SVG poster so the catalog can serve a
 // binary (non-JSON) response without shipping image assets.
-func poster(e catalog.Event) []byte {
+func poster(e catalog.Show) []byte {
 	palette, ok := genrePalettes[e.Genre]
 	if !ok {
 		palette = [2]string{"#111", "#eee"}

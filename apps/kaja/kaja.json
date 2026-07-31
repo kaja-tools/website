@@ -13,13 +13,6 @@
         "url": "dns:seating.kaja.tools:443",
         "proto_dir": "seating"
       }
-    },
-    {
-      "name": "boxoffice",
-      "twirp": {
-        "url": "https://boxoffice.kaja.tools",
-        "proto_dir": "boxoffice"
-      }
     }
   ]
 }

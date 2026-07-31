@@ -7,27 +7,24 @@ single-domain nginx-ingress that ran on Azure Kubernetes.
 
 ## Apps
 
-| Fly app             | Source           | Public hostname            | Notes                                   |
-| ------------------- | ---------------- | -------------------------- | --------------------------------------- |
-| `kaja-home`         | `apps/home`      | `kaja.tools`, `www`        | static marketing site                   |
-| `kaja-demo`         | `apps/kaja`      | `demo.kaja.tools`          | the IDE                                 |
-| `kaja-theatre`      | `apps/theatre`   | `theatre.kaja.tools`       | OpenAPI (e.g. `/openapi.yaml`, `/events`) |
-| `kaja-boxoffice`    | `apps/boxoffice` | `boxoffice.kaja.tools`     | Twirp under `/twirp`                    |
-| `kaja-seating`      | `apps/seating`   | `seating.kaja.tools`       | gRPC over TLS on :443                    |
-| `kaja-quirks-grpc`  | `apps/quirks`    | `grpc-quirks.kaja.tools`   | gRPC over TLS on :443                    |
-| `kaja-quirks-twirp` | `apps/quirks`    | `twirp-quirks.kaja.tools`  | Twirp under `/twirp`                    |
+| Fly app            | Source         | Public hostname          | Notes                                    |
+| ------------------ | -------------- | ------------------------ | ---------------------------------------- |
+| `kaja-home`        | `apps/home`    | `kaja.tools`, `www`      | static marketing site                    |
+| `kaja-demo`        | `apps/kaja`    | `demo.kaja.tools`        | the IDE                                  |
+| `kaja-theatre`     | `apps/theatre` | `theatre.kaja.tools`     | OpenAPI (e.g. `/openapi.yaml`, `/shows`) |
+| `kaja-seating`     | `apps/seating` | `seating.kaja.tools`     | gRPC over TLS on :443                    |
+| `kaja-quirks-grpc` | `apps/quirks`  | `grpc-quirks.kaja.tools` | gRPC over TLS on :443                    |
 
 Each service is served at the root of its own hostname (e.g. the theatre spec
-is at `https://theatre.kaja.tools/openapi.yaml`, Twirp uses the standard
-`/twirp/...` prefix). `apps/kaja/kaja.json` and the theatre OpenAPI `servers`
-URL point at these hostnames.
+is at `https://theatre.kaja.tools/openapi.yaml`). `apps/kaja/kaja.json` and the
+theatre OpenAPI `servers` URL point at these hostnames.
 
 ### East-west (service-to-service) traffic
 
-`boxoffice` calls `theatre` (HTTP) and `seating` (gRPC), and `seating` calls
-`theatre` (HTTP). Those calls stay on Fly's private network via `<app>.internal`
-DNS (`kaja-theatre.internal:41530`, `kaja-seating.internal:50053`) — they never
-leave the org, so only public browser/IDE traffic goes through the edge.
+`seating` calls `theatre` (HTTP) to look up which shows exist and what they
+cost. Those calls stay on Fly's private network via `<app>.internal` DNS
+(`kaja-theatre.internal:41530`) — they never leave the org, so only public
+browser/IDE traffic goes through the edge.
 
 ### gRPC
 
@@ -69,6 +66,8 @@ scripts/deploy theatre    # a single app
 
 ## Notes
 
+- The seating service runs the simulated crowd in-process (`CROWD=off` to
+  disable), so the seat map keeps moving without a second app driving it.
 - The kaja demo IDE no longer needs a persistent volume. Its workspace config
   (`kaja.json`) and demo proto files are baked into the image at build time
   (`apps/kaja/Dockerfile`), so kaja builds from the repo root:
