@@ -1,10 +1,13 @@
 name: deploy
-# Deploys the Fly.io apps. Two entry points, one matrix:
+# Deploys the Fly.io apps. Three entry points, one matrix:
 #   - called by the "main" workflow after a push to main compiles cleanly
 #   - run by hand from the Actions tab ("Run workflow"), for one app or all
+#   - daily, so a new kajatools/kaja image ships without a commit here
 #
 # Requires a repository secret named FLY_API_TOKEN (`fly tokens create deploy`).
 on:
+  schedule:
+    - cron: "0 15 * * *" # daily, 15:00 UTC
   workflow_call:
     inputs:
       app:
@@ -54,7 +57,8 @@ jobs:
               { "name": "quirks",  "app": "kaja-quirks",  "dir": "apps/quirks",  "config": "" },
               { "name": "kaja",    "app": "kaja-demo",    "dir": ".",            "config": "apps/kaja/fly.toml" }
             ]
-          SELECTED: ${{ inputs.app }}
+          # A schedule run carries no inputs, so fall back to deploying all.
+          SELECTED: ${{ inputs.app || 'all' }}
         run: |
           set -euo pipefail
           if [ "$SELECTED" = all ]; then

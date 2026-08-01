@@ -59,14 +59,23 @@ fly tokens create deploy
 ## Ongoing deploys
 
 `.github/workflows/deploy.yml` holds the app matrix and does the deploying. It
-runs two ways, both needing the `FLY_API_TOKEN` repo secret:
+runs three ways, all needing the `FLY_API_TOKEN` repo secret:
 
 - **On push to `main`** — `.github/workflows/main.yml` builds and vets every
   app, then calls it to deploy all of them. Pull requests only build.
+- **Daily at 15:00 UTC** — a `schedule` trigger deploys every app, so a new
+  `kajatools/kaja:latest` reaches `apps/kaja` without a commit here to deploy
+  against.
 - **By hand** — Actions → **deploy** → **Run workflow**, then pick an app (or
   `all`). This skips the build gate, so it also serves as a redeploy button
   when nothing changed. Note the ref picker deploys whatever branch you choose;
   leave it on `main` unless you mean otherwise.
+
+Push deploys are a reusable-workflow call, so they appear as
+`deploy / Deploy <app>` jobs inside the **main** run, not as runs under
+**deploy** in the Actions sidebar — that list shows only scheduled and manual
+runs. GitHub also disables scheduled workflows in repositories with no activity
+for 60 days.
 
 Apps deploy in parallel with `fail-fast: false`, so one bad app doesn't block
 the others, and a per-app concurrency group keeps two deploys of the same app
