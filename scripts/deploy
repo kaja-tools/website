@@ -1,5 +1,5 @@
 #!/bin/bash
-# Deploy every app to Fly.io. Mirrors the CI matrix in .github/workflows/main.yml.
+# Deploy every app to Fly.io. Mirrors the CI matrix in .github/workflows/deploy.yml.
 # Requires flyctl to be installed and authenticated (fly auth login).
 #
 # Pass an app name to deploy just one, e.g. `scripts/deploy theatre`.
