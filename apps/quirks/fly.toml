@@ -1,0 +1,17 @@
+# Quirks Twirp server. Public at quirks.kaja.tools (Twirp under /twirp).
+#   fly certs add quirks.kaja.tools --app kaja-quirks
+app = "kaja-quirks"
+primary_region = "sjc"
+
+[build]
+
+[http_service]
+  internal_port = 41523
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 1
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"
