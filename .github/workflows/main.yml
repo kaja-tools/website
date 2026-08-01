@@ -6,6 +6,12 @@ on:
   pull_request:
     branches:
       - "main"
+
+# Both jobs only read the repository. deploy.yml needs contents:read too, and a
+# called workflow can never get more than its caller.
+permissions:
+  contents: read
+
 jobs:
   # Single job (not a matrix) so the required status check context is exactly
   # "build" — a matrix would report as "build (theatre)" etc. and never satisfy

@@ -16,7 +16,10 @@ func main() {
 	fs := http.FileServer(http.Dir(staticDir))
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		path := filepath.Clean(r.URL.Path)
+		// Root the request path at "/" before cleaning it, the same way
+		// http.Dir does: ".." segments then collapse against the root instead
+		// of climbing out of staticDir.
+		path := filepath.Clean("/" + r.URL.Path)
 
 		// Check if the file exists
 		fullPath := filepath.Join(staticDir, path)
