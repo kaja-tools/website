@@ -79,8 +79,11 @@ scripts/deploy            # all apps
 scripts/deploy theatre    # a single app
 ```
 
-Adding an app means adding it to the `APPS` list in `deploy.yml` (and to its
-`workflow_dispatch` options) plus `scripts/deploy`.
+Adding or renaming an app means updating the `APPS` list in `deploy.yml` (and
+its `workflow_dispatch` options), `scripts/deploy`, and `scripts/fly-setup` —
+then re-running `scripts/fly-setup`, which is idempotent. A Fly app that has
+never been created fails the deploy with `app not found`; the workflow calls
+out which app it was.
 
 ## Notes
 

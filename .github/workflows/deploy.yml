@@ -48,11 +48,11 @@ jobs:
           # from sibling apps, so it builds from the repo root instead.
           APPS: |
             [
-              { "name": "home",    "dir": "apps/home",    "config": "" },
-              { "name": "theatre", "dir": "apps/theatre", "config": "" },
-              { "name": "seating", "dir": "apps/seating", "config": "" },
-              { "name": "quirks",  "dir": "apps/quirks",  "config": "" },
-              { "name": "kaja",    "dir": ".",            "config": "apps/kaja/fly.toml" }
+              { "name": "home",    "app": "kaja-home",    "dir": "apps/home",    "config": "" },
+              { "name": "theatre", "app": "kaja-theatre", "dir": "apps/theatre", "config": "" },
+              { "name": "seating", "app": "kaja-seating", "dir": "apps/seating", "config": "" },
+              { "name": "quirks",  "app": "kaja-quirks",  "dir": "apps/quirks",  "config": "" },
+              { "name": "kaja",    "app": "kaja-demo",    "dir": ".",            "config": "apps/kaja/fly.toml" }
             ]
           SELECTED: ${{ inputs.app }}
         run: |
@@ -96,4 +96,13 @@ jobs:
             echo "::error::FLY_API_TOKEN secret is not set — create one with 'fly tokens create deploy'"
             exit 1
           fi
-          flyctl deploy ${{ matrix.dir }} ${{ matrix.config && format('--config {0}', matrix.config) || '' }} --remote-only
+          status=0
+          flyctl deploy ${{ matrix.dir }} ${{ matrix.config && format('--config {0}', matrix.config) || '' }} --remote-only || status=$?
+          if [ "$status" -ne 0 ]; then
+            # flyctl only reports "app not found", which reads like a bad config
+            # rather than a Fly app nobody has created yet. Say which one.
+            if ! flyctl status --app "${{ matrix.app }}" >/dev/null 2>&1; then
+              echo "::error::Fly app '${{ matrix.app }}' does not exist — run scripts/fly-setup to create it and attach its hostname"
+            fi
+            exit "$status"
+          fi
