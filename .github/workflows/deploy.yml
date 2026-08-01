@@ -84,7 +84,7 @@ jobs:
       matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Set up flyctl
         uses: superfly/flyctl-actions/setup-flyctl@master
       - name: Deploy
