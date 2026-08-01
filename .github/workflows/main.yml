@@ -32,33 +32,12 @@ jobs:
           echo "==> apps/home"
           (cd apps/home && go build -o /dev/null cmd/server/main.go)
 
+  # Deploys every app. Same workflow the Actions tab runs by hand, so a push
+  # deploy and a manual deploy are the same code path.
   deploy:
-    name: Deploy ${{ matrix.name }}
     # Only deploy from main, and only once the code compiles.
     if: github.event_name == 'push'
     needs: build
-    runs-on: ubuntu-latest
-    # Fly deploys of the same app must not overlap.
-    concurrency: deploy-${{ matrix.name }}
-    strategy:
-      # Deploy every app, even if one fails, so a single flaky deploy doesn't
-      # block the rest.
-      fail-fast: false
-      matrix:
-        include:
-          - { name: home, dir: apps/home }
-          - { name: theatre, dir: apps/theatre }
-          - { name: seating, dir: apps/seating }
-          - { name: quirks, dir: apps/quirks }
-          # flyctl resolves --config relative to the working directory (dir).
-          # kaja bakes proto files from sibling apps, so it builds from the repo root.
-          - { name: kaja, dir: ".", config: apps/kaja/fly.toml }
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up flyctl
-        uses: superfly/flyctl-actions/setup-flyctl@master
-      - name: Deploy
-        run: flyctl deploy ${{ matrix.dir }} ${{ matrix.config && format('--config {0}', matrix.config) || '' }} --remote-only
-        env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+    uses: ./.github/workflows/deploy.yml
+    secrets:
+      FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

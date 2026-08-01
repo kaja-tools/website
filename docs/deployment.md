@@ -58,15 +58,29 @@ fly tokens create deploy
 
 ## Ongoing deploys
 
-Pushing to `main` deploys every app via `.github/workflows/main.yml`
-(`FLY_API_TOKEN` repo secret required).
+`.github/workflows/deploy.yml` holds the app matrix and does the deploying. It
+runs two ways, both needing the `FLY_API_TOKEN` repo secret:
 
-To deploy manually:
+- **On push to `main`** — `.github/workflows/main.yml` builds and vets every
+  app, then calls it to deploy all of them. Pull requests only build.
+- **By hand** — Actions → **deploy** → **Run workflow**, then pick an app (or
+  `all`). This skips the build gate, so it also serves as a redeploy button
+  when nothing changed. Note the ref picker deploys whatever branch you choose;
+  leave it on `main` unless you mean otherwise.
+
+Apps deploy in parallel with `fail-fast: false`, so one bad app doesn't block
+the others, and a per-app concurrency group keeps two deploys of the same app
+from overlapping.
+
+To deploy from your own machine instead:
 
 ```bash
 scripts/deploy            # all apps
 scripts/deploy theatre    # a single app
 ```
+
+Adding an app means adding it to the `APPS` list in `deploy.yml` (and to its
+`workflow_dispatch` options) plus `scripts/deploy`.
 
 ## Notes
 

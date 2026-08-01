@@ -1,0 +1,99 @@
+name: deploy
+# Deploys the Fly.io apps. Two entry points, one matrix:
+#   - called by the "main" workflow after a push to main compiles cleanly
+#   - run by hand from the Actions tab ("Run workflow"), for one app or all
+#
+# Requires a repository secret named FLY_API_TOKEN (`fly tokens create deploy`).
+on:
+  workflow_call:
+    inputs:
+      app:
+        description: "App to deploy, or 'all'"
+        type: string
+        default: all
+    secrets:
+      FLY_API_TOKEN:
+        required: true
+  workflow_dispatch:
+    inputs:
+      app:
+        description: "App to deploy"
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - home
+          - theatre
+          - seating
+          - quirks
+          - kaja
+
+permissions:
+  contents: read
+
+jobs:
+  # Turns the "app" input into the deploy matrix, so the app list lives in
+  # exactly one place and a manual run spawns only the jobs it needs.
+  plan:
+    name: Plan
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+    steps:
+      - name: Select apps
+        id: plan
+        env:
+          # flyctl resolves --config relative to "dir". kaja bakes proto files
+          # from sibling apps, so it builds from the repo root instead.
+          APPS: |
+            [
+              { "name": "home",    "dir": "apps/home",    "config": "" },
+              { "name": "theatre", "dir": "apps/theatre", "config": "" },
+              { "name": "seating", "dir": "apps/seating", "config": "" },
+              { "name": "quirks",  "dir": "apps/quirks",  "config": "" },
+              { "name": "kaja",    "dir": ".",            "config": "apps/kaja/fly.toml" }
+            ]
+          SELECTED: ${{ inputs.app }}
+        run: |
+          set -euo pipefail
+          if [ "$SELECTED" = all ]; then
+            include=$(jq -c . <<<"$APPS")
+          else
+            include=$(jq -c --arg name "$SELECTED" '[.[] | select(.name == $name)]' <<<"$APPS")
+          fi
+          if [ "$include" = "[]" ]; then
+            echo "::error::Unknown app '$SELECTED'"
+            exit 1
+          fi
+          names=$(jq -r '[.[].name] | join(", ")' <<<"$include")
+          echo "Deploying $names from ${{ github.ref_name }}"
+          echo "Deploying **$names** from \`${{ github.ref_name }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "matrix={\"include\":$include}" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    name: Deploy ${{ matrix.name }}
+    needs: plan
+    runs-on: ubuntu-latest
+    # Fly deploys of the same app must not overlap.
+    concurrency: deploy-${{ matrix.name }}
+    strategy:
+      # Deploy every app, even if one fails, so a single flaky deploy doesn't
+      # block the rest.
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+      - name: Deploy
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${FLY_API_TOKEN:-}" ]; then
+            echo "::error::FLY_API_TOKEN secret is not set — create one with 'fly tokens create deploy'"
+            exit 1
+          fi
+          flyctl deploy ${{ matrix.dir }} ${{ matrix.config && format('--config {0}', matrix.config) || '' }} --remote-only
