@@ -2,7 +2,7 @@
 set -e
 
 # Protoc version to use
-PROTOC_VERSION="30.2"
+PROTOC_VERSION="35.1"
 
 cd "$(dirname "$0")/.."
 BUILD_DIR=$PWD/build
