@@ -20,7 +20,6 @@ ONLY="$1"
 deploy home         apps/home
 deploy theatre      apps/theatre
 deploy seating      apps/seating
-deploy boxoffice    apps/boxoffice
 # flyctl resolves --config relative to the working directory argument, so the
 # quirks configs are named relative to apps/quirks.
 deploy quirks-grpc  apps/quirks --config fly.grpc.toml

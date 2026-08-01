@@ -32,7 +32,6 @@ done <<'PAIRS'
 kaja-home         kaja.tools
 kaja-demo         demo.kaja.tools
 kaja-theatre      theatre.kaja.tools
-kaja-boxoffice    boxoffice.kaja.tools
 kaja-seating      seating.kaja.tools
 kaja-quirks-grpc  grpc-quirks.kaja.tools
 kaja-quirks-twirp twirp-quirks.kaja.tools

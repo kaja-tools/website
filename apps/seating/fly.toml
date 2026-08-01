@@ -1,5 +1,4 @@
 # Seating gRPC service. Public at seating.kaja.tools:443 (gRPC over TLS).
-# Also reached by boxoffice over the private network (kaja-seating.internal).
 #   fly certs add seating.kaja.tools --app kaja-seating
 app = "kaja-seating"
 primary_region = "sjc"

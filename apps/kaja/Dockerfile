@@ -9,4 +9,3 @@ FROM kajatools/kaja:latest
 
 COPY apps/kaja/kaja.json /workspace/kaja.json
 COPY apps/seating/proto/seating.proto /workspace/seating/seating.proto
-COPY apps/boxoffice/proto/boxoffice.proto /workspace/boxoffice/boxoffice.proto

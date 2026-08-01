@@ -1,106 +1,67 @@
 openapi: 3.1.0
 info:
   title: The Kaja Theatre
-  version: 1.0.0
+  version: 2.0.0
   description: |
-    The public catalog of **The Kaja Theatre** — a fictional venue used to demo
+    The programme of **The Kaja Theatre** — a fictional venue used to demo
     [kaja](https://kaja.tools).
 
-    Browse events and showtimes here, then:
-    - watch the live seat map over gRPC (`seating.Seating/WatchSeats`)
-    - buy tickets over Twirp (`boxoffice.BoxOffice/Reserve` + `Purchase`)
+    The whole demo is two calls:
 
-    Performance IDs returned by this API are the input to both other services.
+    1. `GET /shows` — no parameters. Pick any show and copy its `id`.
+    2. Pass that `id` to the seating service over gRPC as `showId`
+       (`seating.Seating/GetSeatMap`) to see who is sitting where, then
+       `HoldSeats` and `ConfirmSeats` to buy a pair.
+
+    The house is busy: other customers are booking these seats while you
+    read this, so calling `GetSeatMap` twice gives you two different answers.
 servers:
   - url: https://theatre.kaja.tools
-tags:
-  - name: venue
-  - name: events
-  - name: performances
 
 paths:
-  /venue:
+  /shows:
     get:
-      operationId: getVenue
-      summary: The theatre and its seating layout
-      tags: [venue]
+      operationId: listShows
+      summary: Everything playing this week
+      description: |
+        The full programme, soonest first. Every show runs weekly, so this
+        list never empties and every `id` in it is always bookable.
       responses:
         "200":
-          description: The venue.
+          description: The programme.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Venue"
+                type: array
+                items:
+                  $ref: "#/components/schemas/Show"
 
-  /events:
+  /shows/{showId}:
     get:
-      operationId: listEvents
-      summary: Browse events
-      tags: [events]
+      operationId: getShow
+      summary: One show
+      description: |
+        Seats are not part of this API — they live in the seating gRPC
+        service, which owns live seat state. Pass this show's `id` to
+        `seating.Seating/GetSeatMap`.
       parameters:
-        - name: genre
-          in: query
-          description: Only events of this genre.
-          schema:
-            $ref: "#/components/schemas/Genre"
-        - name: date
-          in: query
-          description: Only events with a performance on this date.
-          schema:
-            type: string
-            format: date
-        - name: page
-          in: query
-          schema:
-            type: integer
-            minimum: 1
-            default: 1
-        - name: perPage
-          in: query
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 50
-            default: 10
+        - $ref: "#/components/parameters/ShowId"
       responses:
         "200":
-          description: A page of events.
-          headers:
-            Link:
-              description: RFC 8288 pagination links (`next`, `prev`).
-              schema:
-                type: string
+          description: The show.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EventPage"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-
-  /events/{eventId}:
-    get:
-      operationId: getEvent
-      summary: Everything about one event
-      tags: [events]
-      parameters:
-        - $ref: "#/components/parameters/EventId"
-      responses:
-        "200":
-          description: The event, including upcoming performances.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Event"
+                $ref: "#/components/schemas/Show"
         "404":
           $ref: "#/components/responses/NotFound"
 
-  /events/{eventId}/poster.svg:
+  /shows/{showId}/poster.svg:
     get:
-      operationId: getEventPoster
-      summary: The event's poster image
-      tags: [events]
+      operationId: getShowPoster
+      summary: The show's poster image
       parameters:
-        - $ref: "#/components/parameters/EventId"
+        - $ref: "#/components/parameters/ShowId"
       responses:
         "200":
           description: The poster.
@@ -111,41 +72,10 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
-  /performances/{performanceId}:
-    get:
-      operationId: getPerformance
-      summary: One showtime
-      description: |
-        Seat availability is not part of this API — it lives in the seating
-        gRPC service, which owns live seat state. Pass this performance's `id`
-        to `seating.Seating/GetSeatMap` or `WatchSeats`.
-      tags: [performances]
-      parameters:
-        - name: performanceId
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: The performance.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Performance"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "410":
-          description: This performance already happened.
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-
 components:
   parameters:
-    EventId:
-      name: eventId
+    ShowId:
+      name: showId
       in: path
       required: true
       schema:
@@ -154,231 +84,42 @@ components:
 
   responses:
     NotFound:
-      description: No such resource.
-      content:
-        application/problem+json:
-          schema:
-            $ref: "#/components/schemas/Problem"
-    BadRequest:
-      description: Invalid request parameters.
+      description: No such show.
       content:
         application/problem+json:
           schema:
             $ref: "#/components/schemas/Problem"
 
   schemas:
-    Genre:
-      type: string
-      enum: [concert, play, comedy, opera]
-
-    Venue:
+    Show:
       type: object
-      required: [name, address, capacity, sections]
-      properties:
-        name:
-          type: string
-          example: The Kaja Theatre
-        address:
-          type: string
-        capacity:
-          type: integer
-        sections:
-          type: array
-          items:
-            $ref: "#/components/schemas/VenueSection"
-
-    VenueSection:
-      type: object
-      required: [name, priceMultiplier, rows]
-      properties:
-        name:
-          type: string
-          enum: [ORCHESTRA, BALCONY]
-        priceMultiplier:
-          type: number
-          description: Seat price = performance base price × this multiplier.
-          example: 1.0
-        rows:
-          type: array
-          items:
-            $ref: "#/components/schemas/VenueRow"
-
-    VenueRow:
-      type: object
-      required: [letter, seats]
-      properties:
-        letter:
-          type: string
-          example: F
-        seats:
-          type: integer
-          description: Number of seats in the row, numbered from 1.
-          example: 14
-
-    EventSummary:
-      type: object
-      required: [id, title, genre, tagline, posterUrl, nextPerformanceId]
+      required: [id, title, genre, tagline, description, startsAt, basePriceCents, posterUrl]
       properties:
         id:
           type: string
+          description: Pass this to the seating service as `showId`.
           example: neon-meridian
         title:
           type: string
           example: "Neon Meridian: World Tour"
         genre:
-          $ref: "#/components/schemas/Genre"
+          type: string
+          enum: [concert, play, comedy, opera]
         tagline:
           type: string
-        posterUrl:
-          type: string
-          format: uri
-        nextPerformanceId:
-          type: [string, "null"]
-          description: The soonest upcoming performance, or null if none remain this week.
-
-    Event:
-      description: A full event is its summary plus details and showtimes.
-      allOf:
-        - $ref: "#/components/schemas/EventSummary"
-        - type: object
-          required: [description, details, performances]
-          properties:
-            description:
-              type: string
-              description: Markdown.
-            details:
-              $ref: "#/components/schemas/EventDetails"
-            performances:
-              type: array
-              items:
-                $ref: "#/components/schemas/Performance"
-
-    EventDetails:
-      description: Genre-specific details.
-      oneOf:
-        - $ref: "#/components/schemas/ConcertDetails"
-        - $ref: "#/components/schemas/PlayDetails"
-        - $ref: "#/components/schemas/ComedyDetails"
-        - $ref: "#/components/schemas/OperaDetails"
-      discriminator:
-        propertyName: type
-        mapping:
-          concert: "#/components/schemas/ConcertDetails"
-          play: "#/components/schemas/PlayDetails"
-          comedy: "#/components/schemas/ComedyDetails"
-          opera: "#/components/schemas/OperaDetails"
-
-    ConcertDetails:
-      type: object
-      required: [type, headliner]
-      properties:
-        type:
-          type: string
-          const: concert
-        headliner:
-          type: string
-        supportActs:
-          type: array
-          items:
-            type: string
-        durationMinutes:
-          type: integer
-
-    PlayDetails:
-      type: object
-      required: [type, playwright, cast]
-      properties:
-        type:
-          type: string
-          const: play
-        playwright:
-          type: string
-        director:
-          type: string
-        cast:
-          type: array
-          items:
-            $ref: "#/components/schemas/CastMember"
-
-    CastMember:
-      type: object
-      required: [actor, role]
-      properties:
-        actor:
-          type: string
-        role:
-          type: string
-
-    ComedyDetails:
-      type: object
-      required: [type, comedian]
-      properties:
-        type:
-          type: string
-          const: comedy
-        comedian:
-          type: string
-        openers:
-          type: array
-          items:
-            type: string
-
-    OperaDetails:
-      type: object
-      required: [type, composer, language]
-      properties:
-        type:
-          type: string
-          const: opera
-        composer:
-          type: string
-        language:
-          type: string
-        surtitles:
-          type: boolean
-          description: Whether English surtitles are projected.
-
-    Performance:
-      type: object
-      required: [id, eventId, eventTitle, startsAt, doorsOpenAt, basePriceCents, status]
-      properties:
-        id:
-          type: string
-          description: Pass this to the seating and boxoffice services.
-          example: neon-meridian-20260710-1930
-        eventId:
-          type: string
-        eventTitle:
+        description:
           type: string
         startsAt:
           type: string
           format: date-time
-        doorsOpenAt:
-          type: string
-          format: date-time
+          description: Curtain-up for the next weekly performance.
         basePriceCents:
           type: integer
-          example: 6500
-        status:
+          description: Orchestra seat price. Balcony seats go for three quarters of it.
+          example: 8500
+        posterUrl:
           type: string
-          enum: [onSale, past]
-
-    EventPage:
-      type: object
-      required: [items, page, perPage, totalItems, totalPages]
-      properties:
-        items:
-          type: array
-          items:
-            $ref: "#/components/schemas/EventSummary"
-        page:
-          type: integer
-        perPage:
-          type: integer
-        totalItems:
-          type: integer
-        totalPages:
-          type: integer
+          format: uri
 
     Problem:
       description: RFC 7807 problem details.
