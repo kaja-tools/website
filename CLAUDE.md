@@ -18,7 +18,7 @@ This script:
 
 - Installs a consistent version of `protoc` into the `build/` directory (supports Linux and macOS)
 - Installs the required Go plugins (`protoc-gen-go`, `protoc-gen-go-grpc`, `protoc-gen-twirp`)
-- Regenerates all proto files for the quirks and seating services
+- Regenerates all proto files for the quirks (Twirp) and seating (gRPC) services
 
 Do not use system-installed protoc or manually run protoc commands.
 
@@ -41,9 +41,9 @@ methods, identifiers, or required lookups walks it back.
 `apps/seating/internal/crowd` simulates other customers in-process so the seat
 map is always moving. `CROWD=off` disables it.
 
-`apps/quirks` is not part of the demo — it is the protocol testbed for edge
-cases (odd names, deep nesting, panics, streaming), and it ships in both a
-gRPC and a Twirp flavour from one image.
+`apps/quirks` is not part of the demo — it is the Twirp protocol testbed for
+edge cases (odd names, deep nesting, panics, streaming RPCs that Twirp renders
+as unary).
 
 ## Home Page Static Files
 
@@ -67,8 +67,8 @@ prefix), e.g. the theatre programme lives at `https://theatre.kaja.tools/shows`.
 
 A Twirp service uses the standard `/twirp` prefix (no custom path prefix), so it
 responds at `/twirp/package.Service/Method`, i.e.
-`https://twirp-quirks.kaja.tools/twirp/...`. Only `quirks` speaks Twirp; the
-demo services do not.
+`https://quirks.kaja.tools/twirp/...`. Only `quirks` speaks Twirp; the demo
+services do not.
 
 ### gRPC
 
@@ -82,15 +82,11 @@ the format `/package.Service/Method` (e.g. `/seating.Seating/GetSeatMap`).
 (`fly certs add <sub>.kaja.tools`).
 
 For `grpcurl`, `seating` registers gRPC reflection so you can list its services
-directly; for services without reflection, pass the proto files with
-`-import-path`:
-
-```bash
-grpcurl -import-path apps/quirks/proto -proto v1/quirks.proto grpc-quirks.kaja.tools:443 quirks.v1.Quirks/Sum
-```
+directly; a service without reflection needs its proto files passed with
+`-import-path` and `-proto`.
 
 ### Testing services
 
 - **OpenAPI**: `curl https://theatre.kaja.tools/shows`
 - **gRPC**: `grpcurl -d '{"showId":"neon-meridian"}' seating.kaja.tools:443 seating.Seating/GetSeatMap`
-- **Twirp** (quirks only): `curl -X POST https://twirp-quirks.kaja.tools/twirp/quirks.v1.Quirks/Sum -H "Content-Type: application/json" -d '{"a":"1","b":"2"}'`
+- **Twirp** (quirks only): `curl -X POST https://quirks.kaja.tools/twirp/quirks.v1.Quirks/Sum -H "Content-Type: application/json" -d '{"a":"1","b":"2"}'`

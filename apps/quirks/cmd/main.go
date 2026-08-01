@@ -33,7 +33,7 @@ func headerMiddleware(next http.Handler) http.Handler {
 
 func main() {
 	basicsServer := v1.NewBasicsServer(&v1.BasicsService{})
-	quirksServer := v1.NewQuirksServer(&v1.QuirksTwirpService{})
+	quirksServer := v1.NewQuirksServer(&v1.QuirksService{})
 	quirks_2Server := v1.NewQuirks_2Server(&v1.Quirks_2Service{})
 	quirksV2Server := v2.NewQuirksServer(&v2.QuirksService{})
 

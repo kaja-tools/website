@@ -7,17 +7,16 @@ single-domain nginx-ingress that ran on Azure Kubernetes.
 
 ## Apps
 
-| Fly app             | Source         | Public hostname           | Notes                                    |
-| ------------------- | -------------- | ------------------------- | ---------------------------------------- |
-| `kaja-home`         | `apps/home`    | `kaja.tools`, `www`       | static marketing site                    |
-| `kaja-demo`         | `apps/kaja`    | `demo.kaja.tools`         | the IDE                                  |
-| `kaja-theatre`      | `apps/theatre` | `theatre.kaja.tools`      | OpenAPI (e.g. `/openapi.yaml`, `/shows`) |
-| `kaja-seating`      | `apps/seating` | `seating.kaja.tools`      | gRPC over TLS on :443                    |
-| `kaja-quirks-grpc`  | `apps/quirks`  | `grpc-quirks.kaja.tools`  | gRPC over TLS on :443                    |
-| `kaja-quirks-twirp` | `apps/quirks`  | `twirp-quirks.kaja.tools` | Twirp under `/twirp`                     |
+| Fly app        | Source         | Public hostname      | Notes                                    |
+| -------------- | -------------- | -------------------- | ---------------------------------------- |
+| `kaja-home`    | `apps/home`    | `kaja.tools`, `www`  | static marketing site                    |
+| `kaja-demo`    | `apps/kaja`    | `demo.kaja.tools`    | the IDE                                  |
+| `kaja-theatre` | `apps/theatre` | `theatre.kaja.tools` | OpenAPI (e.g. `/openapi.yaml`, `/shows`) |
+| `kaja-seating` | `apps/seating` | `seating.kaja.tools` | gRPC over TLS on :443                    |
+| `kaja-quirks`  | `apps/quirks`  | `quirks.kaja.tools`  | Twirp under `/twirp`                     |
 
-`theatre` and `seating` are the public demo; `quirks` is the protocol testbed
-and ships in both a gRPC and a Twirp flavour from one image.
+`theatre` and `seating` are the public demo; `quirks` is the Twirp protocol
+testbed.
 
 Each service is served at the root of its own hostname (e.g. the theatre spec
 is at `https://theatre.kaja.tools/openapi.yaml`, Twirp uses the standard
@@ -33,8 +32,8 @@ browser/IDE traffic goes through the edge.
 
 ### gRPC
 
-gRPC needs HTTP/2 end to end. The gRPC apps (`kaja-seating`, `kaja-quirks-grpc`)
-set `http_options.h2_backend = true` and `tls_options.alpn = ["h2"]` in their
+gRPC needs HTTP/2 end to end. The gRPC app (`kaja-seating`) sets
+`http_options.h2_backend = true` and `tls_options.alpn = ["h2"]` in its
 `fly.toml`, so the Fly edge negotiates HTTP/2 with clients and forwards HTTP/2
 cleartext to the app. Clients dial `seating.kaja.tools:443` (see `kaja.json`).
 
