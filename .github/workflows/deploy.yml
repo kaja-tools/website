@@ -2,18 +2,12 @@ name: deploy
 # Deploys the Fly.io apps. Three entry points, one matrix:
 #   - called by the "main" workflow after a push to main compiles cleanly
 #   - run by hand from the Actions tab ("Run workflow"), for one app or all
-#   - nightly, so changes that live outside this repo still ship
+#   - daily, so a new kajatools/kaja image ships without a commit here
 #
 # Requires a repository secret named FLY_API_TOKEN (`fly tokens create deploy`).
 on:
-  # Not every change that reaches production lands as a commit here: apps/kaja
-  # builds FROM kajatools/kaja:latest, so a new IDE image has nothing to push
-  # against. A nightly deploy of everything guarantees one rebuild a day.
   schedule:
-    # GitHub cron is UTC with no timezone support, so a fixed expression drifts
-    # by an hour across DST: 15:00 UTC is 08:00 Pacific under PDT and 07:00
-    # under PST. Close enough for a nightly redeploy.
-    - cron: "0 15 * * *"
+    - cron: "0 15 * * *" # daily, 15:00 UTC
   workflow_call:
     inputs:
       app:

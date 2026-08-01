@@ -63,25 +63,19 @@ runs three ways, all needing the `FLY_API_TOKEN` repo secret:
 
 - **On push to `main`** — `.github/workflows/main.yml` builds and vets every
   app, then calls it to deploy all of them. Pull requests only build.
-- **Nightly** — a `schedule` trigger deploys every app at 15:00 UTC (08:00
-  Pacific under PDT, 07:00 under PST — GitHub cron has no timezone, so the hour
-  drifts across DST). This exists because not every change that reaches
-  production is a commit in this repo: `apps/kaja` builds
-  `FROM kajatools/kaja:latest`, so a new IDE image has nothing to push against
-  and would otherwise only ship on the next unrelated merge.
+- **Daily at 15:00 UTC** — a `schedule` trigger deploys every app, so a new
+  `kajatools/kaja:latest` reaches `apps/kaja` without a commit here to deploy
+  against.
 - **By hand** — Actions → **deploy** → **Run workflow**, then pick an app (or
   `all`). This skips the build gate, so it also serves as a redeploy button
   when nothing changed. Note the ref picker deploys whatever branch you choose;
   leave it on `main` unless you mean otherwise.
 
-Push-triggered deploys are a reusable-workflow call, so they show up as
-`deploy / Deploy <app>` jobs inside the **main** run — not as runs under
-**deploy** in the Actions sidebar. That list only ever shows the nightly and
-manual runs.
-
-Two things to know about the nightly: GitHub runs `schedule` only on the
-default branch (so the trigger takes effect once this is on `main`), and it
-disables scheduled workflows in repositories with no activity for 60 days.
+Push deploys are a reusable-workflow call, so they appear as
+`deploy / Deploy <app>` jobs inside the **main** run, not as runs under
+**deploy** in the Actions sidebar — that list shows only scheduled and manual
+runs. GitHub also disables scheduled workflows in repositories with no activity
+for 60 days.
 
 Apps deploy in parallel with `fail-fast: false`, so one bad app doesn't block
 the others, and a per-app concurrency group keeps two deploys of the same app
