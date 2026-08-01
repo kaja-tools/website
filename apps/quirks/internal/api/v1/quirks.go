@@ -66,6 +66,35 @@ func (s *QuirksService) Echo(stream grpc.BidiStreamingServer[EchoMessage, EchoMe
 	}
 }
 
+// QuirksTwirpService implements the Twirp Quirks interface (unary-only).
+// Twirp does not support streaming, so protoc-gen-twirp generates unary
+// signatures for the streaming RPCs. This struct provides those.
+type QuirksTwirpService struct{}
+
+func (s *QuirksTwirpService) MethodWithAReallyLongNameGmthggupcbmnphflnnvu(ctx context.Context, req *Void) (*Message, error) {
+	return &Message{
+		Name: strings.Repeat("Ha ", 1000),
+	}, nil
+}
+
+func (s *QuirksTwirpService) Sum(ctx context.Context, req *SumStringsRequest) (*SumStringsResponse, error) {
+	return &SumStringsResponse{
+		Result: req.A + req.B,
+	}, nil
+}
+
+func (s *QuirksTwirpService) GenerateNumbers(ctx context.Context, req *GenerateRequest) (*GenerateResponse, error) {
+	return &GenerateResponse{Number: req.Count}, nil
+}
+
+func (s *QuirksTwirpService) AccumulateSum(ctx context.Context, req *AccumulateRequest) (*AccumulateResponse, error) {
+	return &AccumulateResponse{Total: req.Number}, nil
+}
+
+func (s *QuirksTwirpService) Echo(ctx context.Context, req *EchoMessage) (*EchoMessage, error) {
+	return &EchoMessage{Content: fmt.Sprintf("echo: %s", req.Content)}, nil
+}
+
 type Quirks_2Service struct {
 	UnimplementedQuirks_2Server
 }

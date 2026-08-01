@@ -34,6 +34,7 @@ kaja-demo         demo.kaja.tools
 kaja-theatre      theatre.kaja.tools
 kaja-seating      seating.kaja.tools
 kaja-quirks-grpc  grpc-quirks.kaja.tools
+kaja-quirks-twirp twirp-quirks.kaja.tools
 PAIRS
 
 # The apex also answers on www.

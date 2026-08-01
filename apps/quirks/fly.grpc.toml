@@ -6,7 +6,8 @@ primary_region = "sjc"
 
 [build]
 
-# The quirks image has no default CMD, so the process is named here.
+# The quirks image ships both the gRPC and Twirp binaries with no default CMD,
+# so each app selects its process here.
 [processes]
   app = "/app/grpc-server"
 

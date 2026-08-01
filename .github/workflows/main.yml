@@ -51,6 +51,7 @@ jobs:
           - { name: seating, dir: apps/seating }
           # flyctl resolves --config relative to the working directory (dir).
           - { name: quirks-grpc, dir: apps/quirks, config: fly.grpc.toml }
+          - { name: quirks-twirp, dir: apps/quirks, config: fly.twirp.toml }
           # kaja bakes proto files from sibling apps, so it builds from the repo root.
           - { name: kaja, dir: ".", config: apps/kaja/fly.toml }
     steps:

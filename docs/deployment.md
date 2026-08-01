@@ -7,17 +7,22 @@ single-domain nginx-ingress that ran on Azure Kubernetes.
 
 ## Apps
 
-| Fly app            | Source         | Public hostname          | Notes                                    |
-| ------------------ | -------------- | ------------------------ | ---------------------------------------- |
-| `kaja-home`        | `apps/home`    | `kaja.tools`, `www`      | static marketing site                    |
-| `kaja-demo`        | `apps/kaja`    | `demo.kaja.tools`        | the IDE                                  |
-| `kaja-theatre`     | `apps/theatre` | `theatre.kaja.tools`     | OpenAPI (e.g. `/openapi.yaml`, `/shows`) |
-| `kaja-seating`     | `apps/seating` | `seating.kaja.tools`     | gRPC over TLS on :443                    |
-| `kaja-quirks-grpc` | `apps/quirks`  | `grpc-quirks.kaja.tools` | gRPC over TLS on :443                    |
+| Fly app             | Source         | Public hostname           | Notes                                    |
+| ------------------- | -------------- | ------------------------- | ---------------------------------------- |
+| `kaja-home`         | `apps/home`    | `kaja.tools`, `www`       | static marketing site                    |
+| `kaja-demo`         | `apps/kaja`    | `demo.kaja.tools`         | the IDE                                  |
+| `kaja-theatre`      | `apps/theatre` | `theatre.kaja.tools`      | OpenAPI (e.g. `/openapi.yaml`, `/shows`) |
+| `kaja-seating`      | `apps/seating` | `seating.kaja.tools`      | gRPC over TLS on :443                    |
+| `kaja-quirks-grpc`  | `apps/quirks`  | `grpc-quirks.kaja.tools`  | gRPC over TLS on :443                    |
+| `kaja-quirks-twirp` | `apps/quirks`  | `twirp-quirks.kaja.tools` | Twirp under `/twirp`                     |
+
+`theatre` and `seating` are the public demo; `quirks` is the protocol testbed
+and ships in both a gRPC and a Twirp flavour from one image.
 
 Each service is served at the root of its own hostname (e.g. the theatre spec
-is at `https://theatre.kaja.tools/openapi.yaml`). `apps/kaja/kaja.json` and the
-theatre OpenAPI `servers` URL point at these hostnames.
+is at `https://theatre.kaja.tools/openapi.yaml`, Twirp uses the standard
+`/twirp/...` prefix). `apps/kaja/kaja.json` and the theatre OpenAPI `servers`
+URL point at these hostnames.
 
 ### East-west (service-to-service) traffic
 

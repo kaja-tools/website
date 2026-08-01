@@ -21,8 +21,9 @@ deploy home         apps/home
 deploy theatre      apps/theatre
 deploy seating      apps/seating
 # flyctl resolves --config relative to the working directory argument, so the
-# quirks config is named relative to apps/quirks.
+# quirks configs are named relative to apps/quirks.
 deploy quirks-grpc  apps/quirks --config fly.grpc.toml
+deploy quirks-twirp apps/quirks --config fly.twirp.toml
 # kaja bakes proto files from sibling apps, so it builds from the repo root.
 deploy kaja         . --config apps/kaja/fly.toml
 

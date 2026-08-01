@@ -17,7 +17,7 @@ To regenerate proto files after modifying `.proto` definitions, run:
 This script:
 
 - Installs a consistent version of `protoc` into the `build/` directory (supports Linux and macOS)
-- Installs the required Go plugins (`protoc-gen-go`, `protoc-gen-go-grpc`)
+- Installs the required Go plugins (`protoc-gen-go`, `protoc-gen-go-grpc`, `protoc-gen-twirp`)
 - Regenerates all proto files for the quirks and seating services
 
 Do not use system-installed protoc or manually run protoc commands.
@@ -25,7 +25,8 @@ Do not use system-installed protoc or manually run protoc commands.
 ## Demo Services
 
 The public demo is two services and two protocols — gRPC and OpenAPI. Twirp
-is deliberately not part of it.
+is deliberately not part of the demo (it is still supported by kaja itself,
+and `apps/quirks` still exercises it).
 
 - `apps/theatre` (OpenAPI) is the programme: `GET /shows` takes no parameters
   and returns the whole repertoire.
@@ -39,6 +40,10 @@ methods, identifiers, or required lookups walks it back.
 
 `apps/seating/internal/crowd` simulates other customers in-process so the seat
 map is always moving. `CROWD=off` disables it.
+
+`apps/quirks` is not part of the demo — it is the protocol testbed for edge
+cases (odd names, deep nesting, panics, streaming), and it ships in both a
+gRPC and a Twirp flavour from one image.
 
 ## Home Page Static Files
 
@@ -57,6 +62,13 @@ for the full map of apps, hostnames, and ports.
 
 Each service is served at the root of its own hostname (no per-service path
 prefix), e.g. the theatre programme lives at `https://theatre.kaja.tools/shows`.
+
+### Twirp
+
+A Twirp service uses the standard `/twirp` prefix (no custom path prefix), so it
+responds at `/twirp/package.Service/Method`, i.e.
+`https://twirp-quirks.kaja.tools/twirp/...`. Only `quirks` speaks Twirp; the
+demo services do not.
 
 ### gRPC
 
@@ -81,3 +93,4 @@ grpcurl -import-path apps/quirks/proto -proto v1/quirks.proto grpc-quirks.kaja.t
 
 - **OpenAPI**: `curl https://theatre.kaja.tools/shows`
 - **gRPC**: `grpcurl -d '{"showId":"neon-meridian"}' seating.kaja.tools:443 seating.Seating/GetSeatMap`
+- **Twirp** (quirks only): `curl -X POST https://twirp-quirks.kaja.tools/twirp/quirks.v1.Quirks/Sum -H "Content-Type: application/json" -d '{"a":"1","b":"2"}'`
