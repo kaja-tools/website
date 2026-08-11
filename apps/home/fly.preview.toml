@@ -2,8 +2,9 @@
 # config serves them all: the workflow passes the app name (kaja-home-pr-<number>)
 # with --app, so the name below is only what flyctl falls back to.
 #
-# The Dockerfile is apps/home's own, so the build context is that directory:
-#   fly deploy apps/home --config apps/home/fly.preview.toml --app kaja-home-pr-123
+# The Dockerfile is apps/home's own, so the build context is that directory —
+# and flyctl resolves --config inside it, so deploy from here:
+#   cd apps/home && fly deploy --config fly.preview.toml --app kaja-home-pr-123
 #
 # Only the website gets previews. The demo services keep their own state and
 # hostnames, and a pull request that changes one is deployed on merge.

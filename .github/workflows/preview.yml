@@ -51,10 +51,13 @@ jobs:
       - name: Create the app if it doesn't exist yet
         run: flyctl apps create "$APP_NAME" --org "$FLY_ORG" || true
 
+      # flyctl resolves --config inside the directory it deploys, so this runs
+      # from apps/home rather than passing the path from the repository root.
       - name: Deploy
+        working-directory: apps/home
         run: |
-          flyctl deploy apps/home \
-            --config apps/home/fly.preview.toml \
+          flyctl deploy \
+            --config fly.preview.toml \
             --app "$APP_NAME" \
             --ha=false \
             --remote-only \
