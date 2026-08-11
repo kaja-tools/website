@@ -57,9 +57,11 @@ scripts/deploy
 #      - Subdomains: CNAME <sub>.kaja.tools -> <app>.fly.dev
 #    Verify with: fly certs check <hostname> --app <app>
 
-# 4. Create a deploy token and add it to the repo as the FLY_API_TOKEN secret
-#    so GitHub Actions can deploy on push to main.
-fly tokens create deploy
+# 4. Create a token and add it to the repo as the FLY_API_TOKEN secret so
+#    GitHub Actions can deploy on push to main. It has to be an org token
+#    rather than the app-scoped deploy one: pull request previews create and
+#    destroy an app of their own, which a deploy token may not do.
+fly tokens create org personal
 ```
 
 ## Ongoing deploys
@@ -99,6 +101,23 @@ its `workflow_dispatch` options), `scripts/deploy`, and `scripts/fly-setup` —
 then re-running `scripts/fly-setup`, which is idempotent. A Fly app that has
 never been created fails the deploy with `app not found`; the workflow calls
 out which app it was.
+
+## Pull request previews
+
+Every pull request opened from a branch in this repository gets its own copy of
+the **website** running on Fly, at `https://kaja-home-pr-<number>.fly.dev`.
+`.github/workflows/preview.yml` deploys `apps/home` with
+`apps/home/fly.preview.toml` under an app named after the pull request, and a
+sticky comment on the pull request carries the URL. Every push rebuilds it;
+closing the pull request destroys the app and removes the comment.
+
+Only the website is previewed. The demo services (`theatre`, `seating`,
+`quirks`) are stateful, hostname-bound and called by the IDE, so a change to one
+ships when it merges rather than to a throwaway app nothing points at.
+
+A preview app runs no machine until someone opens its URL
+(`min_machines_running = 0`), so an idle preview costs nothing. A pull request
+from a fork is skipped: it has no access to the token.
 
 ## Notes
 

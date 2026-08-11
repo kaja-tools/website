@@ -47,5 +47,7 @@ Next steps:
        - Subdomains: CNAME <sub>.kaja.tools -> <app>.fly.dev
          (e.g. theatre.kaja.tools -> kaja-theatre.fly.dev)
      Check issuance with: fly certs check <hostname> --app <app>
-  3. Add a FLY_API_TOKEN repo secret for CI (fly tokens create deploy)
+  3. Add a FLY_API_TOKEN repo secret for CI (fly tokens create org personal).
+     An org token, not an app-scoped deploy one: pull request previews create
+     and destroy an app of their own.
 EOF
