@@ -21,7 +21,5 @@ deploy home         apps/home
 deploy theatre      apps/theatre
 deploy seating      apps/seating
 deploy quirks       apps/quirks
-# kaja bakes proto files from sibling apps, so it builds from the repo root.
-deploy kaja         . --config apps/kaja/fly.toml
 
 echo "Done"

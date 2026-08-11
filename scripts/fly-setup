@@ -30,7 +30,6 @@ while read -r app host; do
   flyctl certs add "$host" --app "$app" || true
 done <<'PAIRS'
 kaja-home         kaja.tools
-kaja-demo         demo.kaja.tools
 kaja-theatre      theatre.kaja.tools
 kaja-seating      seating.kaja.tools
 kaja-quirks       quirks.kaja.tools

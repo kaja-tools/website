@@ -60,6 +60,13 @@ there is no shared gateway. Service-to-service calls stay on Fly's private
 network via `<app>.internal` DNS. See [docs/deployment.md](docs/deployment.md)
 for the full map of apps, hostnames, and ports.
 
+**This repository is the website and the demo services, and nothing else.** The
+IDE at `demo.kaja.tools` is deployed by
+[wham/kaja](https://github.com/wham/kaja) from its own `workspace/`, on every
+push to that repository's `main` — so there is no copy of the IDE's
+configuration here to keep in step, and nothing here to change when the demo
+workspace changes. Don't add one back.
+
 Each service is served at the root of its own hostname (no per-service path
 prefix), e.g. the theatre programme lives at `https://theatre.kaja.tools/shows`.
 
