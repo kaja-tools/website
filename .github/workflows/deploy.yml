@@ -8,7 +8,9 @@ name: deploy
 # is deployed from wham/kaja now. Every app left is built from this repository,
 # so a deploy has something to deploy only when something here changed.
 #
-# Requires a repository secret named FLY_API_TOKEN (`fly tokens create deploy`).
+# Requires a repository secret named FLY_API_TOKEN. It is an org token
+# (`fly tokens create org <org>`) rather than an app-scoped deploy token,
+# because the preview workflow shares it and has to create and destroy apps.
 on:
   workflow_call:
     inputs:
@@ -98,7 +100,7 @@ jobs:
         run: |
           set -euo pipefail
           if [ -z "${FLY_API_TOKEN:-}" ]; then
-            echo "::error::FLY_API_TOKEN secret is not set — create one with 'fly tokens create deploy'"
+            echo "::error::FLY_API_TOKEN secret is not set — create one with 'fly tokens create org <org>'"
             exit 1
           fi
           status=0

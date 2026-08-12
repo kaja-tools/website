@@ -1,0 +1,35 @@
+# The Fly config every pull request preview of the website is deployed with. One
+# config serves them all: the workflow passes the app name (kaja-home-pr-<number>)
+# with --app, so the name below is only what flyctl falls back to.
+#
+# The Dockerfile is apps/home's own, so the build context is that directory —
+# and flyctl resolves --config inside it, so deploy from here:
+#   cd apps/home && fly deploy --config fly.preview.toml --app kaja-home-pr-123
+#
+# Only the website gets previews. The demo services keep their own state and
+# hostnames, and a pull request that changes one is deployed on merge.
+app = "kaja-home-preview"
+primary_region = "sjc"
+
+[build]
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  # A preview is idle almost all of its life: no machine runs until someone
+  # opens the URL, and it stops again afterwards.
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  # A deploy that ends with a server that never answered should fail the check
+  # rather than hand out a URL that doesn't load.
+  [[http_service.checks]]
+    path = "/"
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "10s"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"

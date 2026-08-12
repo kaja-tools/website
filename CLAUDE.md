@@ -70,6 +70,12 @@ workspace changes. Don't add one back.
 Each service is served at the root of its own hostname (no per-service path
 prefix), e.g. the theatre programme lives at `https://theatre.kaja.tools/shows`.
 
+**A pull request previews the website and nothing else.**
+`.github/workflows/preview.yml` deploys `apps/home` to its own Fly app,
+`kaja-home-pr-<number>`, and comments the URL on the pull request; closing it
+destroys the app. The demo services are stateful, hostname-bound and called by
+the IDE, so they ship on merge — don't add previews for them.
+
 ### Twirp
 
 A Twirp service uses the standard `/twirp` prefix (no custom path prefix), so it

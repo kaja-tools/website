@@ -1,0 +1,86 @@
+name: preview
+# Every pull request gets its own copy of the website running on Fly, at
+# https://kaja-home-pr-<number>.fly.dev. It is rebuilt on every push to the pull
+# request and destroyed when the pull request closes.
+#
+# Only the website (apps/home) is previewed. The demo services are stateful,
+# hostname-bound and called by the IDE, so they keep shipping on merge.
+#
+# Needs a FLY_API_TOKEN repository secret that may create and destroy apps in
+# the org — `fly tokens create org <org>`, not the app-scoped deploy token —
+# and optionally a FLY_ORG repository variable (defaults to "personal").
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, closed]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+# One deploy per pull request at a time; a newer push supersedes an in-flight
+# one, and closing supersedes both.
+concurrency:
+  group: preview-${{ github.event.number }}
+  cancel-in-progress: true
+
+env:
+  FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+  FLY_ORG: ${{ vars.FLY_ORG || 'personal' }}
+  APP_NAME: kaja-home-pr-${{ github.event.number }}
+
+jobs:
+  deploy:
+    # A fork's pull request has no access to the token, so there is nothing to
+    # deploy with. Closing is the destroy job's.
+    if: github.event.action != 'closed' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Check the token is set
+        run: |
+          if [ -z "${FLY_API_TOKEN:-}" ]; then
+            echo "::error::FLY_API_TOKEN secret is not set — create one with 'fly tokens create org <org>'"
+            exit 1
+          fi
+
+      - name: Create the app if it doesn't exist yet
+        run: flyctl apps create "$APP_NAME" --org "$FLY_ORG" || true
+
+      # flyctl resolves --config inside the directory it deploys, so this runs
+      # from apps/home rather than passing the path from the repository root.
+      - name: Deploy
+        working-directory: apps/home
+        run: |
+          flyctl deploy \
+            --config fly.preview.toml \
+            --app "$APP_NAME" \
+            --ha=false \
+            --remote-only \
+            --yes
+
+      - name: Comment the preview URL on the pull request
+        uses: marocchino/sticky-pull-request-comment@v3
+        with:
+          header: preview
+          message: "🚀 Preview app deployed: https://${{ env.APP_NAME }}.fly.dev"
+
+  destroy:
+    if: github.event.action == 'closed' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Destroy the app
+        run: flyctl apps destroy "$APP_NAME" --yes || true
+
+      - name: Remove the preview comment
+        uses: marocchino/sticky-pull-request-comment@v3
+        with:
+          header: preview
+          delete: true
