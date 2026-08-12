@@ -25,6 +25,13 @@ jobs:
         uses: actions/setup-go@v7
         with:
           go-version: "1.26"
+          # Every service is its own module under apps/, and there is no go.mod
+          # at the repository root — so setup-go's default lookup finds nothing
+          # and silently caches nothing. Point it at the modules that exist, or
+          # every run re-downloads the dependencies and recompiles from cold.
+          cache-dependency-path: |
+            apps/*/go.mod
+            apps/*/go.sum
       - name: Build and vet the services
         run: |
           set -e
@@ -45,7 +52,7 @@ jobs:
       - name: Build and check the website
         working-directory: home
         run: |
-          npm ci
+          npm ci --prefer-offline --no-audit --fund=false
           npm run format:check
           npm run check
           npm run build

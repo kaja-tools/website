@@ -2,9 +2,17 @@
 
 ## Pull Requests
 
-Keep PR descriptions short. Aim for a one-line summary plus a brief bullet list
-of the concrete changes. Skip lengthy background, root-cause narratives, and
-generated-by boilerplate — link to related PRs/issues instead of restating them.
+**Write the shortest description that still says what changed.** The diff is
+the detail; the description is the headline. Almost every PR here should be one
+sentence — a title and a single line. Reach for bullets only when the PR really
+does several unrelated things, and then it is one short bullet each, no nesting.
+
+Hard limits: no headings, no "Summary"/"Changes"/"Testing"/"Notes" sections, no
+tables, no code blocks, no generated-by or model boilerplate, no emoji. Never
+explain the background, the root cause, the alternatives you rejected, or how
+you tested — link the issue or the related PR instead of retelling it.
+
+If you are wondering whether a sentence earns its place, it does not. Cut it.
 
 ## Proto Files
 
