@@ -1,4 +1,10 @@
-@import "tailwindcss";
+/* `source(none)` turns off Tailwind's automatic source detection and the
+   explicit @source below replaces it. Detection excludes files by reading
+   .gitignore, and the Docker build context has no .gitignore — so it would
+   scan node_modules there and not here, and the production stylesheet would
+   not match the one built locally. This keeps the two identical. */
+@import "tailwindcss" source(none);
+@source "../**/*.{astro,html,js,jsx,ts,tsx,md,mdx}";
 
 /* Design tokens. Everything the site is allowed to be coloured, sized or
    animated with lives here, so a component never reaches for a raw hex. */
