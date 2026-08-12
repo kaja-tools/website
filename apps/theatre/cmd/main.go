@@ -9,17 +9,12 @@ import (
 )
 
 func main() {
-	baseURL := os.Getenv("PUBLIC_BASE_URL")
-	if baseURL == "" {
-		baseURL = "https://theatre.kaja.tools"
-	}
-
 	addr := os.Getenv("ADDR")
 	if addr == "" {
 		addr = ":41530"
 	}
 
-	s := server.New(baseURL)
+	s := server.New()
 	slog.Info("theatre listening", "addr", addr)
 	if err := http.ListenAndServe(addr, s.Handler()); err != nil {
 		slog.Error("server failed", "error", err)

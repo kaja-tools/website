@@ -20,6 +20,7 @@ ONLY="$1"
 deploy home         home
 deploy theatre      apps/theatre
 deploy seating      apps/seating
+deploy concierge    apps/concierge
 deploy quirks       apps/quirks
 
 echo "Done"

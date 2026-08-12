@@ -8,9 +8,9 @@ option go_package = "internal/api";
 
 // Live seat inventory for The Kaja Theatre.
 //
-// Buying a ticket is three calls: look at the house, hold a few seats, pay
-// for them. Show ids come from the theatre catalog — start at
-// https://theatre.kaja.tools/shows and copy any `id`.
+// Buying a ticket is two calls: look at the house, buy some seats. Show ids
+// come from the theatre programme — start at https://theatre.kaja.tools/shows
+// and copy any `id`.
 //
 // The house is busy. Other customers are holding and buying these seats the
 // whole time, so a seat map is only true for a moment: call GetSeatMap twice
@@ -20,11 +20,10 @@ service Seating {
     // The whole house for a show: every seat with its section, price, and
     // whether it is free.
     rpc GetSeatMap(GetSeatMapRequest) returns (GetSeatMapResponse);
-    // Hold up to 6 seats for two minutes. Fails if somebody just took one
-    // of them. Holds you never pay for are released automatically.
-    rpc HoldSeats(HoldSeatsRequest) returns (HoldSeatsResponse);
-    // Buy the seats you are holding.
-    rpc ConfirmSeats(ConfirmSeatsRequest) returns (ConfirmSeatsResponse);
+    // Buy up to 6 seats. This is the one call that spends money, and it is
+    // all or nothing: if somebody took one of the seats first, nothing is
+    // bought and the response says which ones were lost.
+    rpc BookSeats(BookSeatsRequest) returns (BookSeatsResponse);
 
     // Streaming bonus: a snapshot of the house, then every seat change in
     // it, live, until you disconnect. Needs a client that speaks gRPC
@@ -91,14 +90,6 @@ message SeatChange {
     google.protobuf.Timestamp changed_at = 5;
 }
 
-message Hold {
-    string id = 1;
-    string show_id = 2;
-    repeated string seat_ids = 3;
-    int32 total_price_cents = 4;
-    google.protobuf.Timestamp expires_at = 5;
-}
-
 message GetSeatMapRequest {
     string show_id = 1;
 }
@@ -107,21 +98,17 @@ message GetSeatMapResponse {
     SeatMap seat_map = 1;
 }
 
-message HoldSeatsRequest {
+message BookSeatsRequest {
     string show_id = 1;
+    // Seat ids from the seat map, e.g. ["F7", "F8"]. At most 6.
     repeated string seat_ids = 2;
 }
 
-message HoldSeatsResponse {
-    Hold hold = 1;
-}
-
-message ConfirmSeatsRequest {
-    string hold_id = 1;
-}
-
-message ConfirmSeatsResponse {
-    repeated Seat seats = 1;
+message BookSeatsResponse {
+    string booking_id = 1;
+    repeated Seat seats = 2;
+    int32 total_price_cents = 3;
+    google.protobuf.Timestamp booked_at = 4;
 }
 
 message WatchSeatsRequest {

@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.12
 // 	protoc        v7.35.1
-// source: proto/seating.proto
+// source: seating.proto
 
 package api
 
@@ -58,11 +58,11 @@ func (x SeatStatus) String() string {
 }
 
 func (SeatStatus) Descriptor() protoreflect.EnumDescriptor {
-	return file_proto_seating_proto_enumTypes[0].Descriptor()
+	return file_seating_proto_enumTypes[0].Descriptor()
 }
 
 func (SeatStatus) Type() protoreflect.EnumType {
-	return &file_proto_seating_proto_enumTypes[0]
+	return &file_seating_proto_enumTypes[0]
 }
 
 func (x SeatStatus) Number() protoreflect.EnumNumber {
@@ -71,7 +71,7 @@ func (x SeatStatus) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use SeatStatus.Descriptor instead.
 func (SeatStatus) EnumDescriptor() ([]byte, []int) {
-	return file_proto_seating_proto_rawDescGZIP(), []int{0}
+	return file_seating_proto_rawDescGZIP(), []int{0}
 }
 
 type Section int32
@@ -107,11 +107,11 @@ func (x Section) String() string {
 }
 
 func (Section) Descriptor() protoreflect.EnumDescriptor {
-	return file_proto_seating_proto_enumTypes[1].Descriptor()
+	return file_seating_proto_enumTypes[1].Descriptor()
 }
 
 func (Section) Type() protoreflect.EnumType {
-	return &file_proto_seating_proto_enumTypes[1]
+	return &file_seating_proto_enumTypes[1]
 }
 
 func (x Section) Number() protoreflect.EnumNumber {
@@ -120,7 +120,7 @@ func (x Section) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use Section.Descriptor instead.
 func (Section) EnumDescriptor() ([]byte, []int) {
-	return file_proto_seating_proto_rawDescGZIP(), []int{1}
+	return file_seating_proto_rawDescGZIP(), []int{1}
 }
 
 type ChangeReason int32
@@ -162,11 +162,11 @@ func (x ChangeReason) String() string {
 }
 
 func (ChangeReason) Descriptor() protoreflect.EnumDescriptor {
-	return file_proto_seating_proto_enumTypes[2].Descriptor()
+	return file_seating_proto_enumTypes[2].Descriptor()
 }
 
 func (ChangeReason) Type() protoreflect.EnumType {
-	return &file_proto_seating_proto_enumTypes[2]
+	return &file_seating_proto_enumTypes[2]
 }
 
 func (x ChangeReason) Number() protoreflect.EnumNumber {
@@ -175,7 +175,7 @@ func (x ChangeReason) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use ChangeReason.Descriptor instead.
 func (ChangeReason) EnumDescriptor() ([]byte, []int) {
-	return file_proto_seating_proto_rawDescGZIP(), []int{2}
+	return file_seating_proto_rawDescGZIP(), []int{2}
 }
 
 type Seat struct {
@@ -192,7 +192,7 @@ type Seat struct {
 
 func (x *Seat) Reset() {
 	*x = Seat{}
-	mi := &file_proto_seating_proto_msgTypes[0]
+	mi := &file_seating_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -204,7 +204,7 @@ func (x *Seat) String() string {
 func (*Seat) ProtoMessage() {}
 
 func (x *Seat) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_seating_proto_msgTypes[0]
+	mi := &file_seating_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -217,7 +217,7 @@ func (x *Seat) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Seat.ProtoReflect.Descriptor instead.
 func (*Seat) Descriptor() ([]byte, []int) {
-	return file_proto_seating_proto_rawDescGZIP(), []int{0}
+	return file_seating_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *Seat) GetId() string {
@@ -272,7 +272,7 @@ type Row struct {
 
 func (x *Row) Reset() {
 	*x = Row{}
-	mi := &file_proto_seating_proto_msgTypes[1]
+	mi := &file_seating_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -284,7 +284,7 @@ func (x *Row) String() string {
 func (*Row) ProtoMessage() {}
 
 func (x *Row) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_seating_proto_msgTypes[1]
+	mi := &file_seating_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -297,7 +297,7 @@ func (x *Row) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Row.ProtoReflect.Descriptor instead.
 func (*Row) Descriptor() ([]byte, []int) {
-	return file_proto_seating_proto_rawDescGZIP(), []int{1}
+	return file_seating_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *Row) GetLetter() string {
@@ -324,7 +324,7 @@ type SectionMap struct {
 
 func (x *SectionMap) Reset() {
 	*x = SectionMap{}
-	mi := &file_proto_seating_proto_msgTypes[2]
+	mi := &file_seating_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -336,7 +336,7 @@ func (x *SectionMap) String() string {
 func (*SectionMap) ProtoMessage() {}
 
 func (x *SectionMap) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_seating_proto_msgTypes[2]
+	mi := &file_seating_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -349,7 +349,7 @@ func (x *SectionMap) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SectionMap.ProtoReflect.Descriptor instead.
 func (*SectionMap) Descriptor() ([]byte, []int) {
-	return file_proto_seating_proto_rawDescGZIP(), []int{2}
+	return file_seating_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *SectionMap) GetSection() Section {
@@ -381,7 +381,7 @@ type SeatMap struct {
 
 func (x *SeatMap) Reset() {
 	*x = SeatMap{}
-	mi := &file_proto_seating_proto_msgTypes[3]
+	mi := &file_seating_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -393,7 +393,7 @@ func (x *SeatMap) String() string {
 func (*SeatMap) ProtoMessage() {}
 
 func (x *SeatMap) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_seating_proto_msgTypes[3]
+	mi := &file_seating_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -406,7 +406,7 @@ func (x *SeatMap) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeatMap.ProtoReflect.Descriptor instead.
 func (*SeatMap) Descriptor() ([]byte, []int) {
-	return file_proto_seating_proto_rawDescGZIP(), []int{3}
+	return file_seating_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *SeatMap) GetShowId() string {
@@ -464,7 +464,7 @@ type SeatChange struct {
 
 func (x *SeatChange) Reset() {
 	*x = SeatChange{}
-	mi := &file_proto_seating_proto_msgTypes[4]
+	mi := &file_seating_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -476,7 +476,7 @@ func (x *SeatChange) String() string {
 func (*SeatChange) ProtoMessage() {}
 
 func (x *SeatChange) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_seating_proto_msgTypes[4]
+	mi := &file_seating_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -489,7 +489,7 @@ func (x *SeatChange) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeatChange.ProtoReflect.Descriptor instead.
 func (*SeatChange) Descriptor() ([]byte, []int) {
-	return file_proto_seating_proto_rawDescGZIP(), []int{4}
+	return file_seating_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *SeatChange) GetShowId() string {
@@ -536,7 +536,7 @@ type GetSeatMapRequest struct {
 
 func (x *GetSeatMapRequest) Reset() {
 	*x = GetSeatMapRequest{}
-	mi := &file_proto_seating_proto_msgTypes[5]
+	mi := &file_seating_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -548,7 +548,7 @@ func (x *GetSeatMapRequest) String() string {
 func (*GetSeatMapRequest) ProtoMessage() {}
 
 func (x *GetSeatMapRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_seating_proto_msgTypes[5]
+	mi := &file_seating_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -561,7 +561,7 @@ func (x *GetSeatMapRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSeatMapRequest.ProtoReflect.Descriptor instead.
 func (*GetSeatMapRequest) Descriptor() ([]byte, []int) {
-	return file_proto_seating_proto_rawDescGZIP(), []int{5}
+	return file_seating_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *GetSeatMapRequest) GetShowId() string {
@@ -580,7 +580,7 @@ type GetSeatMapResponse struct {
 
 func (x *GetSeatMapResponse) Reset() {
 	*x = GetSeatMapResponse{}
-	mi := &file_proto_seating_proto_msgTypes[6]
+	mi := &file_seating_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -592,7 +592,7 @@ func (x *GetSeatMapResponse) String() string {
 func (*GetSeatMapResponse) ProtoMessage() {}
 
 func (x *GetSeatMapResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_seating_proto_msgTypes[6]
+	mi := &file_seating_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -605,7 +605,7 @@ func (x *GetSeatMapResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSeatMapResponse.ProtoReflect.Descriptor instead.
 func (*GetSeatMapResponse) Descriptor() ([]byte, []int) {
-	return file_proto_seating_proto_rawDescGZIP(), []int{6}
+	return file_seating_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *GetSeatMapResponse) GetSeatMap() *SeatMap {
@@ -626,7 +626,7 @@ type BookSeatsRequest struct {
 
 func (x *BookSeatsRequest) Reset() {
 	*x = BookSeatsRequest{}
-	mi := &file_proto_seating_proto_msgTypes[7]
+	mi := &file_seating_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -638,7 +638,7 @@ func (x *BookSeatsRequest) String() string {
 func (*BookSeatsRequest) ProtoMessage() {}
 
 func (x *BookSeatsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_seating_proto_msgTypes[7]
+	mi := &file_seating_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -651,7 +651,7 @@ func (x *BookSeatsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BookSeatsRequest.ProtoReflect.Descriptor instead.
 func (*BookSeatsRequest) Descriptor() ([]byte, []int) {
-	return file_proto_seating_proto_rawDescGZIP(), []int{7}
+	return file_seating_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *BookSeatsRequest) GetShowId() string {
@@ -680,7 +680,7 @@ type BookSeatsResponse struct {
 
 func (x *BookSeatsResponse) Reset() {
 	*x = BookSeatsResponse{}
-	mi := &file_proto_seating_proto_msgTypes[8]
+	mi := &file_seating_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -692,7 +692,7 @@ func (x *BookSeatsResponse) String() string {
 func (*BookSeatsResponse) ProtoMessage() {}
 
 func (x *BookSeatsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_seating_proto_msgTypes[8]
+	mi := &file_seating_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -705,7 +705,7 @@ func (x *BookSeatsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BookSeatsResponse.ProtoReflect.Descriptor instead.
 func (*BookSeatsResponse) Descriptor() ([]byte, []int) {
-	return file_proto_seating_proto_rawDescGZIP(), []int{8}
+	return file_seating_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *BookSeatsResponse) GetBookingId() string {
@@ -745,7 +745,7 @@ type WatchSeatsRequest struct {
 
 func (x *WatchSeatsRequest) Reset() {
 	*x = WatchSeatsRequest{}
-	mi := &file_proto_seating_proto_msgTypes[9]
+	mi := &file_seating_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -757,7 +757,7 @@ func (x *WatchSeatsRequest) String() string {
 func (*WatchSeatsRequest) ProtoMessage() {}
 
 func (x *WatchSeatsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_seating_proto_msgTypes[9]
+	mi := &file_seating_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -770,7 +770,7 @@ func (x *WatchSeatsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchSeatsRequest.ProtoReflect.Descriptor instead.
 func (*WatchSeatsRequest) Descriptor() ([]byte, []int) {
-	return file_proto_seating_proto_rawDescGZIP(), []int{9}
+	return file_seating_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *WatchSeatsRequest) GetShowId() string {
@@ -795,7 +795,7 @@ type SeatUpdate struct {
 
 func (x *SeatUpdate) Reset() {
 	*x = SeatUpdate{}
-	mi := &file_proto_seating_proto_msgTypes[10]
+	mi := &file_seating_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -807,7 +807,7 @@ func (x *SeatUpdate) String() string {
 func (*SeatUpdate) ProtoMessage() {}
 
 func (x *SeatUpdate) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_seating_proto_msgTypes[10]
+	mi := &file_seating_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -820,7 +820,7 @@ func (x *SeatUpdate) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeatUpdate.ProtoReflect.Descriptor instead.
 func (*SeatUpdate) Descriptor() ([]byte, []int) {
-	return file_proto_seating_proto_rawDescGZIP(), []int{10}
+	return file_seating_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *SeatUpdate) GetUpdate() isSeatUpdate_Update {
@@ -864,11 +864,11 @@ func (*SeatUpdate_Snapshot) isSeatUpdate_Update() {}
 
 func (*SeatUpdate_Change) isSeatUpdate_Update() {}
 
-var File_proto_seating_proto protoreflect.FileDescriptor
+var File_seating_proto protoreflect.FileDescriptor
 
-const file_proto_seating_proto_rawDesc = "" +
+const file_seating_proto_rawDesc = "" +
 	"\n" +
-	"\x13proto/seating.proto\x12\aseating\x1a\x1fgoogle/protobuf/timestamp.proto\"\xba\x01\n" +
+	"\rseating.proto\x12\aseating\x1a\x1fgoogle/protobuf/timestamp.proto\"\xba\x01\n" +
 	"\x04Seat\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12*\n" +
 	"\asection\x18\x02 \x01(\x0e2\x10.seating.SectionR\asection\x12\x10\n" +
@@ -946,20 +946,20 @@ const file_proto_seating_proto_rawDesc = "" +
 	"WatchSeats\x12\x1a.seating.WatchSeatsRequest\x1a\x13.seating.SeatUpdate0\x01B\x0eZ\finternal/apib\x06proto3"
 
 var (
-	file_proto_seating_proto_rawDescOnce sync.Once
-	file_proto_seating_proto_rawDescData []byte
+	file_seating_proto_rawDescOnce sync.Once
+	file_seating_proto_rawDescData []byte
 )
 
-func file_proto_seating_proto_rawDescGZIP() []byte {
-	file_proto_seating_proto_rawDescOnce.Do(func() {
-		file_proto_seating_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_seating_proto_rawDesc), len(file_proto_seating_proto_rawDesc)))
+func file_seating_proto_rawDescGZIP() []byte {
+	file_seating_proto_rawDescOnce.Do(func() {
+		file_seating_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_seating_proto_rawDesc), len(file_seating_proto_rawDesc)))
 	})
-	return file_proto_seating_proto_rawDescData
+	return file_seating_proto_rawDescData
 }
 
-var file_proto_seating_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_proto_seating_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
-var file_proto_seating_proto_goTypes = []any{
+var file_seating_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
+var file_seating_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_seating_proto_goTypes = []any{
 	(SeatStatus)(0),               // 0: seating.SeatStatus
 	(Section)(0),                  // 1: seating.Section
 	(ChangeReason)(0),             // 2: seating.ChangeReason
@@ -977,7 +977,7 @@ var file_proto_seating_proto_goTypes = []any{
 	nil,                           // 14: seating.SeatMap.AvailableBySectionEntry
 	(*timestamppb.Timestamp)(nil), // 15: google.protobuf.Timestamp
 }
-var file_proto_seating_proto_depIdxs = []int32{
+var file_seating_proto_depIdxs = []int32{
 	1,  // 0: seating.Seat.section:type_name -> seating.Section
 	0,  // 1: seating.Seat.status:type_name -> seating.SeatStatus
 	3,  // 2: seating.Row.seats:type_name -> seating.Seat
@@ -1006,12 +1006,12 @@ var file_proto_seating_proto_depIdxs = []int32{
 	0,  // [0:15] is the sub-list for field type_name
 }
 
-func init() { file_proto_seating_proto_init() }
-func file_proto_seating_proto_init() {
-	if File_proto_seating_proto != nil {
+func init() { file_seating_proto_init() }
+func file_seating_proto_init() {
+	if File_seating_proto != nil {
 		return
 	}
-	file_proto_seating_proto_msgTypes[10].OneofWrappers = []any{
+	file_seating_proto_msgTypes[10].OneofWrappers = []any{
 		(*SeatUpdate_Snapshot)(nil),
 		(*SeatUpdate_Change)(nil),
 	}
@@ -1019,18 +1019,18 @@ func file_proto_seating_proto_init() {
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_seating_proto_rawDesc), len(file_proto_seating_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_seating_proto_rawDesc), len(file_seating_proto_rawDesc)),
 			NumEnums:      3,
 			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_proto_seating_proto_goTypes,
-		DependencyIndexes: file_proto_seating_proto_depIdxs,
-		EnumInfos:         file_proto_seating_proto_enumTypes,
-		MessageInfos:      file_proto_seating_proto_msgTypes,
+		GoTypes:           file_seating_proto_goTypes,
+		DependencyIndexes: file_seating_proto_depIdxs,
+		EnumInfos:         file_seating_proto_enumTypes,
+		MessageInfos:      file_seating_proto_msgTypes,
 	}.Build()
-	File_proto_seating_proto = out.File
-	file_proto_seating_proto_goTypes = nil
-	file_proto_seating_proto_depIdxs = nil
+	File_seating_proto = out.File
+	file_seating_proto_goTypes = nil
+	file_seating_proto_depIdxs = nil
 }

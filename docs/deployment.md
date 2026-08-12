@@ -12,10 +12,11 @@ single-domain nginx-ingress that ran on Azure Kubernetes.
 | `kaja-home`    | `home`         | `kaja.tools`, `www`  | the website — Astro, served by Caddy     |
 | `kaja-theatre` | `apps/theatre` | `theatre.kaja.tools` | OpenAPI (e.g. `/openapi.yaml`, `/shows`) |
 | `kaja-seating` | `apps/seating` | `seating.kaja.tools` | gRPC over TLS on :443                    |
+| `kaja-concierge` | `apps/concierge` | `concierge.kaja.tools` | MCP over Streamable HTTP at `/mcp`  |
 | `kaja-quirks`  | `apps/quirks`  | `quirks.kaja.tools`  | Twirp under `/twirp`                     |
 
-`theatre` and `seating` are the public demo; `quirks` is the Twirp protocol
-testbed. The website sits at the repository root rather than under `apps/`,
+`theatre`, `seating` and `concierge` are the public demo; `quirks` is the Twirp
+protocol testbed. The website sits at the repository root rather than under `apps/`,
 because `apps/` is the demo services and the website is not one of them.
 
 ### The website's image
@@ -43,10 +44,18 @@ is at `https://theatre.kaja.tools/openapi.yaml`, Twirp uses the standard
 
 ### East-west (service-to-service) traffic
 
-`seating` calls `theatre` (HTTP) to look up which shows exist and what they
-cost. Those calls stay on Fly's private network via `<app>.internal` DNS
-(`kaja-theatre.internal:41530`) — they never leave the org, so only public
+`seating` calls `theatre` (HTTP) to look up which screenings exist and what
+they cost, and `concierge` calls both — `theatre` for the programme and
+`seating` for the live seat map. Those calls stay on Fly's private network via
+`<app>.internal` DNS (`kaja-theatre.internal:41530`,
+`kaja-seating.internal:50053`) — they never leave the org, so only public
 browser/IDE traffic goes through the edge.
+
+### MCP
+
+`concierge` speaks the Model Context Protocol over Streamable HTTP — ordinary
+HTTP/1.1 POSTs of JSON-RPC at `https://concierge.kaja.tools/mcp` — so it needs
+none of the HTTP/2 configuration the gRPC app does.
 
 ### gRPC
 
@@ -124,8 +133,9 @@ sticky comment on the pull request carries the URL. Every push rebuilds it;
 closing the pull request destroys the app and removes the comment.
 
 Only the website is previewed. The demo services (`theatre`, `seating`,
-`quirks`) are stateful, hostname-bound and called by the IDE, so a change to one
-ships when it merges rather than to a throwaway app nothing points at.
+`concierge`, `quirks`) are stateful, hostname-bound and called by the IDE, so a
+change to one ships when it merges rather than to a throwaway app nothing points
+at.
 
 A preview app runs no machine until someone opens its URL
 (`min_machines_running = 0`), so an idle preview costs nothing. A pull request

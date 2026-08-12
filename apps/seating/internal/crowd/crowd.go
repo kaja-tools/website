@@ -20,15 +20,18 @@ import (
 	"github.com/kaja-tools/website/v2/internal/theatre"
 )
 
-// How much of the house each show's crowd wants, at most.
+// How much of the house each screening's crowd wants, at most.
 var demand = map[string]float64{
-	"neon-meridian":          0.85,
-	"milo-frey":              0.70,
-	"glass-mountain":         0.60,
-	"cartographers-daughter": 0.55,
-	"vera-lune":              0.50,
-	"kaja-players":           0.45,
-	"twelve-clocks":          0.35,
+	"dune-part-two":         0.85,
+	"mad-max-fury-road":     0.75,
+	"everything-everywhere": 0.70,
+	"parasite":              0.65,
+	"spirited-away":         0.60,
+	"get-out":               0.55,
+	"grand-budapest-hotel":  0.50,
+	"blade-runner":          0.45,
+	"in-the-mood-for-love":  0.40,
+	"seven-samurai":         0.30,
 }
 
 const defaultDemand = 0.5
@@ -129,7 +132,7 @@ func (c *Crowd) buy(ctx context.Context, showID string, seatMap *api.SeatMap) {
 	if len(seats) == 0 {
 		return
 	}
-	h, err := c.seats.Hold(showID, seats)
+	holdID, err := c.seats.Hold(showID, seats)
 	if err != nil {
 		return // beaten to the seats; the crowd shrugs
 	}
@@ -140,9 +143,9 @@ func (c *Crowd) buy(ctx context.Context, showID string, seatMap *api.SeatMap) {
 		case <-time.After(time.Duration(4+rand.Intn(9)) * time.Second):
 		}
 		if rand.Float64() < 0.85 {
-			c.seats.Confirm(h.Id) //nolint:errcheck // the hold may have expired
+			c.seats.Confirm(holdID) //nolint:errcheck // the hold may have expired
 		} else {
-			c.seats.Release(h.Id) //nolint:errcheck
+			c.seats.Release(holdID) //nolint:errcheck
 		}
 	}()
 }
@@ -154,7 +157,7 @@ func (c *Crowd) windowShop(ctx context.Context, showID string, seatMap *api.Seat
 	if len(seats) == 0 {
 		return
 	}
-	h, err := c.seats.Hold(showID, seats)
+	holdID, err := c.seats.Hold(showID, seats)
 	if err != nil {
 		return
 	}
@@ -164,7 +167,7 @@ func (c *Crowd) windowShop(ctx context.Context, showID string, seatMap *api.Seat
 			return
 		case <-time.After(time.Duration(5+rand.Intn(10)) * time.Second):
 		}
-		c.seats.Release(h.Id) //nolint:errcheck
+		c.seats.Release(holdID) //nolint:errcheck
 	}()
 }
 

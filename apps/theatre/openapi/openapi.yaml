@@ -1,20 +1,20 @@
 openapi: 3.1.0
 info:
   title: The Kaja Theatre
-  version: 2.0.0
+  version: 3.0.0
   description: |
-    The programme of **The Kaja Theatre** — a fictional venue used to demo
-    [kaja](https://kaja.tools).
+    The programme of **The Kaja Theatre** — a repertory cinema used to demo
+    [kaja](https://kaja.tools). The films are real; the cinema is not.
 
-    The whole demo is two calls:
+    There is one operation, and it takes no parameters:
 
-    1. `GET /shows` — no parameters. Pick any show and copy its `id`.
+    1. `GET /shows` — the whole week. Pick any screening and copy its `id`.
     2. Pass that `id` to the seating service over gRPC as `showId`
        (`seating.Seating/GetSeatMap`) to see who is sitting where, then
-       `HoldSeats` and `ConfirmSeats` to buy a pair.
+       `BookSeats` to buy some.
 
-    The house is busy: other customers are booking these seats while you
-    read this, so calling `GetSeatMap` twice gives you two different answers.
+    The house is busy: other customers are buying these seats while you read
+    this, so calling `GetSeatMap` twice gives you two different answers.
 servers:
   - url: https://theatre.kaja.tools
 
@@ -22,10 +22,13 @@ paths:
   /shows:
     get:
       operationId: listShows
-      summary: Everything playing this week
+      summary: Everything screening this week
       description: |
-        The full programme, soonest first. Every show runs weekly, so this
+        The whole programme, soonest first. Every film screens weekly, so this
         list never empties and every `id` in it is always bookable.
+
+        Seats are not part of this API — they live in the seating gRPC service,
+        which owns live seat state.
       responses:
         "200":
           description: The programme.
@@ -36,103 +39,45 @@ paths:
                 items:
                   $ref: "#/components/schemas/Show"
 
-  /shows/{showId}:
-    get:
-      operationId: getShow
-      summary: One show
-      description: |
-        Seats are not part of this API — they live in the seating gRPC
-        service, which owns live seat state. Pass this show's `id` to
-        `seating.Seating/GetSeatMap`.
-      parameters:
-        - $ref: "#/components/parameters/ShowId"
-      responses:
-        "200":
-          description: The show.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Show"
-        "404":
-          $ref: "#/components/responses/NotFound"
-
-  /shows/{showId}/poster.svg:
-    get:
-      operationId: getShowPoster
-      summary: The show's poster image
-      parameters:
-        - $ref: "#/components/parameters/ShowId"
-      responses:
-        "200":
-          description: The poster.
-          content:
-            image/svg+xml:
-              schema:
-                type: string
-        "404":
-          $ref: "#/components/responses/NotFound"
-
 components:
-  parameters:
-    ShowId:
-      name: showId
-      in: path
-      required: true
-      schema:
-        type: string
-      example: neon-meridian
-
-  responses:
-    NotFound:
-      description: No such show.
-      content:
-        application/problem+json:
-          schema:
-            $ref: "#/components/schemas/Problem"
-
   schemas:
     Show:
+      description: One weekly screening.
       type: object
-      required: [id, title, genre, tagline, description, startsAt, basePriceCents, posterUrl]
+      required:
+        [id, title, director, year, runtimeMinutes, genre, language, synopsis, startsAt, basePriceCents]
       properties:
         id:
           type: string
           description: Pass this to the seating service as `showId`.
-          example: neon-meridian
+          example: dune-part-two
         title:
           type: string
-          example: "Neon Meridian: World Tour"
+          example: "Dune: Part Two"
+        director:
+          type: string
+          example: Denis Villeneuve
+        year:
+          type: integer
+          description: Year of the film's original release.
+          example: 2024
+        runtimeMinutes:
+          type: integer
+          example: 165
         genre:
           type: string
-          enum: [concert, play, comedy, opera]
-        tagline:
+          enum: [action, animation, comedy, drama, horror, romance, sci-fi, thriller]
+        language:
           type: string
-        description:
+          description: The language the film is screened in. Subtitled where it is not English.
+          example: English
+        synopsis:
           type: string
         startsAt:
           type: string
           format: date-time
-          description: Curtain-up for the next weekly performance.
+          description: The next weekly screening.
         basePriceCents:
           type: integer
           description: Orchestra seat price. Balcony seats go for three quarters of it.
-          example: 8500
-        posterUrl:
-          type: string
-          format: uri
-
-    Problem:
-      description: RFC 7807 problem details.
-      type: object
-      required: [title, status]
-      properties:
-        type:
-          type: string
-          format: uri
-          default: about:blank
-        title:
-          type: string
-        status:
-          type: integer
-        detail:
-          type: string
+          example: 1800

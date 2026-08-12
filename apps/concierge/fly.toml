@@ -1,0 +1,25 @@
+# Concierge MCP service. Public at concierge.kaja.tools/mcp.
+#   fly certs add concierge.kaja.tools --app kaja-concierge
+app = "kaja-concierge"
+primary_region = "sjc"
+
+[build]
+
+# The concierge owns nothing: it reads the programme from theatre and the seat
+# map from seating, both over the private network.
+[env]
+  THEATRE_URL = "http://kaja-theatre.internal:41530"
+  SEATING_TARGET = "kaja-seating.internal:50053"
+
+# MCP Streamable HTTP is ordinary HTTP/1.1 POSTs, so this needs none of the
+# h2_backend the gRPC app does.
+[http_service]
+  internal_port = 41540
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 1
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"

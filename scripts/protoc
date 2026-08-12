@@ -72,4 +72,9 @@ cd "apps/quirks"
 cd "../seating"
 "$PROTOC_BIN" -I"$BUILD_DIR/include" --proto_path=. --plugin=protoc-gen-go="$GOBIN/protoc-gen-go" --go_out=. --plugin=protoc-gen-grpc="$GOBIN/protoc-gen-go-grpc" --grpc_out=. -Iproto/ $(find . -iname "*.proto")
 
+# concierge is a client of seating, so it generates from seating's proto rather
+# than keeping a copy of it.
+cd "../concierge"
+"$PROTOC_BIN" -I"$BUILD_DIR/include" --plugin=protoc-gen-go="$GOBIN/protoc-gen-go" --go_out=. --plugin=protoc-gen-grpc="$GOBIN/protoc-gen-go-grpc" --grpc_out=. -I../seating/proto ../seating/proto/seating.proto
+
 echo "Proto generation complete."
