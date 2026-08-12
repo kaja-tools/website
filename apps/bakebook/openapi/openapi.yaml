@@ -1,0 +1,153 @@
+openapi: 3.1.0
+info:
+  title: Bakebook
+  version: 1.0.0
+  description: |
+    The recipe book of **The Kaja Bakery** — a fictional cookie counter used to
+    demo [kaja](https://kaja.tools).
+
+    The whole demo is three calls:
+
+    1. `GET /cookies` — no parameters. Pick a cookie and copy its `id`.
+    2. Pass that `id` to the oven over gRPC as `cookieId` (`oven.Oven/ClaimRack`,
+       then `oven.Oven/StartBake`) to actually bake it.
+    3. Ask the kitchen — an MCP server — to `scale` the recipe, `pair` it with a
+       drink, or find a `substitute` for something you have run out of.
+
+    All three services take the same `id`. There is nothing else to look up.
+
+    The oven has four racks and other bakers are using them, so a rack you
+    wanted can be gone by the time you claim it. That is normal here.
+servers:
+  - url: https://bakebook.kaja.tools
+
+paths:
+  /cookies:
+    get:
+      operationId: listCookies
+      summary: Everything we bake
+      description: |
+        The whole book, quickest bake first. It never changes and never
+        empties, so every `id` in it is always bakeable.
+      responses:
+        "200":
+          description: The book.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Cookie"
+
+  /cookies/{cookieId}:
+    get:
+      operationId: getCookie
+      summary: One recipe
+      description: |
+        Dough, racks and timers are not part of this API — they live in the
+        oven gRPC service, which owns everything that is actually hot. Pass
+        this cookie's `id` to `oven.Oven/ClaimRack`.
+      parameters:
+        - $ref: "#/components/parameters/CookieId"
+      responses:
+        "200":
+          description: The recipe.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cookie"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+components:
+  parameters:
+    CookieId:
+      name: cookieId
+      in: path
+      required: true
+      schema:
+        type: string
+      example: brown-butter
+
+  responses:
+    NotFound:
+      description: We don't bake that.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+
+  schemas:
+    Cookie:
+      type: object
+      required:
+        [
+          id,
+          name,
+          texture,
+          tagline,
+          description,
+          bakeMinutes,
+          ovenCelsius,
+          perTray,
+          doughGramsPerCookie,
+          priceCents,
+          allergens,
+        ]
+      properties:
+        id:
+          type: string
+          description: Pass this to the oven as `cookieId`.
+          example: brown-butter
+        name:
+          type: string
+          example: Brown Butter Chocolate Chunk
+        texture:
+          type: string
+          enum: [chewy, soft, crisp, fudgy, crumbly]
+        tagline:
+          type: string
+        description:
+          type: string
+        bakeMinutes:
+          type: integer
+          description: |
+            Minutes in a real oven. The demo oven runs on demo time — one
+            minute in this book is one second in there — so a bake you start
+            finishes while you are still looking at it.
+          example: 11
+        ovenCelsius:
+          type: integer
+          example: 190
+        perTray:
+          type: integer
+          description: How many cookies fit on one tray.
+          example: 12
+        doughGramsPerCookie:
+          type: integer
+          example: 45
+        priceCents:
+          type: integer
+          description: What one costs over the counter.
+          example: 320
+        allergens:
+          type: array
+          items:
+            type: string
+            enum: [gluten, dairy, egg, nuts, soy]
+
+    Problem:
+      description: RFC 7807 problem details.
+      type: object
+      required: [title, status]
+      properties:
+        type:
+          type: string
+          format: uri
+          default: about:blank
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string

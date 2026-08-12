@@ -32,13 +32,13 @@ jobs:
           cache-dependency-path: |
             apps/*/go.mod
             apps/*/go.sum
-      - name: Build and vet the services
+      - name: Build, vet and test the services
         run: |
           set -e
           for dir in apps/*/; do
             if [ -f "$dir/go.mod" ]; then
               echo "==> $dir"
-              (cd "$dir" && go build ./... && go vet ./...)
+              (cd "$dir" && go build ./... && go vet ./... && go test ./...)
             fi
           done
       - name: Set up Node

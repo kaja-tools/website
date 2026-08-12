@@ -31,8 +31,9 @@ on:
         options:
           - all
           - home
-          - theatre
-          - seating
+          - bakebook
+          - oven
+          - kitchen
           - quirks
 
 permissions:
@@ -54,10 +55,11 @@ jobs:
           # each one's fly.toml in "dir" and no --config is needed.
           APPS: |
             [
-              { "name": "home",    "app": "kaja-home",    "dir": "home"         },
-              { "name": "theatre", "app": "kaja-theatre", "dir": "apps/theatre" },
-              { "name": "seating", "app": "kaja-seating", "dir": "apps/seating" },
-              { "name": "quirks",  "app": "kaja-quirks",  "dir": "apps/quirks"  }
+              { "name": "home",     "app": "kaja-home",     "dir": "home"          },
+              { "name": "bakebook", "app": "kaja-bakebook", "dir": "apps/bakebook" },
+              { "name": "oven",     "app": "kaja-oven",     "dir": "apps/oven"     },
+              { "name": "kitchen",  "app": "kaja-kitchen",  "dir": "apps/kitchen"  },
+              { "name": "quirks",   "app": "kaja-quirks",   "dir": "apps/quirks"   }
             ]
           # Both triggers supply this; the fallback is only so a trigger added
           # later can't silently deploy nothing.

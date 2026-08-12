@@ -30,8 +30,9 @@ while read -r app host; do
   flyctl certs add "$host" --app "$app" || true
 done <<'PAIRS'
 kaja-home         kaja.tools
-kaja-theatre      theatre.kaja.tools
-kaja-seating      seating.kaja.tools
+kaja-bakebook     bakebook.kaja.tools
+kaja-oven         oven.kaja.tools
+kaja-kitchen      kitchen.kaja.tools
 kaja-quirks       quirks.kaja.tools
 PAIRS
 
@@ -45,7 +46,7 @@ Next steps:
   2. DNS: point each hostname at its app.
        - Apex kaja.tools: A/AAAA records to kaja-home's IPs (fly ips list --app kaja-home)
        - Subdomains: CNAME <sub>.kaja.tools -> <app>.fly.dev
-         (e.g. theatre.kaja.tools -> kaja-theatre.fly.dev)
+         (e.g. bakebook.kaja.tools -> kaja-bakebook.fly.dev)
      Check issuance with: fly certs check <hostname> --app <app>
   3. Add a FLY_API_TOKEN repo secret for CI (fly tokens create org personal).
      An org token, not an app-scoped deploy one: pull request previews create

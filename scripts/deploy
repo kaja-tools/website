@@ -2,7 +2,7 @@
 # Deploy every app to Fly.io. Mirrors the CI matrix in .github/workflows/deploy.yml.
 # Requires flyctl to be installed and authenticated (fly auth login).
 #
-# Pass an app name to deploy just one, e.g. `scripts/deploy theatre`.
+# Pass an app name to deploy just one, e.g. `scripts/deploy bakebook`.
 set -e
 cd "$(dirname "$0")/.."
 
@@ -18,8 +18,9 @@ deploy() {
 ONLY="$1"
 
 deploy home         home
-deploy theatre      apps/theatre
-deploy seating      apps/seating
+deploy bakebook     apps/bakebook
+deploy oven         apps/oven
+deploy kitchen      apps/kitchen
 deploy quirks       apps/quirks
 
 echo "Done"

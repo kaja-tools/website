@@ -1,0 +1,23 @@
+# Kitchen MCP service. Public at kitchen.kaja.tools, endpoint /mcp.
+#   fly certs add kitchen.kaja.tools --app kaja-kitchen
+#
+# MCP Streamable HTTP is ordinary HTTP POST, so this needs none of the h2
+# plumbing the gRPC app does.
+app = "kaja-kitchen"
+primary_region = "sjc"
+
+[build]
+
+[env]
+  BAKEBOOK_URL = "http://kaja-bakebook.internal:41530"
+
+[http_service]
+  internal_port = 41540
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 1
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"

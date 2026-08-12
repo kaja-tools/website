@@ -7,16 +7,18 @@ single-domain nginx-ingress that ran on Azure Kubernetes.
 
 ## Apps
 
-| Fly app        | Source         | Public hostname      | Notes                                    |
-| -------------- | -------------- | -------------------- | ---------------------------------------- |
-| `kaja-home`    | `home`         | `kaja.tools`, `www`  | the website — Astro, served by Caddy     |
-| `kaja-theatre` | `apps/theatre` | `theatre.kaja.tools` | OpenAPI (e.g. `/openapi.yaml`, `/shows`) |
-| `kaja-seating` | `apps/seating` | `seating.kaja.tools` | gRPC over TLS on :443                    |
-| `kaja-quirks`  | `apps/quirks`  | `quirks.kaja.tools`  | Twirp under `/twirp`                     |
+| Fly app         | Source          | Public hostname       | Notes                                       |
+| --------------- | --------------- | --------------------- | ------------------------------------------- |
+| `kaja-home`     | `home`          | `kaja.tools`, `www`   | the website — Astro, served by Caddy        |
+| `kaja-bakebook` | `apps/bakebook` | `bakebook.kaja.tools` | OpenAPI (e.g. `/openapi.yaml`, `/cookies`)  |
+| `kaja-oven`     | `apps/oven`     | `oven.kaja.tools`     | gRPC over TLS on :443                       |
+| `kaja-kitchen`  | `apps/kitchen`  | `kitchen.kaja.tools`  | MCP Streamable HTTP at `/mcp`               |
+| `kaja-quirks`   | `apps/quirks`   | `quirks.kaja.tools`   | Twirp under `/twirp`                        |
 
-`theatre` and `seating` are the public demo; `quirks` is the Twirp protocol
-testbed. The website sits at the repository root rather than under `apps/`,
-because `apps/` is the demo services and the website is not one of them.
+`bakebook`, `oven` and `kitchen` are the public demo — one catalog, one live
+service, one toolbelt, three protocols. `quirks` is the Twirp protocol testbed.
+The website sits at the repository root rather than under `apps/`, because
+`apps/` is the demo services and the website is not one of them.
 
 ### The website's image
 
@@ -36,24 +38,28 @@ that repository's own `workspace/` — the same image its pull-request previews
 run. This repository owns the demo *services* the IDE calls; it no longer holds
 a second copy of the IDE's configuration to keep in step.
 
-Each service is served at the root of its own hostname (e.g. the theatre spec
-is at `https://theatre.kaja.tools/openapi.yaml`, Twirp uses the standard
-`/twirp/...` prefix). The theatre OpenAPI `servers` URL — and the IDE's
+Each service is served at the root of its own hostname (e.g. the bakebook spec
+is at `https://bakebook.kaja.tools/openapi.yaml`, the kitchen's MCP endpoint at
+`https://kitchen.kaja.tools/mcp`, and Twirp uses the standard `/twirp/...`
+prefix). The bakebook OpenAPI `servers` URL — and the IDE's
 `workspace/kaja.json` over in wham/kaja — point at these hostnames.
 
 ### East-west (service-to-service) traffic
 
-`seating` calls `theatre` (HTTP) to look up which shows exist and what they
-cost. Those calls stay on Fly's private network via `<app>.internal` DNS
-(`kaja-theatre.internal:41530`) — they never leave the org, so only public
-browser/IDE traffic goes through the edge.
+`oven` and `kitchen` both call `bakebook` (HTTP) to look up which cookies exist
+and how they bake. Those calls stay on Fly's private network via
+`<app>.internal` DNS (`kaja-bakebook.internal:41530`) — they never leave the
+org, so only public browser/IDE traffic goes through the edge.
 
 ### gRPC
 
-gRPC needs HTTP/2 end to end. The gRPC app (`kaja-seating`) sets
+gRPC needs HTTP/2 end to end. The gRPC app (`kaja-oven`) sets
 `http_options.h2_backend = true` and `tls_options.alpn = ["h2"]` in its
 `fly.toml`, so the Fly edge negotiates HTTP/2 with clients and forwards HTTP/2
-cleartext to the app. Clients dial `seating.kaja.tools:443`.
+cleartext to the app. Clients dial `oven.kaja.tools:443`.
+
+The MCP app needs none of it: MCP Streamable HTTP is ordinary HTTP POST, so
+`kaja-kitchen` is a plain `http_service`.
 
 ## First-time setup
 
@@ -105,7 +111,7 @@ To deploy from your own machine instead:
 
 ```bash
 scripts/deploy            # all apps
-scripts/deploy theatre    # a single app
+scripts/deploy oven       # a single app
 ```
 
 Adding or renaming an app means updating the `APPS` list in `deploy.yml` (and
@@ -123,9 +129,10 @@ the **website** running on Fly, at `https://kaja-home-pr-<number>.fly.dev`.
 sticky comment on the pull request carries the URL. Every push rebuilds it;
 closing the pull request destroys the app and removes the comment.
 
-Only the website is previewed. The demo services (`theatre`, `seating`,
-`quirks`) are stateful, hostname-bound and called by the IDE, so a change to one
-ships when it merges rather than to a throwaway app nothing points at.
+Only the website is previewed. The demo services (`bakebook`, `oven`,
+`kitchen`, `quirks`) are stateful, hostname-bound and called by the IDE, so a
+change to one ships when it merges rather than to a throwaway app nothing
+points at.
 
 A preview app runs no machine until someone opens its URL
 (`min_machines_running = 0`), so an idle preview costs nothing. A pull request
@@ -133,8 +140,9 @@ from a fork is skipped: it has no access to the token.
 
 ## Notes
 
-- The seating service runs the simulated crowd in-process (`CROWD=off` to
-  disable), so the seat map keeps moving without a second app driving it.
+- The oven runs the rest of the bakery in-process (`CROWD=off` to disable), so
+  the racks keep moving without a second app driving it. It also runs on demo
+  time: a recipe's minutes become seconds, so a bake finishes while you watch.
 - `primary_region` is set to `sjc` in every `fly.toml`. Change it to match the
   region you host in; keeping all apps in one region keeps the private-network
   (east-west) hops fast.

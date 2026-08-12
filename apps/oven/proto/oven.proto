@@ -1,0 +1,154 @@
+syntax = "proto3";
+
+package oven;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "internal/api";
+
+// The Kaja Bakery's oven: four racks, one temperature, and other bakers.
+//
+// Baking is two calls: claim a rack, then start the bake. Cookie ids come from
+// the bakebook catalog — start at https://bakebook.kaja.tools/cookies and copy
+// any `id`.
+//
+// The oven runs on demo time: a minute in the recipe is a second in here, so a
+// bake you start finishes while you are still looking at it.
+//
+// There are four racks and you are not the only baker. A rack you were about to
+// claim can be gone by the time you claim it, and losing one to somebody faster
+// is a normal thing to see here.
+service Oven {
+    // Every rack, what is on it and how long it has left, plus what is cooling
+    // and what is already out on the counter. Takes no parameters.
+    rpc GetOven(GetOvenRequest) returns (GetOvenResponse);
+    // Claim a free rack for a cookie and up to three trays. The rack is yours
+    // for 45 seconds; a claim nobody bakes on is released automatically.
+    rpc ClaimRack(ClaimRackRequest) returns (ClaimRackResponse);
+    // Bake it. This is the call that spends the dough and heats the oven, and
+    // there is no unbaking a batch.
+    rpc StartBake(StartBakeRequest) returns (StartBakeResponse);
+
+    // Streaming bonus: a snapshot of the oven, then every rack change in it,
+    // live, until you disconnect. Needs a client that speaks gRPC streaming —
+    // the kaja desktop app does; the web demo does not, so there it is fine to
+    // just call GetOven again.
+    rpc WatchOven(WatchOvenRequest) returns (stream OvenUpdate);
+}
+
+enum RackState {
+    RACK_STATE_UNKNOWN = 0;
+    RACK_STATE_EMPTY = 1;
+    RACK_STATE_CLAIMED = 2;
+    RACK_STATE_BAKING = 3;
+    RACK_STATE_COOLING = 4;
+}
+
+enum ChangeReason {
+    CHANGE_REASON_UNKNOWN = 0;
+    CHANGE_REASON_CLAIMED = 1;
+    CHANGE_REASON_STARTED = 2;
+    // Out of the oven and onto the wire racks.
+    CHANGE_REASON_OUT = 3;
+    // Out of the oven and into the bin.
+    CHANGE_REASON_SCORCHED = 4;
+    // Cool enough to move to the counter.
+    CHANGE_REASON_COOLED = 5;
+    CHANGE_REASON_RELEASED = 6;
+    CHANGE_REASON_EXPIRED = 7;
+}
+
+message Rack {
+    int32 number = 1;
+    RackState state = 2;
+    // All empty while the rack is.
+    string cookie_id = 3;
+    string cookie_name = 4;
+    int32 trays = 5;
+    int32 cookies = 6;
+    // Who has the rack. Everything you claim is "you"; the rest are the
+    // bakery's own staff, who are here all day.
+    string baker = 7;
+    // When this state runs out: the claim expires, the bake finishes, the
+    // batch is cool. Unset for an empty rack.
+    google.protobuf.Timestamp until = 8;
+}
+
+message OvenState {
+    // What the oven is set to right now. It follows whatever went in last.
+    int32 celsius = 1;
+    repeated Rack racks = 2;
+    int32 free_racks = 3;
+    // Cookies on the wire racks, and cookies already out for sale.
+    int32 cooling = 4;
+    int32 on_counter = 5;
+    int32 baked_today = 6;
+    int32 scorched_today = 7;
+}
+
+message Claim {
+    string id = 1;
+    int32 rack_number = 2;
+    string cookie_id = 3;
+    int32 trays = 4;
+    int32 cookies = 5;
+    int32 dough_grams = 6;
+    google.protobuf.Timestamp expires_at = 7;
+}
+
+message Batch {
+    string id = 1;
+    int32 rack_number = 2;
+    string cookie_id = 3;
+    int32 cookies = 4;
+    int32 celsius = 5;
+    // How long this bake takes in demo seconds — the recipe's minutes.
+    int32 bake_seconds = 6;
+    google.protobuf.Timestamp ready_at = 7;
+}
+
+message RackChange {
+    int32 rack_number = 1;
+    RackState state = 2;
+    ChangeReason reason = 3;
+    string cookie_id = 4;
+    string baker = 5;
+    int32 cookies = 6;
+    google.protobuf.Timestamp changed_at = 7;
+}
+
+message GetOvenRequest {}
+
+message GetOvenResponse {
+    OvenState oven = 1;
+}
+
+message ClaimRackRequest {
+    // An id from https://bakebook.kaja.tools/cookies, e.g. "brown-butter".
+    string cookie_id = 1;
+    // 1 to 3. Defaults to 1.
+    int32 trays = 2;
+}
+
+message ClaimRackResponse {
+    Claim claim = 1;
+}
+
+message StartBakeRequest {
+    string claim_id = 1;
+}
+
+message StartBakeResponse {
+    Batch batch = 1;
+}
+
+message WatchOvenRequest {}
+
+// One frame of a WatchOven stream: the opening snapshot, then a change every
+// time any rack in the oven changes state.
+message OvenUpdate {
+    oneof update {
+        OvenState snapshot = 1;
+        RackChange change = 2;
+    }
+}

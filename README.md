@@ -6,8 +6,8 @@ This repo is the source for the [kaja.tools](https://kaja.tools) website.
 
 - `home/` — the website. [Astro](https://astro.build) with Tailwind CSS v4,
   built to static files and served by Caddy.
-- `apps/` — the demo services, in Go. `theatre` (OpenAPI) and `seating` (gRPC)
-  are the public demo; `quirks` is the Twirp protocol testbed.
+- `apps/` — the demo services, in Go. `bakebook` (OpenAPI), `oven` (gRPC) and
+  `kitchen` (MCP) are the public demo; `quirks` is the Twirp protocol testbed.
 
 ## Development
 
@@ -27,6 +27,9 @@ The services:
 ```
 # Re-generate gRPC and Twirp code for all apps. Commit when done.
 scripts/protoc
+
+# Build, vet and test one service.
+cd apps/oven && go build ./... && go vet ./... && go test ./...
 ```
 
 ## Production
