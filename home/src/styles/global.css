@@ -1,0 +1,100 @@
+@import "tailwindcss";
+
+/* Design tokens. Everything the site is allowed to be coloured, sized or
+   animated with lives here, so a component never reaches for a raw hex. */
+@theme {
+  /* Brand ramp, warm to cool — the three stops of the gradient. */
+  --color-brand-orange: #b9682f;
+  --color-brand-mauve: #893c67;
+  --color-brand-purple: #8b3bc8;
+
+  /* The one solid brand colour, for links and the active slideshow dot. */
+  --color-accent: #8a3aca;
+
+  --color-ink: #0a0a0f;
+  --color-surface: #12121a;
+  --color-muted: #a0a0b0;
+
+  --font-sans: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* Column widths, widest to narrowest: the page frame, the screenshot
+     carousel, a page of body copy, the hero tagline. `doc` rather than `prose`
+     because Tailwind already ships a `max-w-prose`. */
+  --container-page: 1200px;
+  --container-shot: 900px;
+  --container-doc: 700px;
+  --container-tagline: 600px;
+
+  --radius-btn: 10px;
+
+  --shadow-store: 0 4px 20px rgb(0 0 0 / 0.5);
+  --shadow-store-hover: 0 8px 30px rgb(138 58 202 / 0.35);
+  --shadow-frame: 0 20px 60px rgb(0 0 0 / 0.5), 0 0 0 1px rgb(255 255 255 / 0.1);
+
+  --animate-fade-in: fade-in 0.6s ease-out;
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+@layer base {
+  :root {
+    --brand-gradient: linear-gradient(135deg, var(--color-brand-orange), var(--color-brand-mauve), var(--color-brand-purple));
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Fills an element with the brand gradient. */
+@utility brand-gradient {
+  background-image: var(--brand-gradient);
+}
+
+/* The same gradient, clipped to the glyphs. `-webkit-text-fill-color` is what
+   actually makes it work in Safari; `color` covers everyone else. */
+@utility text-gradient {
+  background-image: var(--brand-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* A gradient hairline that fades in around the element on hover. Drawn as a
+   1px inset pseudo-element with its middle masked out, because a border can't
+   hold a gradient on its own. */
+@utility gradient-ring {
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    padding: 1px;
+    border-radius: var(--radius-btn);
+    background-image: var(--brand-gradient);
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+
+  &:hover::before {
+    opacity: 1;
+  }
+}

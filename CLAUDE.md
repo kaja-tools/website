@@ -45,12 +45,47 @@ map is always moving. `CROWD=off` disables it.
 edge cases (odd names, deep nesting, panics, streaming RPCs that Twirp renders
 as unary).
 
-## Home Page Static Files
+## The Website
 
-Structure for `apps/home/static/`:
+The website is `home/` at the repository root — an [Astro](https://astro.build)
+site with Tailwind CSS v4, built to static files and served by Caddy. `apps/`
+is the demo services only; the website does not belong there and does not move
+back.
 
-- Root level: `index.html`, `styles.css`, `script.js`, `favicon.ico`, `favicon.svg`, `logo.svg`
-- `/assets/`: Screenshots and demo videos only
+```
+home/
+  src/pages/       one file per route (index, privacy, 404)
+  src/layouts/     the page shell — <head>, header, footer
+  src/components/  everything reused across pages
+  src/styles/      global.css: the Tailwind import and the design tokens
+  public/          served verbatim at the root: favicons, logo, /assets/
+  Caddyfile        serving rules for the runtime image
+```
+
+- `public/assets/` is screenshots and demo videos only.
+- **Colours, fonts, radii, shadows and animations are tokens.** They live in the
+  `@theme` block in `src/styles/global.css` and are used through the utilities
+  Tailwind generates from them (`bg-ink`, `max-w-page`, `shadow-frame`,
+  `animate-fade-in`). Don't write a raw hex or a one-off pixel value in a
+  component; add or reuse a token.
+- The three custom utilities in `global.css` (`brand-gradient`, `text-gradient`,
+  `gradient-ring`) exist because they need `background-clip`/`mask-composite`
+  tricks that utilities can't express. That is the bar for adding another one.
+- Tailwind's preset `text-*` sizes carry their own `line-height`. The design
+  inherits `1.6` from the body, so pin it with the slash modifier
+  (`text-xl/[1.6]`) whenever a preset size is used.
+
+Commands, all from `home/`:
+
+```bash
+npm run dev           # dev server with HMR at localhost:4321
+npm run build         # static build into home/dist
+npm run preview       # serve the build
+npm run check         # astro check (TypeScript + template diagnostics)
+npm run format        # prettier, including .astro files
+```
+
+CI runs `format:check`, `check` and `build`, so run them before pushing.
 
 ## Deployment and Service Routing
 
@@ -71,7 +106,7 @@ Each service is served at the root of its own hostname (no per-service path
 prefix), e.g. the theatre programme lives at `https://theatre.kaja.tools/shows`.
 
 **A pull request previews the website and nothing else.**
-`.github/workflows/preview.yml` deploys `apps/home` to its own Fly app,
+`.github/workflows/preview.yml` deploys `home` to its own Fly app,
 `kaja-home-pr-<number>`, and comments the URL on the pull request; closing it
 destroys the app. The demo services are stateful, hostname-bound and called by
 the IDE, so they ship on merge — don't add previews for them.

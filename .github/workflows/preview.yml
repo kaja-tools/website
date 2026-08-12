@@ -3,7 +3,7 @@ name: preview
 # https://kaja-home-pr-<number>.fly.dev. It is rebuilt on every push to the pull
 # request and destroyed when the pull request closes.
 #
-# Only the website (apps/home) is previewed. The demo services are stateful,
+# Only the website (home/) is previewed. The demo services are stateful,
 # hostname-bound and called by the IDE, so they keep shipping on merge.
 #
 # Needs a FLY_API_TOKEN repository secret that may create and destroy apps in
@@ -52,9 +52,9 @@ jobs:
         run: flyctl apps create "$APP_NAME" --org "$FLY_ORG" || true
 
       # flyctl resolves --config inside the directory it deploys, so this runs
-      # from apps/home rather than passing the path from the repository root.
+      # from home/ rather than passing the path from the repository root.
       - name: Deploy
-        working-directory: apps/home
+        working-directory: home
         run: |
           flyctl deploy \
             --config fly.preview.toml \

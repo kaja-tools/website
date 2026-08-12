@@ -17,7 +17,7 @@ deploy() {
 
 ONLY="$1"
 
-deploy home         apps/home
+deploy home         home
 deploy theatre      apps/theatre
 deploy seating      apps/seating
 deploy quirks       apps/quirks

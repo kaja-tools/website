@@ -1,0 +1,35 @@
+---
+import Layout from "../layouts/Layout.astro";
+
+const heading = "mt-8 mb-2 text-xl/[1.6] font-semibold";
+const body = "text-base/[1.7] text-muted";
+---
+
+<Layout title="Privacy Policy - Kaja" description="Kaja privacy policy. Kaja does not collect, store, or transmit any personal data.">
+  <section class="animate-fade-in mx-auto max-w-doc pt-10 pb-20">
+    <h1 class="text-gradient mb-2 text-[clamp(2rem,5vw,3rem)] font-bold">Privacy Policy</h1>
+    {/* The 0.9rem `.privacy-updated` asked for never applied — `.privacy-policy p` outranked it. Kept as it shipped. */}
+    <p class={`mb-10 ${body}`}>Last updated: April 5, 2026</p>
+
+    <h2 class={heading}>No data collection</h2>
+    <p class={body}>
+      Kaja is a local-first desktop application. It does not collect, store, or transmit any personal data to Kaja or any third party. All data stays on your
+      machine.
+    </p>
+
+    <h2 class={heading}>Service connections</h2>
+    <p class={body}>
+      When you configure connections to your own gRPC or Twirp services, the request data you enter is sent directly to those user-specified servers. Kaja does
+      not intermediate, log, or store this traffic.
+    </p>
+
+    <h2 class={heading}>Analytics and tracking</h2>
+    <p class={body}>Kaja does not include any analytics, telemetry, or tracking of any kind.</p>
+
+    <h2 class={heading}>Contact</h2>
+    <p class={body}>
+      If you have questions about this policy, you can open an issue on{" "}
+      <a href="https://github.com/wham/kaja" class="text-accent hover:underline" target="_blank" rel="noopener">GitHub</a>.
+    </p>
+  </section>
+</Layout>
