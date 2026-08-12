@@ -9,13 +9,25 @@ single-domain nginx-ingress that ran on Azure Kubernetes.
 
 | Fly app        | Source         | Public hostname      | Notes                                    |
 | -------------- | -------------- | -------------------- | ---------------------------------------- |
-| `kaja-home`    | `apps/home`    | `kaja.tools`, `www`  | static marketing site                    |
+| `kaja-home`    | `home`         | `kaja.tools`, `www`  | the website — Astro, served by Caddy     |
 | `kaja-theatre` | `apps/theatre` | `theatre.kaja.tools` | OpenAPI (e.g. `/openapi.yaml`, `/shows`) |
 | `kaja-seating` | `apps/seating` | `seating.kaja.tools` | gRPC over TLS on :443                    |
 | `kaja-quirks`  | `apps/quirks`  | `quirks.kaja.tools`  | Twirp under `/twirp`                     |
 
 `theatre` and `seating` are the public demo; `quirks` is the Twirp protocol
-testbed.
+testbed. The website sits at the repository root rather than under `apps/`,
+because `apps/` is the demo services and the website is not one of them.
+
+### The website's image
+
+`home/Dockerfile` is two stages: Node runs `astro build`, then the output is
+copied into a `caddy:alpine` image and Node is discarded. Nothing is rendered
+per request, so the runtime is a file server and a directory — no JavaScript
+runtime ships to production. `home/Caddyfile` holds the serving rules:
+`auto_https off` (Fly terminates TLS at the edge and forwards plain HTTP to
+`internal_port`), long immutable caching for the fingerprinted assets under
+`/_astro`, revalidation for everything else, and 301s from the old `.html`
+URLs to the directory form Astro emits.
 
 **The IDE at `demo.kaja.tools` is not deployed from here.** The `kaja-demo` Fly
 app lives in the same organization, but it is built and deployed by
@@ -106,8 +118,8 @@ out which app it was.
 
 Every pull request opened from a branch in this repository gets its own copy of
 the **website** running on Fly, at `https://kaja-home-pr-<number>.fly.dev`.
-`.github/workflows/preview.yml` deploys `apps/home` with
-`apps/home/fly.preview.toml` under an app named after the pull request, and a
+`.github/workflows/preview.yml` deploys `home` with
+`home/fly.preview.toml` under an app named after the pull request, and a
 sticky comment on the pull request carries the URL. Every push rebuilds it;
 closing the pull request destroys the app and removes the comment.
 

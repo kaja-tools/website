@@ -25,7 +25,7 @@ jobs:
         uses: actions/setup-go@v7
         with:
           go-version: "1.26"
-      - name: Build and vet
+      - name: Build and vet the services
         run: |
           set -e
           for dir in apps/*/; do
@@ -34,9 +34,21 @@ jobs:
               (cd "$dir" && go build ./... && go vet ./...)
             fi
           done
-          # home has no go.mod: a stdlib-only program built straight from source.
-          echo "==> apps/home"
-          (cd apps/home && go build -o /dev/null cmd/server/main.go)
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: home/package-lock.json
+      # The website is Astro, not Go, so it gets the checks its own toolchain
+      # offers: types, formatting, and a build that has to actually succeed.
+      - name: Build and check the website
+        working-directory: home
+        run: |
+          npm ci
+          npm run format:check
+          npm run check
+          npm run build
 
   # Deploys every app. Same workflow the Actions tab runs by hand, so a push
   # deploy and a manual deploy are the same code path.
