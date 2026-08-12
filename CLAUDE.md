@@ -71,17 +71,22 @@ home/
 ```
 
 - `public/assets/` is screenshots and demo videos only.
-- **Colours, fonts, radii, shadows and animations are tokens.** They live in the
+- **The palette is kaja-ui's.** The site is built from the same shadcn neutral
+  tokens as the app — `background`, `foreground`, `card`, `muted`,
+  `muted-foreground`, `border`, `primary`, `accent`, `ring` — dark values only,
+  because the site has no light theme and no toggle. `Button` is the app's
+  Button as a link, variant for variant; the 404 is the app's Blankslate. When
+  a page needs a control the app already has, copy the app's class list.
+- **Colours, fonts, sizes, radii and widths are tokens.** They live in the
   `@theme` block in `src/styles/global.css` and are used through the utilities
-  Tailwind generates from them (`bg-ink`, `max-w-page`, `shadow-frame`,
-  `animate-fade-in`). Don't write a raw hex or a one-off pixel value in a
+  Tailwind generates from them (`bg-card`, `text-hero`, `max-w-page`,
+  `rounded-frame`). Don't write a raw hex or a one-off pixel value in a
   component; add or reuse a token.
-- The three custom utilities in `global.css` (`brand-gradient`, `text-gradient`,
-  `gradient-ring`) exist because they need `background-clip`/`mask-composite`
-  tricks that utilities can't express. That is the bar for adding another one.
-- Tailwind's preset `text-*` sizes carry their own `line-height`. The design
-  inherits `1.6` from the body, so pin it with the slash modifier
-  (`text-xl/[1.6]`) whenever a preset size is used.
+- Tailwind's preset `text-*` sizes carry their own `line-height`, and the
+  design's body copy runs looser than the presets do, so pin it with the slash
+  modifier (`text-lg/[1.6]`) wherever the design gives a line height.
+- The one non-neutral colour on the site is the brand mark's gradient, in
+  `Logo.astro` and the two favicons.
 
 Commands, all from `home/`:
 

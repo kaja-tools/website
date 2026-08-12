@@ -1,3 +1,7 @@
+/* Figtree is the wordmark typeface and nothing else, so only the one weight
+   the lockup uses is loaded, self-hosted rather than fetched from Google. */
+@import "@fontsource/figtree/latin-700.css";
+
 /* `source(none)` turns off Tailwind's automatic source detection and the
    explicit @source below replaces it. Detection excludes files by reading
    .gitignore, and the Docker build context has no .gitignore — so it would
@@ -7,100 +11,64 @@
 @source "../**/*.{astro,html,js,jsx,ts,tsx,md,mdx}";
 
 /* Design tokens. Everything the site is allowed to be coloured, sized or
-   animated with lives here, so a component never reaches for a raw hex. */
+   spaced with lives here, so a component never reaches for a raw hex. */
 @theme {
-  /* Brand ramp, warm to cool — the three stops of the gradient. */
-  --color-brand-orange: #b9682f;
-  --color-brand-mauve: #893c67;
-  --color-brand-purple: #8b3bc8;
+  /* The palette is kaja-ui's — the shadcn neutral ramp the app itself is
+     built from, dark values only. The site has no light theme and no toggle,
+     so each token is the one value it resolves to under `.dark` in the app. */
+  --color-background: oklch(0.145 0 0);
+  --color-foreground: oklch(0.985 0 0);
+  --color-card: oklch(0.205 0 0);
+  --color-muted: oklch(0.269 0 0);
+  --color-muted-foreground: oklch(0.708 0 0);
+  --color-accent: oklch(0.371 0 0);
+  --color-accent-foreground: oklch(0.985 0 0);
+  --color-primary: oklch(0.922 0 0);
+  --color-primary-foreground: oklch(0.205 0 0);
+  --color-border: oklch(1 0 0 / 10%);
+  --color-ring: oklch(0.556 0 0);
 
-  /* The one solid brand colour, for links and the active slideshow dot. */
-  --color-accent: #8a3aca;
+  /* The two stops of the brand mark's gradient, warm to cool. The mark is the
+     only colour on the site that isn't on the neutral ramp. */
+  --color-brand-warm: #b0503f;
+  --color-brand-cool: #8a35d8;
 
-  --color-ink: #0a0a0f;
-  --color-surface: #12121a;
-  --color-muted: #a0a0b0;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: Figtree, var(--font-sans);
 
-  --font-sans: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* Sizes the preset scale doesn't cover. `prose` is body copy a step above
+     `text-sm`; `fine` is the footer; the other three are one element each. */
+  --text-fine: 0.8125rem;
+  --text-prose: 0.9375rem;
+  --text-wordmark: 1.1875rem;
+  --text-wordmark--line-height: 1;
+  --text-title: 2.5rem;
+  --text-title--line-height: 1.15;
+  --text-hero: 3.25rem;
+  --text-hero--line-height: 1.1;
 
-  /* Column widths, widest to narrowest: the page frame, the screenshot
-     carousel, a page of body copy, the hero tagline. `doc` rather than `prose`
-     because Tailwind already ships a `max-w-prose`. */
-  --container-page: 1200px;
-  --container-shot: 900px;
-  --container-doc: 700px;
+  --tracking-wordmark: -0.03em;
+
+  /* Below this the header nav runs out of room and sheds a link. Tailwind's
+     own breakpoints all sit above the phone widths that matters for. */
+  --breakpoint-xs: 24rem;
+
+  /* Column widths, widest to narrowest: the page frame, a page of body copy,
+     the hero headline, the hero tagline. `doc` rather than `prose` because
+     Tailwind already ships a `max-w-prose`. */
+  --container-page: 1120px;
+  --container-doc: 680px;
+  --container-headline: 760px;
   --container-tagline: 600px;
 
-  --radius-btn: 10px;
-
-  --shadow-store: 0 4px 20px rgb(0 0 0 / 0.5);
-  --shadow-store-hover: 0 8px 30px rgb(138 58 202 / 0.35);
-  --shadow-frame: 0 20px 60px rgb(0 0 0 / 0.5), 0 0 0 1px rgb(255 255 255 / 0.1);
-
-  --animate-fade-in: fade-in 0.6s ease-out;
-
-  @keyframes fade-in {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
+  /* The window frame around the screenshots sits between Tailwind's `lg` and
+     `xl` radii, and casts the one shadow on the site. */
+  --radius-frame: 10px;
+  --shadow-frame: 0 24px 60px rgb(0 0 0 / 0.45);
 }
 
 @layer base {
-  :root {
-    --brand-gradient: linear-gradient(135deg, var(--color-brand-orange), var(--color-brand-mauve), var(--color-brand-purple));
-  }
-
   html {
-    scroll-behavior: smooth;
-  }
-}
-
-/* Fills an element with the brand gradient. */
-@utility brand-gradient {
-  background-image: var(--brand-gradient);
-}
-
-/* The same gradient, clipped to the glyphs. `-webkit-text-fill-color` is what
-   actually makes it work in Safari; `color` covers everyone else. */
-@utility text-gradient {
-  background-image: var(--brand-gradient);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-}
-
-/* A gradient hairline that fades in around the element on hover. Drawn as a
-   1px inset pseudo-element with its middle masked out, because a border can't
-   hold a gradient on its own. */
-@utility gradient-ring {
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: "";
-    position: absolute;
-    inset: -1px;
-    padding: 1px;
-    border-radius: var(--radius-btn);
-    background-image: var(--brand-gradient);
-    -webkit-mask:
-      linear-gradient(#000 0 0) content-box,
-      linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    pointer-events: none;
-  }
-
-  &:hover::before {
-    opacity: 1;
+    color-scheme: dark;
   }
 }

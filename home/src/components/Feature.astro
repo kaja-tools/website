@@ -1,15 +1,18 @@
 ---
+import Icon from "./Icon.astro";
+
 interface Props {
   title: string;
+  icon: "code" | "package" | "server";
 }
 
-const { title } = Astro.props;
+const { title, icon } = Astro.props;
 ---
 
-<div class="rounded-2xl border border-white/5 bg-surface p-6 text-center transition-colors duration-200 hover:border-brand-purple/30 md:p-8">
-  <div class="brand-gradient mx-auto mb-4 flex size-12 items-center justify-center rounded-xl [&_svg]:size-6 [&_svg]:text-white">
-    <slot name="icon" />
+<div class="rounded-lg border border-border bg-card p-6">
+  <div class="mb-4 flex size-8 items-center justify-center rounded-md bg-muted">
+    <Icon name={icon} />
   </div>
-  <h3 class="mb-2 text-xl/[1.6] font-semibold">{title}</h3>
-  <p class="text-[0.95rem] text-muted"><slot /></p>
+  <h3 class="mb-1.5 text-prose font-semibold">{title}</h3>
+  <p class="text-sm/[1.6] text-muted-foreground"><slot /></p>
 </div>
