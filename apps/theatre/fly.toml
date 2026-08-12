@@ -5,9 +5,6 @@ primary_region = "sjc"
 
 [build]
 
-[env]
-  PUBLIC_BASE_URL = "https://theatre.kaja.tools"
-
 [http_service]
   internal_port = 41530
   force_https = true

@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.2
 // - protoc             v7.35.1
-// source: proto/seating.proto
+// source: seating.proto
 
 package api
 
@@ -237,5 +237,5 @@ var Seating_ServiceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 	},
-	Metadata: "proto/seating.proto",
+	Metadata: "seating.proto",
 }

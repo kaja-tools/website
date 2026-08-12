@@ -1,9 +1,11 @@
-// Package catalog holds The Kaja Theatre's repertoire. Every show runs once
-// a week on the same night, so its next date is derived from the current
-// time — no storage needed, and the demo can never run out of shows.
+// Package catalog holds The Kaja Theatre's programme — a repertory cinema in
+// a restored movie palace, so the films are real ones and the house has a
+// balcony. Every film screens once a week in the same slot, so its next
+// showtime is derived from the current time: no storage, and the demo can
+// never run out of screenings.
 //
-// A show is the unit the whole demo is built on: its id is what you pass to
-// the seating service. There is no separate "event" and "performance".
+// A screening is the unit the whole demo is built on: its id is what you pass
+// to the seating service. There is no separate "film" and "screening".
 package catalog
 
 import "time"
@@ -11,10 +13,16 @@ import "time"
 type Show struct {
 	ID             string
 	Title          string
+	Director       string
+	Year           int
+	RuntimeMinutes int
 	Genre          string
-	Tagline        string
-	Description    string
+	Language       string
+	Synopsis       string
 	BasePriceCents int
+	// moods the concierge matches a request against. Not published: the
+	// programme is the film, and taste is the concierge's job.
+	Moods []string
 	// The weekly slot. Times are UTC.
 	Weekday time.Weekday
 	Hour    int
@@ -23,88 +31,153 @@ type Show struct {
 
 var shows = []Show{
 	{
-		ID:      "neon-meridian",
-		Title:   "Neon Meridian: World Tour",
-		Genre:   "concert",
-		Tagline: "Synthwave for the end of the night.",
-		Description: "After two sold-out continents, Neon Meridian brings the World Tour home. " +
-			"Expect walls of analog synth, a light rig that needed its own truck, and the " +
-			"encore everyone films instead of watching.",
-		BasePriceCents: 8500,
+		ID:             "dune-part-two",
+		Title:          "Dune: Part Two",
+		Director:       "Denis Villeneuve",
+		Year:           2024,
+		RuntimeMinutes: 165,
+		Genre:          "sci-fi",
+		Language:       "English",
+		Synopsis:       "Paul Atreides joins the Fremen and rides the desert into a war he can see the end of.",
+		BasePriceCents: 1800,
+		Moods:          []string{"loud", "epic", "spectacle", "big screen", "sci-fi"},
 		Weekday:        time.Friday,
 		Hour:           19,
 		Minute:         30,
 	},
 	{
-		ID:      "vera-lune",
-		Title:   "An Evening with Vera Lune",
-		Genre:   "concert",
-		Tagline: "One voice, one piano, no microphone.",
-		Description: "Jazz's quietest superstar performs entirely unamplified — the room was " +
-			"built for it, and Vera Lune knows exactly what to do with it.",
-		BasePriceCents: 6500,
-		Weekday:        time.Wednesday,
+		ID:             "parasite",
+		Title:          "Parasite",
+		Director:       "Bong Joon Ho",
+		Year:           2019,
+		RuntimeMinutes: 132,
+		Genre:          "thriller",
+		Language:       "Korean",
+		Synopsis:       "One family talks its way into another family's house, one job at a time.",
+		BasePriceCents: 1500,
+		Moods:          []string{"tense", "clever", "dark", "modern classic", "thriller"},
+		Weekday:        time.Thursday,
 		Hour:           20,
 		Minute:         0,
 	},
 	{
-		ID:      "cartographers-daughter",
-		Title:   "The Cartographer's Daughter",
-		Genre:   "play",
-		Tagline: "A map of everywhere she never went.",
-		Description: "Elena Brook's award-winning play about a daughter who inherits ten " +
-			"thousand hand-drawn maps and a father she never understood. Bring tissues.",
-		BasePriceCents: 5500,
-		Weekday:        time.Tuesday,
+		ID:             "spirited-away",
+		Title:          "Spirited Away",
+		Director:       "Hayao Miyazaki",
+		Year:           2001,
+		RuntimeMinutes: 124,
+		Genre:          "animation",
+		Language:       "Japanese",
+		Synopsis:       "A ten-year-old takes a job in a bathhouse for spirits to win her parents back.",
+		BasePriceCents: 1400,
+		Moods:          []string{"gentle", "family", "beautiful", "kids", "animation"},
+		Weekday:        time.Sunday,
+		Hour:           14,
+		Minute:         0,
+	},
+	{
+		ID:             "grand-budapest-hotel",
+		Title:          "The Grand Budapest Hotel",
+		Director:       "Wes Anderson",
+		Year:           2014,
+		RuntimeMinutes: 100,
+		Genre:          "comedy",
+		Language:       "English",
+		Synopsis:       "A concierge and his lobby boy inherit a painting and the trouble attached to it.",
+		BasePriceCents: 1400,
+		Moods:          []string{"funny", "light", "charming", "short", "comedy"},
+		Weekday:        time.Wednesday,
 		Hour:           19,
 		Minute:         0,
 	},
 	{
-		ID:      "twelve-clocks",
-		Title:   "Twelve Clocks",
-		Genre:   "play",
-		Tagline: "Every hour, somebody lies.",
-		Description: "A locked-room mystery told backwards: twelve scenes, twelve clocks, one " +
-			"of them telling the truth. Monday's audience gets home arguing about it.",
-		BasePriceCents: 4800,
-		Weekday:        time.Monday,
-		Hour:           19,
-		Minute:         30,
-	},
-	{
-		ID:      "milo-frey",
-		Title:   "Milo Frey: Grand Opening",
-		Genre:   "comedy",
-		Tagline: "New hour. Old grudges.",
-		Description: "Milo Frey road-tested this hour in forty basements so he could ruin it " +
-			"here, in front of people who paid. The late show gets the unlisted bits.",
-		BasePriceCents: 4200,
+		ID:             "blade-runner",
+		Title:          "Blade Runner",
+		Director:       "Ridley Scott",
+		Year:           1982,
+		RuntimeMinutes: 117,
+		Genre:          "sci-fi",
+		Language:       "English",
+		Synopsis:       "A detective hunts four fugitives who are harder to tell from people than the job allows.",
+		BasePriceCents: 1300,
+		Moods:          []string{"moody", "classic", "rainy", "sci-fi", "late"},
 		Weekday:        time.Friday,
 		Hour:           22,
-		Minute:         0,
-	},
-	{
-		ID:      "kaja-players",
-		Title:   "Improv Night with The Kaja Players",
-		Genre:   "comedy",
-		Tagline: "Nothing is planned. Everything is your fault.",
-		Description: "The house troupe builds an entire show out of audience suggestions. " +
-			"Yes, they will use yours. No, you cannot take it back.",
-		BasePriceCents: 2500,
-		Weekday:        time.Sunday,
-		Hour:           19,
 		Minute:         30,
 	},
 	{
-		ID:      "glass-mountain",
-		Title:   "The Glass Mountain",
-		Genre:   "opera",
-		Tagline: "Climb it, or become part of the view.",
-		Description: "Ilona Vasseur's modern fable, staged with a mirrored set that puts the " +
-			"audience inside the mountain. Sung in Czech with English surtitles.",
-		BasePriceCents: 9500,
+		ID:             "in-the-mood-for-love",
+		Title:          "In the Mood for Love",
+		Director:       "Wong Kar-wai",
+		Year:           2000,
+		RuntimeMinutes: 98,
+		Genre:          "romance",
+		Language:       "Cantonese",
+		Synopsis:       "Two neighbours work out that their spouses are having an affair, and say almost nothing about it.",
+		BasePriceCents: 1300,
+		Moods:          []string{"romantic", "quiet", "sad", "date", "short"},
+		Weekday:        time.Tuesday,
+		Hour:           20,
+		Minute:         30,
+	},
+	{
+		ID:             "mad-max-fury-road",
+		Title:          "Mad Max: Fury Road",
+		Director:       "George Miller",
+		Year:           2015,
+		RuntimeMinutes: 120,
+		Genre:          "action",
+		Language:       "English",
+		Synopsis:       "A war rig turns left across the wasteland and everything that can drive follows it.",
+		BasePriceCents: 1600,
+		Moods:          []string{"loud", "fast", "action", "spectacle", "big screen"},
+		Weekday:        time.Saturday,
+		Hour:           21,
+		Minute:         0,
+	},
+	{
+		ID:             "seven-samurai",
+		Title:          "Seven Samurai",
+		Director:       "Akira Kurosawa",
+		Year:           1954,
+		RuntimeMinutes: 207,
+		Genre:          "drama",
+		Language:       "Japanese",
+		Synopsis:       "A village with nothing to pay with hires seven swordsmen anyway.",
+		BasePriceCents: 1200,
+		Moods:          []string{"classic", "long", "epic", "drama"},
 		Weekday:        time.Sunday,
-		Hour:           15,
+		Hour:           17,
+		Minute:         0,
+	},
+	{
+		ID:             "get-out",
+		Title:          "Get Out",
+		Director:       "Jordan Peele",
+		Year:           2017,
+		RuntimeMinutes: 104,
+		Genre:          "horror",
+		Language:       "English",
+		Synopsis:       "A weekend meeting the parents goes wrong slowly, and then all at once.",
+		BasePriceCents: 1400,
+		Moods:          []string{"scary", "tense", "horror", "short", "late"},
+		Weekday:        time.Thursday,
+		Hour:           22,
+		Minute:         30,
+	},
+	{
+		ID:             "everything-everywhere",
+		Title:          "Everything Everywhere All at Once",
+		Director:       "Daniel Kwan and Daniel Scheinert",
+		Year:           2022,
+		RuntimeMinutes: 139,
+		Genre:          "sci-fi",
+		Language:       "English",
+		Synopsis:       "A laundromat audit becomes a tour of every life its owner didn't live.",
+		BasePriceCents: 1500,
+		Moods:          []string{"funny", "weird", "loud", "sci-fi", "modern classic"},
+		Weekday:        time.Saturday,
+		Hour:           18,
 		Minute:         0,
 	},
 }
@@ -120,8 +193,8 @@ func ByID(id string) (Show, bool) {
 	return Show{}, false
 }
 
-// NextStart is the show's next curtain-up after now. A weekly show always
-// has one, so every show in the catalog is always on sale.
+// NextStart is the screening's next start after now. A weekly slot always has
+// one, so every film in the programme is always on sale.
 func (s Show) NextStart(now time.Time) time.Time {
 	now = now.UTC()
 	midnight := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)

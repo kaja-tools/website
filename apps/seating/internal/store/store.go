@@ -215,19 +215,56 @@ func (s *Store) Subscribe(showID string) (*api.SeatMap, <-chan *api.SeatUpdate, 
 	return snapshot, ch, cancel, nil
 }
 
-// Hold places a hold on the given seats. All seats must be available;
-// otherwise the caller is told exactly which ones were lost.
-func (s *Store) Hold(showID string, seatIDs []string) (*api.Hold, error) {
+// Book sells the given seats outright. It is the only write the service
+// exposes, and it is all or nothing: if somebody took one of the seats first,
+// nothing is sold and the caller is told exactly which ones were lost.
+//
+// Holding is still how the house works — the crowd holds seats and thinks
+// about them, so the map keeps moving — but a hold is not something a caller
+// has to carry around between two calls to buy a ticket.
+func (s *Store) Book(showID string, seatIDs []string) (*api.BookSeatsResponse, error) {
+	sh, ids, err := s.claim(showID, seatIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	var seats []*api.Seat
+	var total int32
+	for _, id := range ids {
+		st := sh.seats[id]
+		st.status = api.SeatStatus_SEAT_STATUS_SOLD
+		st.holdID = ""
+		total += st.price
+		sh.emitLocked(id, api.SeatStatus_SEAT_STATUS_SOLD, api.ChangeReason_CHANGE_REASON_PURCHASE)
+		seats = append(seats, seatProto(st))
+	}
+
+	return &api.BookSeatsResponse{
+		BookingId:       "bk_" + randomID(),
+		Seats:           seats,
+		TotalPriceCents: total,
+		BookedAt:        timestamppb.Now(),
+	}, nil
+}
+
+// claim normalizes the requested seat ids and checks that every one of them is
+// free, leaving the caller to decide what to do with them under a fresh lock.
+// The seats are not reserved by this — a race is still possible and still
+// normal — but every rejection a caller can hit is decided in one place.
+func (s *Store) claim(showID string, seatIDs []string) (*show, []string, error) {
 	if len(seatIDs) == 0 {
-		return nil, status.Error(codes.InvalidArgument, "pick at least one seat")
+		return nil, nil, status.Error(codes.InvalidArgument, "pick at least one seat")
 	}
 	if len(seatIDs) > MaxSeatsPerHold {
-		return nil, status.Errorf(codes.InvalidArgument, "at most %d seats per hold", MaxSeatsPerHold)
+		return nil, nil, status.Errorf(codes.InvalidArgument, "at most %d seats at a time", MaxSeatsPerHold)
 	}
 
 	sh, err := s.state(showID)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	s.mu.Lock()
@@ -242,25 +279,42 @@ func (s *Store) Hold(showID string, seatIDs []string) (*api.Hold, error) {
 		}
 		seen[id] = true
 		if _, ok := sh.seats[id]; !ok {
-			return nil, status.Errorf(codes.InvalidArgument, "there is no seat %q in the house", raw)
+			return nil, nil, status.Errorf(codes.InvalidArgument, "there is no seat %q in the house", raw)
 		}
 		ids = append(ids, id)
 	}
 
 	var taken []string
-	var total int32
 	for _, id := range ids {
 		if sh.seats[id].status != api.SeatStatus_SEAT_STATUS_AVAILABLE {
 			taken = append(taken, id)
 		}
-		total += sh.seats[id].price
 	}
 	if len(taken) > 0 {
 		verb := "was"
 		if len(taken) > 1 {
 			verb = "were"
 		}
-		return nil, status.Errorf(codes.AlreadyExists, "seat %s %s just taken", strings.Join(taken, ", "), verb)
+		return nil, nil, status.Errorf(codes.AlreadyExists, "seat %s %s just taken", strings.Join(taken, ", "), verb)
+	}
+	return sh, ids, nil
+}
+
+// Hold places a hold on the given seats and returns its id. Not exposed over
+// gRPC — buying is one call — but the crowd holds seats and lets them go,
+// which is what keeps the seat map moving while you read it.
+func (s *Store) Hold(showID string, seatIDs []string) (string, error) {
+	sh, ids, err := s.claim(showID, seatIDs)
+	if err != nil {
+		return "", err
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	var total int32
+	for _, id := range ids {
+		total += sh.seats[id].price
 	}
 
 	h := &hold{
@@ -278,10 +332,11 @@ func (s *Store) Hold(showID string, seatIDs []string) (*api.Hold, error) {
 	}
 	time.AfterFunc(HoldTTL, func() { s.expire(h.id) })
 
-	return holdProto(h), nil
+	return h.id, nil
 }
 
-// Confirm turns a hold into sold seats.
+// Confirm turns a hold into sold seats. Not exposed over gRPC either; it is
+// how the crowd finishes what it started.
 func (s *Store) Confirm(holdID string) ([]*api.Seat, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -344,16 +399,6 @@ func seatProto(st *seat) *api.Seat {
 		Number:     st.number,
 		Status:     st.status,
 		PriceCents: st.price,
-	}
-}
-
-func holdProto(h *hold) *api.Hold {
-	return &api.Hold{
-		Id:              h.id,
-		ShowId:          h.showID,
-		SeatIds:         h.seatIDs,
-		TotalPriceCents: h.total,
-		ExpiresAt:       timestamppb.New(h.expires),
 	}
 }
 

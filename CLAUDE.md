@@ -26,28 +26,49 @@ This script:
 
 - Installs a consistent version of `protoc` into the `build/` directory (supports Linux and macOS)
 - Installs the required Go plugins (`protoc-gen-go`, `protoc-gen-go-grpc`, `protoc-gen-twirp`)
-- Regenerates all proto files for the quirks (Twirp) and seating (gRPC) services
+- Regenerates all proto files for the quirks (Twirp) and seating (gRPC) services,
+  and the seating client the concierge is built on
 
 Do not use system-installed protoc or manually run protoc commands.
 
 ## Demo Services
 
-The public demo is two services and two protocols — gRPC and OpenAPI. Twirp
-is deliberately not part of the demo (it is still supported by kaja itself,
-and `apps/quirks` still exercises it).
+The demo is The Kaja Theatre, a repertory cinema: three services, three
+protocols — OpenAPI, gRPC and MCP. Twirp is deliberately not part of it (it is
+still supported by kaja itself, and `apps/quirks` still exercises it).
 
-- `apps/theatre` (OpenAPI) is the programme: `GET /shows` takes no parameters
-  and returns the whole repertoire.
-- `apps/seating` (gRPC) owns live seat state: `GetSeatMap`, `HoldSeats`,
-  `ConfirmSeats`, and the streaming `WatchSeats`.
+- `apps/theatre` (OpenAPI) is the programme. **One operation, no parameters:**
+  `GET /shows` returns the whole week.
+- `apps/seating` (gRPC) owns live seat state: `GetSeatMap`, `BookSeats`, and
+  the streaming `WatchSeats`. **Buying is one call** — `BookSeats` is all or
+  nothing, and it is the only write in the demo, which is what makes it the one
+  thing worth putting behind `kaja.approve`.
+- `apps/concierge` (MCP) is front of house: `suggest_film`, `best_seats`,
+  `write_confirmation`. It owns no data — it reads the programme over HTTP and
+  the seat map over gRPC, and turns a sentence somebody typed into a `showId`
+  and a list of seat ids the other two services understand.
 
-A show's `id` is the only identifier in the demo: copy it out of `/shows` and
-pass it to seating as `showId`. Keep it that way — the point of this shape is
-that somebody can call the demo without reading anything first. Adding
-methods, identifiers, or required lookups walks it back.
+**The films are real; the cinema is not.** `apps/theatre/internal/catalog` is
+ten actual films with their real director, year, running time and language,
+because a demo you understand in seconds cannot also be teaching you an
+invented repertoire. Nothing about a film is invented except its weekly slot
+and its price.
+
+A screening's `id` is the only identifier in the demo: copy it out of `/shows`
+and pass it to seating as `showId`, or let the concierge hand you one. Keep it
+that way — the point of this shape is that somebody can call the demo without
+reading anything first. Adding methods, identifiers, or required lookups walks
+it back.
+
+**The concierge holds no opinions keyed by film id.** Its taste
+(`internal/concierge/taste.go`) is signals read off what the programme already
+publishes — genre, running time, year, language — so a film added tomorrow is
+understood the same day, and there is no second catalog here to keep in step.
 
 `apps/seating/internal/crowd` simulates other customers in-process so the seat
-map is always moving. `CROWD=off` disables it.
+map is always moving. It still holds and releases seats even though holding is
+no longer in the API — a hold is what makes a seat map worth reading twice.
+`CROWD=off` disables it.
 
 `apps/quirks` is not part of the demo — it is the Twirp protocol testbed for
 edge cases (odd names, deep nesting, panics, streaming RPCs that Twirp renders
@@ -124,6 +145,13 @@ prefix), e.g. the theatre programme lives at `https://theatre.kaja.tools/shows`.
 destroys the app. The demo services are stateful, hostname-bound and called by
 the IDE, so they ship on merge — don't add previews for them.
 
+### MCP
+
+`concierge` speaks MCP over Streamable HTTP at `/mcp` — JSON-RPC over ordinary
+HTTP/1.1 POSTs, so it needs none of the HTTP/2 configuration gRPC does. It
+implements the handshake era (`initialize`, `tools/list`, `tools/call`) and
+keeps no session, because it keeps nothing between calls.
+
 ### Twirp
 
 A Twirp service uses the standard `/twirp` prefix (no custom path prefix), so it
@@ -149,5 +177,6 @@ directly; a service without reflection needs its proto files passed with
 ### Testing services
 
 - **OpenAPI**: `curl https://theatre.kaja.tools/shows`
-- **gRPC**: `grpcurl -d '{"showId":"neon-meridian"}' seating.kaja.tools:443 seating.Seating/GetSeatMap`
+- **gRPC**: `grpcurl -d '{"showId":"dune-part-two"}' seating.kaja.tools:443 seating.Seating/GetSeatMap`
+- **MCP**: `curl -X POST https://concierge.kaja.tools/mcp -H 'Content-Type: application/json' -d '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}'`
 - **Twirp** (quirks only): `curl -X POST https://quirks.kaja.tools/twirp/quirks.v1.Quirks/Sum -H "Content-Type: application/json" -d '{"a":"1","b":"2"}'`

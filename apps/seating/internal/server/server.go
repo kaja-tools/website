@@ -26,20 +26,8 @@ func (s *Server) GetSeatMap(ctx context.Context, req *api.GetSeatMapRequest) (*a
 	return &api.GetSeatMapResponse{SeatMap: m}, nil
 }
 
-func (s *Server) HoldSeats(ctx context.Context, req *api.HoldSeatsRequest) (*api.HoldSeatsResponse, error) {
-	h, err := s.store.Hold(req.ShowId, req.SeatIds)
-	if err != nil {
-		return nil, err
-	}
-	return &api.HoldSeatsResponse{Hold: h}, nil
-}
-
-func (s *Server) ConfirmSeats(ctx context.Context, req *api.ConfirmSeatsRequest) (*api.ConfirmSeatsResponse, error) {
-	seats, err := s.store.Confirm(req.HoldId)
-	if err != nil {
-		return nil, err
-	}
-	return &api.ConfirmSeatsResponse{Seats: seats}, nil
+func (s *Server) BookSeats(ctx context.Context, req *api.BookSeatsRequest) (*api.BookSeatsResponse, error) {
+	return s.store.Book(req.ShowId, req.SeatIds)
 }
 
 func (s *Server) WatchSeats(req *api.WatchSeatsRequest, stream api.Seating_WatchSeatsServer) error {

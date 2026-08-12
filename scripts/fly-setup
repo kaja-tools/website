@@ -32,6 +32,7 @@ done <<'PAIRS'
 kaja-home         kaja.tools
 kaja-theatre      theatre.kaja.tools
 kaja-seating      seating.kaja.tools
+kaja-concierge    concierge.kaja.tools
 kaja-quirks       quirks.kaja.tools
 PAIRS
 
