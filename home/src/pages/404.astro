@@ -1,12 +1,15 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import Button from "../components/Button.astro";
+import Icon from "../components/Icon.astro";
 ---
 
 <Layout title="Page not found - Kaja" description="This page does not exist.">
-  <section class="animate-fade-in mx-auto max-w-doc py-20 text-center">
-    <h1 class="text-gradient mb-4 text-[clamp(2rem,5vw,3rem)] font-bold">Page not found</h1>
-    <p class="text-base/[1.6] text-muted">
-      That page isn't here. Try the <a href="/" class="text-accent hover:underline">home page</a>.
-    </p>
-  </section>
+  {/* kaja-ui's Blankslate, the same empty state the app shows. */}
+  <div class="m-auto flex max-w-md flex-col items-center gap-2 px-6 py-12 text-center">
+    <div class="mb-2 text-muted-foreground"><Icon name="search" size={40} /></div>
+    <h1 class="text-lg font-semibold">Page not found</h1>
+    <p class="text-sm text-muted-foreground">That page isn't here.</p>
+    <Button href="/" class="mt-3">Go to the home page</Button>
+  </div>
 </Layout>
