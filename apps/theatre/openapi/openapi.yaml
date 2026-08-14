@@ -31,8 +31,10 @@ paths:
 
         The repertory runs to a bit over a thousand screenings. Call this with
         no parameters for the first hundred, then pass the `nextCursor` you got
-        back as `cursor` for the next page, until `nextCursor` is `null`. Send
-        `Accept-Encoding: gzip` and a page arrives at a fifth of the size.
+        back as `cursor` for the next page, until `nextCursor` is `null`. Every
+        page carries `total`, the size of the whole programme, so you know how
+        far along you are. Send `Accept-Encoding: gzip` and a page arrives at a
+        fifth of the size.
 
         A cursor is a position in the programme rather than a page number, so
         a screening is never skipped or repeated. It is tied to the moment the
@@ -45,11 +47,11 @@ paths:
         - name: limit
           in: query
           required: false
-          description: How many screenings to return. Defaults to 100.
+          description: How many screenings to return. A hundred is both the default and the most.
           schema:
             type: integer
             minimum: 1
-            maximum: 500
+            maximum: 100
             default: 100
         - name: cursor
           in: query
@@ -76,12 +78,16 @@ components:
     ShowPage:
       description: One page of the programme.
       type: object
-      required: [shows, nextCursor]
+      required: [shows, total, nextCursor]
       properties:
         shows:
           type: array
           items:
             $ref: "#/components/schemas/Show"
+        total:
+          type: integer
+          description: How many screenings the whole programme holds, not just this page.
+          example: 1283
         nextCursor:
           type: [string, "null"]
           description: Pass this back as `cursor` for the next page. `null` on the last page.

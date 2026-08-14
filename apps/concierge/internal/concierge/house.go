@@ -12,8 +12,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/url"
-	"strconv"
+	neturl "net/url"
 	"sync"
 	"time"
 
@@ -81,6 +80,9 @@ func (h *House) Programme() ([]Show, error) {
 		if err != nil {
 			return nil, err
 		}
+		if shows == nil {
+			shows = make([]Show, 0, page.Total)
+		}
 		shows = append(shows, page.Shows...)
 		if page.NextCursor == nil {
 			break
@@ -95,22 +97,22 @@ func (h *House) Programme() ([]Show, error) {
 }
 
 // page is one response from the theatre service, which publishes the
-// programme a page at a time. Ask for the largest page it will give: the
-// concierge wants the whole week before it can have an opinion about it.
+// programme a page at a time. The concierge wants the whole week before it can
+// have an opinion about it, so it follows the cursor to the end; total is only
+// there to size the slice up front.
 type page struct {
 	Shows      []Show  `json:"shows"`
+	Total      int     `json:"total"`
 	NextCursor *string `json:"nextCursor"`
 }
 
-const pageSize = 500
-
 func (h *House) page(cursor string) (page, error) {
-	query := url.Values{"limit": {strconv.Itoa(pageSize)}}
+	url := h.theatreURL + "/shows"
 	if cursor != "" {
-		query.Set("cursor", cursor)
+		url += "?cursor=" + neturl.QueryEscape(cursor)
 	}
 
-	resp, err := h.http.Get(h.theatreURL + "/shows?" + query.Encode())
+	resp, err := h.http.Get(url)
 	if err != nil {
 		return page{}, fmt.Errorf("the programme is unreachable: %w", err)
 	}

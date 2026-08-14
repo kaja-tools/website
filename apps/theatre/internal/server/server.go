@@ -47,8 +47,8 @@ func logRequests(next http.Handler) http.Handler {
 }
 
 // compress gzips the programme for callers that asked for it. A page of it is
-// small, but a caller walking the whole week asks for the largest page it can
-// and gets about a fifth of the bytes this way.
+// small, but a caller walking the whole week fetches a dozen of them and gets
+// about a fifth of the bytes this way.
 func compress(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
@@ -102,18 +102,17 @@ func (s *Server) getSpec(w http.ResponseWriter, r *http.Request) {
 	w.Write(openapi.Spec)
 }
 
-// How much of the programme comes back at once, and the most a caller can ask
-// for in one page.
-const (
-	defaultLimit = 100
-	maxLimit     = 500
-)
+// A hundred screenings is a page, and also the most a caller can ask for in
+// one: ?limit= sizes a page down, never up.
+const maxLimit = 100
 
-// page is one response: a slice of the programme and the cursor that continues
-// it. nextCursor is null on the last page, which is the only stopping
-// condition a caller needs.
+// page is one response: a slice of the programme, how many screenings there
+// are in all, and the cursor that continues it. nextCursor is null on the last
+// page, which is the only stopping condition a caller needs; total is there so
+// a caller can draw how far along it is before it gets there.
 type page struct {
 	Shows      []show  `json:"shows"`
+	Total      int     `json:"total"`
 	NextCursor *string `json:"nextCursor"`
 }
 
@@ -146,11 +145,12 @@ func (s *Server) listShows(w http.ResponseWriter, r *http.Request) {
 		shows = append(shows, render(c, anchor))
 	}
 	sort.Slice(shows, func(i, j int) bool { return before(shows[i], shows[j]) })
+	total := len(shows)
 
 	if after != nil {
 		shows = shows[sort.Search(len(shows), func(i int) bool { return after.precedes(shows[i]) }):]
 	}
-	out := page{Shows: shows}
+	out := page{Shows: shows, Total: total}
 	if len(shows) > limit {
 		out.Shows = shows[:limit]
 		next := cursor{anchor: anchor, startsAt: out.Shows[limit-1].StartsAt, id: out.Shows[limit-1].ID}.encode()
@@ -173,7 +173,7 @@ func before(a, b show) bool {
 
 func parseLimit(raw string) (int, error) {
 	if raw == "" {
-		return defaultLimit, nil
+		return maxLimit, nil
 	}
 	limit, err := strconv.Atoi(raw)
 	if err != nil || limit < 1 || limit > maxLimit {

@@ -6,8 +6,7 @@ package theatre
 import (
 	"encoding/json"
 	"net/http"
-	"net/url"
-	"strconv"
+	neturl "net/url"
 	"sync"
 	"time"
 
@@ -57,6 +56,9 @@ func (c *Client) Shows() ([]Show, error) {
 		if err != nil {
 			return nil, err
 		}
+		if shows == nil {
+			shows = make([]Show, 0, page.Total)
+		}
 		shows = append(shows, page.Shows...)
 		if page.NextCursor == nil {
 			break
@@ -71,22 +73,22 @@ func (c *Client) Shows() ([]Show, error) {
 	return shows, nil
 }
 
-// page is one response from the catalog, which paginates. Ask for the largest
-// page it will give so the whole programme is a handful of calls.
+// page is one response from the catalog, which paginates. The client takes
+// whatever page size the catalog defaults to and follows the cursor; total is
+// only there to size the slice up front.
 type page struct {
 	Shows      []Show  `json:"shows"`
+	Total      int     `json:"total"`
 	NextCursor *string `json:"nextCursor"`
 }
 
-const pageSize = 500
-
 func (c *Client) page(cursor string) (page, error) {
-	query := url.Values{"limit": {strconv.Itoa(pageSize)}}
+	url := c.baseURL + "/shows"
 	if cursor != "" {
-		query.Set("cursor", cursor)
+		url += "?cursor=" + neturl.QueryEscape(cursor)
 	}
 
-	resp, err := c.http.Get(c.baseURL + "/shows?" + query.Encode())
+	resp, err := c.http.Get(url)
 	if err != nil {
 		return page{}, status.Errorf(codes.Unavailable, "theatre catalog unreachable: %v", err)
 	}
