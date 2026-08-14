@@ -20,7 +20,7 @@ func newStore(t *testing.T) *Store {
 	startsAt := time.Now().Add(7 * 24 * time.Hour).UTC().Format(time.RFC3339)
 	programme := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(`[{"id":"a-film","title":"A Film","startsAt":"` + startsAt + `","basePriceCents":1000}]`))
+		w.Write([]byte(`{"shows":[{"id":"a-film","title":"A Film","startsAt":"` + startsAt + `","basePriceCents":1000}],"nextCursor":null}`))
 	}))
 	t.Cleanup(programme.Close)
 	return New(theatre.NewClient(programme.URL))

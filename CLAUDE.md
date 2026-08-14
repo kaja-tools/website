@@ -37,8 +37,9 @@ The demo is The Kaja Theatre, a repertory cinema: three services, three
 protocols — OpenAPI, gRPC and MCP. Twirp is deliberately not part of it (it is
 still supported by kaja itself, and `apps/quirks` still exercises it).
 
-- `apps/theatre` (OpenAPI) is the programme. **One operation, no parameters:**
-  `GET /shows` returns the whole week.
+- `apps/theatre` (OpenAPI) is the programme. **One operation:** `GET /shows`
+  returns the week a page at a time — no parameters for the first page, then
+  follow `nextCursor` until it is `null`.
 - `apps/seating` (gRPC) owns live seat state: `GetSeatMap`, `BookSeats`, and
   the streaming `WatchSeats`. **Buying is one call** — `BookSeats` is all or
   nothing, and it is the only write in the demo, which is what makes it the one

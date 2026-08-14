@@ -12,6 +12,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
+	"strconv"
 	"sync"
 	"time"
 
@@ -73,24 +75,55 @@ func (h *House) Programme() ([]Show, error) {
 	}
 	h.mu.Unlock()
 
-	resp, err := h.http.Get(h.theatreURL + "/shows")
-	if err != nil {
-		return nil, fmt.Errorf("the programme is unreachable: %w", err)
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("the programme returned %d", resp.StatusCode)
-	}
-
 	var shows []Show
-	if err := json.NewDecoder(resp.Body).Decode(&shows); err != nil {
-		return nil, fmt.Errorf("the programme is not readable: %w", err)
+	for cursor := ""; ; {
+		page, err := h.page(cursor)
+		if err != nil {
+			return nil, err
+		}
+		shows = append(shows, page.Shows...)
+		if page.NextCursor == nil {
+			break
+		}
+		cursor = *page.NextCursor
 	}
 
 	h.mu.Lock()
 	h.shows, h.until = shows, time.Now().Add(programmeTTL)
 	h.mu.Unlock()
 	return shows, nil
+}
+
+// page is one response from the theatre service, which publishes the
+// programme a page at a time. Ask for the largest page it will give: the
+// concierge wants the whole week before it can have an opinion about it.
+type page struct {
+	Shows      []Show  `json:"shows"`
+	NextCursor *string `json:"nextCursor"`
+}
+
+const pageSize = 500
+
+func (h *House) page(cursor string) (page, error) {
+	query := url.Values{"limit": {strconv.Itoa(pageSize)}}
+	if cursor != "" {
+		query.Set("cursor", cursor)
+	}
+
+	resp, err := h.http.Get(h.theatreURL + "/shows?" + query.Encode())
+	if err != nil {
+		return page{}, fmt.Errorf("the programme is unreachable: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return page{}, fmt.Errorf("the programme returned %d", resp.StatusCode)
+	}
+
+	var out page
+	if err := json.NewDecoder(resp.Body).Decode(&out); err != nil {
+		return page{}, fmt.Errorf("the programme is not readable: %w", err)
+	}
+	return out, nil
 }
 
 // Show looks one screening up by the id the programme published.

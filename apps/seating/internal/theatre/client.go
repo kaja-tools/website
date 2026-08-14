@@ -6,6 +6,8 @@ package theatre
 import (
 	"encoding/json"
 	"net/http"
+	"net/url"
+	"strconv"
 	"sync"
 	"time"
 
@@ -49,18 +51,17 @@ func (c *Client) Shows() ([]Show, error) {
 	}
 	c.mu.Unlock()
 
-	resp, err := c.http.Get(c.baseURL + "/shows")
-	if err != nil {
-		return nil, status.Errorf(codes.Unavailable, "theatre catalog unreachable: %v", err)
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return nil, status.Errorf(codes.Unavailable, "theatre catalog returned %d", resp.StatusCode)
-	}
-
 	var shows []Show
-	if err := json.NewDecoder(resp.Body).Decode(&shows); err != nil {
-		return nil, status.Errorf(codes.Internal, "bad catalog response: %v", err)
+	for cursor := ""; ; {
+		page, err := c.page(cursor)
+		if err != nil {
+			return nil, err
+		}
+		shows = append(shows, page.Shows...)
+		if page.NextCursor == nil {
+			break
+		}
+		cursor = *page.NextCursor
 	}
 
 	c.mu.Lock()
@@ -68,6 +69,37 @@ func (c *Client) Shows() ([]Show, error) {
 	c.until = time.Now().Add(cacheTTL)
 	c.mu.Unlock()
 	return shows, nil
+}
+
+// page is one response from the catalog, which paginates. Ask for the largest
+// page it will give so the whole programme is a handful of calls.
+type page struct {
+	Shows      []Show  `json:"shows"`
+	NextCursor *string `json:"nextCursor"`
+}
+
+const pageSize = 500
+
+func (c *Client) page(cursor string) (page, error) {
+	query := url.Values{"limit": {strconv.Itoa(pageSize)}}
+	if cursor != "" {
+		query.Set("cursor", cursor)
+	}
+
+	resp, err := c.http.Get(c.baseURL + "/shows?" + query.Encode())
+	if err != nil {
+		return page{}, status.Errorf(codes.Unavailable, "theatre catalog unreachable: %v", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return page{}, status.Errorf(codes.Unavailable, "theatre catalog returned %d", resp.StatusCode)
+	}
+
+	var out page
+	if err := json.NewDecoder(resp.Body).Decode(&out); err != nil {
+		return page{}, status.Errorf(codes.Internal, "bad catalog response: %v", err)
+	}
+	return out, nil
 }
 
 // Show validates a show id against the catalog and returns its details.
