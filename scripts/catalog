@@ -1,0 +1,464 @@
+#!/usr/bin/env python3
+"""Rebuild the theatre's repertory: apps/theatre/internal/catalog/films.json.
+
+The films in the demo are real, and so is everything the programme says about
+them. This script is where that comes from:
+
+  * Wikidata (CC0) for the facts — title, director, release year, running
+    time, original language and genre — one query per release year, keeping
+    the films Wikipedia has covered in at least a few dozen languages, which
+    is a decent proxy for "somebody has heard of it".
+  * English Wikipedia (CC BY-SA 4.0) for the one sentence of synopsis, pulled
+    out of the article's lead. A film whose lead has no sentence about what
+    happens in it is left out rather than described by guesswork.
+
+Nothing here invents anything about a film. The slot a screening runs in and
+what it costs are the cinema's own business and are derived in the catalog
+package, not stored.
+
+Responses are cached under build/catalog, so a re-run is cheap and a failed
+run can be repeated. Usage:
+
+    scripts/catalog            # build (fetching whatever is not cached yet)
+    scripts/catalog --refetch  # throw the cache away first
+"""
+
+import csv
+import json
+import os
+import re
+import shutil
+import sys
+import time
+import unicodedata
+import urllib.parse
+import urllib.request
+from collections import Counter, defaultdict
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+CACHE = os.path.join(ROOT, "build", "catalog")
+OUTPUT = os.path.join(ROOT, "apps", "theatre", "internal", "catalog", "films.json")
+
+USER_AGENT = "kaja-demo-catalog/1.0 (https://github.com/kaja-tools/website)"
+SPARQL = "https://query.wikidata.org/sparql"
+WIKIPEDIA = "https://en.wikipedia.org/w/api.php"
+
+YEARS = range(1920, 2026)
+
+# How widely covered a film has to be to make the programme. Older years are
+# thinner everywhere, so they are asked for less.
+def sitelinks_wanted(year):
+    return 40 if year >= 1970 else 25
+
+
+# Wikidata files an animated feature under its own class rather than under
+# "film", so asking for films alone leaves a cinema with no Ghibli and no
+# Pixar in it.
+FILM_CLASSES = "wd:Q11424 wd:Q202866 wd:Q29168811 wd:Q20650540"
+ANIMATION_CLASSES = {"Q202866", "Q29168811", "Q20650540"}
+
+QUERY = """
+SELECT ?f ?type ?s ?title ?dirName ?date ?rt ?lang ?genre ?article WHERE {
+  VALUES ?type { %(classes)s }
+  ?f wdt:P31 ?type ;
+     wdt:P577 ?date ;
+     wikibase:sitelinks ?s .
+  FILTER(?date >= "%(from)d-01-01"^^xsd:dateTime && ?date < "%(to)d-01-01"^^xsd:dateTime)
+  FILTER(?s >= %(sitelinks)d)
+  ?f rdfs:label ?title . FILTER(LANG(?title)="en")
+  OPTIONAL { ?f wdt:P57 ?dir . ?dir rdfs:label ?dirName . FILTER(LANG(?dirName)="en") }
+  OPTIONAL { ?f p:P2047/psv:P2047 [ wikibase:quantityAmount ?rt ; wikibase:quantityUnit wd:Q7727 ] }
+  OPTIONAL { ?f wdt:P364 ?l . ?l rdfs:label ?lang . FILTER(LANG(?lang)="en") }
+  OPTIONAL { ?f wdt:P136 ?g . ?g rdfs:label ?genre . FILTER(LANG(?genre)="en") }
+  OPTIONAL { ?article schema:about ?f ; schema:isPartOf <https://en.wikipedia.org/> }
+}
+"""
+
+# The ten films the demo was built on. They keep their own synopses — written
+# by hand, and better than anything an article's lead gives up — and their ids,
+# which the documentation and the OpenAPI examples point at.
+CURATED = [
+    {"id": "dune-part-two", "title": "Dune: Part Two", "director": "Denis Villeneuve", "year": 2024, "runtimeMinutes": 165, "genre": "sci-fi", "language": "English",
+     "synopsis": "Paul Atreides joins the Fremen and rides the desert into a war he can see the end of."},
+    {"id": "parasite", "title": "Parasite", "director": "Bong Joon Ho", "year": 2019, "runtimeMinutes": 132, "genre": "thriller", "language": "Korean",
+     "synopsis": "One family talks its way into another family's house, one job at a time."},
+    {"id": "spirited-away", "title": "Spirited Away", "director": "Hayao Miyazaki", "year": 2001, "runtimeMinutes": 124, "genre": "animation", "language": "Japanese",
+     "synopsis": "A ten-year-old takes a job in a bathhouse for spirits to win her parents back."},
+    {"id": "grand-budapest-hotel", "title": "The Grand Budapest Hotel", "director": "Wes Anderson", "year": 2014, "runtimeMinutes": 100, "genre": "comedy", "language": "English",
+     "synopsis": "A concierge and his lobby boy inherit a painting and the trouble attached to it."},
+    {"id": "blade-runner", "title": "Blade Runner", "director": "Ridley Scott", "year": 1982, "runtimeMinutes": 117, "genre": "sci-fi", "language": "English",
+     "synopsis": "A detective hunts four fugitives who are harder to tell from people than the job allows."},
+    {"id": "in-the-mood-for-love", "title": "In the Mood for Love", "director": "Wong Kar-wai", "year": 2000, "runtimeMinutes": 98, "genre": "romance", "language": "Cantonese",
+     "synopsis": "Two neighbours work out that their spouses are having an affair, and say almost nothing about it."},
+    {"id": "mad-max-fury-road", "title": "Mad Max: Fury Road", "director": "George Miller", "year": 2015, "runtimeMinutes": 120, "genre": "action", "language": "English",
+     "synopsis": "A war rig turns left across the wasteland and everything that can drive follows it."},
+    {"id": "seven-samurai", "title": "Seven Samurai", "director": "Akira Kurosawa", "year": 1954, "runtimeMinutes": 207, "genre": "drama", "language": "Japanese",
+     "synopsis": "A village with nothing to pay with hires seven swordsmen anyway."},
+    {"id": "get-out", "title": "Get Out", "director": "Jordan Peele", "year": 2017, "runtimeMinutes": 104, "genre": "horror", "language": "English",
+     "synopsis": "A weekend meeting the parents goes wrong slowly, and then all at once."},
+    {"id": "everything-everywhere", "title": "Everything Everywhere All at Once", "director": "Daniel Kwan and Daniel Scheinert", "year": 2022, "runtimeMinutes": 139, "genre": "sci-fi", "language": "English",
+     "synopsis": "A laundromat audit becomes a tour of every life its owner didn't live."},
+]
+
+# Wikidata hands out dozens of genres per film; the programme publishes one,
+# from the eight the OpenAPI document lists. First bucket that matches wins,
+# so this list is in priority order: a film that is both animated and a comedy
+# screens as animation, because that is what somebody choosing it cares about.
+BUCKETS = [
+    ("animation", ["animated", "anime", "animation", "cartoon", "stop motion"]),
+    ("horror", ["horror", "slasher", "zombie", "vampire", "monster film", "splatter", "giallo"]),
+    ("sci-fi", ["science fiction", "sci-fi", "cyberpunk", "space opera", "kaiju", "dystopi", "steampunk"]),
+    ("comedy", ["comedy", "parody", "satir", "screwball", "farce", "slapstick"]),
+    ("thriller", ["thriller", "suspense", "noir", "mystery", "heist", "spy", "whodunit", "crime"]),
+    ("romance", ["romance", "romantic drama", "melodrama"]),
+    ("action", ["action", "martial arts", "superhero", "adventure", "swashbuckler", "disaster", "western", "war film", "kung fu"]),
+    ("drama", ["drama", "historical", "biographical", "coming-of-age", "tragedy", "epic", "musical", "fantasy", "sport"]),
+]
+
+# A repertory cinema screens features. Anything else is somebody else's night.
+EXCLUDED_GENRES = ["documentary", "pornographic", "concert film", "compilation film", "instructional", "propaganda film"]
+
+# Wikidata names a language as precisely as it can; a cinema listing does not.
+LANGUAGES = {
+    "American English": "English",
+    "British English": "English",
+    "Old English": "English",
+    "Brazilian Portuguese": "Portuguese",
+    "Castilian Spanish": "Spanish",
+    "Dari": "Persian",
+    "Egyptian Arabic": "Arabic",
+    "Hindustani": "Hindi",
+    "Iranian Persian": "Persian",
+    "Literary Chinese": "Chinese",
+    "Mandarin Chinese": "Mandarin",
+    "Modern Standard Arabic": "Arabic",
+    "Serbo-Croatian": "Serbian",
+    "Standard Chinese": "Mandarin",
+    "Standard Mandarin": "Mandarin",
+    "Written Cantonese": "Cantonese",
+    "no linguistic content": "Silent",
+    "silent film": "Silent",
+}
+
+
+def get(url, accept):
+    request = urllib.request.Request(url, headers={"Accept": accept, "User-Agent": USER_AGENT})
+    with urllib.request.urlopen(request, timeout=180) as response:
+        return response.read().decode("utf-8")
+
+
+def retrying(what, call):
+    for attempt in range(5):
+        try:
+            return call()
+        except Exception as err:  # both services rate-limit, and say so loudly
+            print(f"  {what}: {err}", file=sys.stderr)
+            time.sleep(5 * (attempt + 1))
+    raise SystemExit(f"gave up on {what}")
+
+
+def fetch_years():
+    """One SPARQL query per release year, cached as CSV."""
+    directory = os.path.join(CACHE, "wikidata")
+    os.makedirs(directory, exist_ok=True)
+    for year in YEARS:
+        path = os.path.join(directory, f"{year}.csv")
+        if os.path.exists(path) and os.path.getsize(path):
+            continue
+        query = QUERY % {
+            "classes": FILM_CLASSES, "from": year, "to": year + 1,
+            "sitelinks": sitelinks_wanted(year),
+        }
+        url = SPARQL + "?" + urllib.parse.urlencode({"query": query})
+
+        def fetch():
+            body = get(url, "text/csv")
+            if not body.startswith("f,type,s,title"):
+                raise RuntimeError(body.splitlines()[0][:120])
+            return body
+
+        body = retrying(str(year), fetch)
+        with open(path, "w") as out:
+            out.write(body)
+        print(f"{year}: {len(body.splitlines()) - 1} rows")
+
+
+def fetch_extracts(titles):
+    """Wikipedia article leads, twenty at a time, cached as one JSON map."""
+    path = os.path.join(CACHE, "extracts.json")
+    extracts = json.load(open(path)) if os.path.exists(path) else {}
+    missing = [t for t in titles if t not in extracts]
+    for start in range(0, len(missing), 20):
+        chunk = missing[start : start + 20]
+        url = WIKIPEDIA + "?" + urllib.parse.urlencode({
+            "action": "query", "format": "json", "formatversion": "2",
+            "prop": "extracts", "exintro": "1", "explaintext": "1",
+            "redirects": "1", "titles": "|".join(chunk),
+        })
+        page = retrying(f"extracts {start}", lambda: json.loads(get(url, "application/json")))
+
+        # Wikipedia answers under the title it settled on, so follow the
+        # normalizations and redirects back to what was asked for.
+        asked = {}
+        for step in page.get("query", {}).get("normalized", []):
+            asked[step["to"]] = step["from"]
+        for step in page.get("query", {}).get("redirects", []):
+            asked[step["to"]] = asked.get(step["from"], step["from"])
+        for article in page.get("query", {}).get("pages", []):
+            extracts[asked.get(article["title"], article["title"])] = article.get("extract", "")
+        for title in chunk:
+            extracts.setdefault(title, "")
+
+        if start % 400 == 0:
+            json.dump(extracts, open(path, "w"))
+            print(f"extracts: {start}/{len(missing)}")
+        time.sleep(0.2)
+    json.dump(extracts, open(path, "w"))
+    return extracts
+
+
+def read_wikidata():
+    """Collapse the per-year CSVs into one record per film."""
+    films = defaultdict(lambda: {
+        "sitelinks": 0, "titles": set(), "directors": set(), "years": set(),
+        "runtimes": set(), "languages": set(), "genres": set(), "articles": set(),
+        "classes": set(),
+    })
+    for path in sorted(os.listdir(os.path.join(CACHE, "wikidata"))):
+        with open(os.path.join(CACHE, "wikidata", path), newline="") as handle:
+            for row in csv.DictReader(handle):
+                row = {key: value or "" for key, value in row.items() if key}
+                if not row.get("title"):
+                    continue
+                film = films[row["f"]]
+                film["sitelinks"] = max(film["sitelinks"], int(row["s"] or 0))
+                film["classes"].add(row["type"].rsplit("/", 1)[-1])
+                film["titles"].add(row["title"])
+                if row["dirName"]:
+                    film["directors"].add(row["dirName"])
+                if row["date"]:
+                    film["years"].add(int(row["date"][:4]))
+                if row["rt"]:
+                    film["runtimes"].add(int(float(row["rt"])))
+                if row["lang"]:
+                    film["languages"].add(LANGUAGES.get(row["lang"], row["lang"]))
+                if row["genre"]:
+                    film["genres"].add(row["genre"].lower())
+                if row["article"]:
+                    film["articles"].add(row["article"])
+    return films
+
+
+def genre_of(labels, classes):
+    for label in labels:
+        if any(excluded in label for excluded in EXCLUDED_GENRES):
+            return None
+    # What a cartoon is is settled by what it is, not by what it is about.
+    if classes & ANIMATION_CLASSES:
+        return "animation"
+    for bucket, needles in BUCKETS:
+        if any(needle in label for label in labels for needle in needles):
+            return bucket
+    return None
+
+
+def slugify(text):
+    text = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode()
+    return re.sub(r"-+", "-", re.sub(r"[^a-zA-Z0-9]+", "-", text)).strip("-").lower()
+
+
+def candidates():
+    """Every film with enough of a record to put on a programme, best known first."""
+    films = read_wikidata()
+    common = Counter(language for film in films.values() for language in film["languages"])
+
+    out = []
+    for qid, film in films.items():
+        runtimes = [r for r in film["runtimes"] if 45 <= r <= 300]
+        genre = genre_of(film["genres"], film["classes"])
+        if not (film["directors"] and film["years"] and film["articles"] and runtimes and genre):
+            continue
+        title = sorted(film["titles"], key=len)[0]
+        if not title.strip() or re.fullmatch(r"Q\d+", title):
+            continue
+        # A film in several languages is listed under its main one, which is
+        # the one the rest of the programme is likeliest to be in too.
+        languages = sorted(film["languages"], key=lambda language: -common[language])
+        article = urllib.parse.unquote(sorted(film["articles"])[0].rsplit("/", 1)[-1]).replace("_", " ")
+        out.append({
+            "qid": qid,
+            "sitelinks": film["sitelinks"],
+            "article": article,
+            "id": slugify(title),
+            "title": title,
+            "director": " and ".join(sorted(film["directors"])[:2]),
+            "year": min(film["years"]),
+            "runtimeMinutes": min(runtimes),
+            "genre": genre,
+            "language": languages[0] if languages else "Silent",
+        })
+    out.sort(key=lambda film: (-film["sitelinks"], film["qid"]))
+    return out
+
+
+# The sentence in an article's lead that is about the film rather than about
+# how it got made.
+PLOT = re.compile(
+    r"\b(?:the\s+(?:film|story|plot|movie)|it)\s+"
+    r"(?:follows|centers?\s+(?:on|around)|centres?\s+(?:on|around)|revolves\s+around|chronicles"
+    r"|tells\s+the\s+story|depicts|portrays|concerns|recounts|traces|charts|dramatizes|dramatises"
+    r"|is\s+about|is\s+set\s+in|takes\s+place\s+in|focuses\s+on)\b",
+    re.IGNORECASE,
+)
+
+# ...and the words that give away a sentence that is about the making of it.
+PRODUCTION = re.compile(
+    r"\b(?:box.office|grossed|premiered|released|critics|award|nominat|remake|adaptation|adapted"
+    r"|based\s+on|screenplay|directed\s+by|produced\s+by|written\s+by|filming|principal\s+photography"
+    r"|instal?lment|sequel|prequel|trilogy|franchise|stars|starring|budget|screening|reviews?"
+    r"|silent\s+version|versions?\s+(?:made|released|of))\b",
+    re.IGNORECASE,
+)
+
+# Leads often open on the credits and only then get to the story:
+# "Starring X, Y and Z, the film follows...".
+CREDITS = re.compile(
+    r"\b(?:starring|stars|produced|narrated|written|directed|based|adapted|borrowing|featuring"
+    r"|filmed|shot|sequel|prequel|adaptation)\b",
+    re.IGNORECASE,
+)
+
+IN_THE_FILM = re.compile(r"^in the (?:film|movie),\s*", re.IGNORECASE)
+
+# "It stars A as B, who ..." — whatever follows the character's name is the
+# plot, and for a lot of articles it is the only place the plot appears. It is
+# also where the credits are, so anything that is still reading like a cast
+# list is thrown away.
+CAST = re.compile(r"(?:\b(?:stars?|starring|plays)\b.*?\bas\s+|\bportrays\s+)(?P<plot>.+)$", re.IGNORECASE)
+CAST_LIST = re.compile(
+    r"\b(?:alongside|ensemble|supporting|co-stars?|cast|debut|includes?|appears?|features?|"
+    r"role|voices?|as)\b",
+    re.IGNORECASE,
+)
+
+ABBREVIATION = re.compile(
+    r"(?:\b[A-Z]|\b(?:Mr|Mrs|Ms|Dr|Jr|Sr|St|Prof|Rev|Lt|Sgt|Col|Gen|vs|etc|approx|Co|Inc|Ltd))$"
+)
+
+WELL_FORMED = re.compile(r"^[A-Z\"'“].*[.!?]$", re.DOTALL)
+
+
+def sentences(text):
+    """Split on sentence ends, leaving initials and abbreviations alone."""
+    text = re.sub(r"\s+", " ", text)
+    out, start = [], 0
+    for end in re.finditer(r"(?<=[.!?])\s+(?=[A-Z\"'“])", text):
+        head = text[start : end.start()]
+        if ABBREVIATION.search(head[:-1]):
+            continue
+        out.append(head.strip())
+        start = end.end()
+    out.append(text[start:].strip())
+    return [sentence for sentence in out if sentence]
+
+
+def tidy(sentence):
+    sentence = re.sub(r"\s*\([^)]*\)", "", sentence)  # actor asides, native titles
+    sentence = re.sub(r"\s*\[[^\]]*\]", "", sentence)
+    # Who plays the part belongs on a poster, not in a listing.
+    sentence = re.sub(r",\s*(?:played|voiced|portrayed)\s+by\s+[^,]+,", ",", sentence, flags=re.IGNORECASE)
+    sentence = re.sub(r",?\s*(?:played|voiced|portrayed)\s+by\s+[^,.]+\.$", ".", sentence, flags=re.IGNORECASE)
+    return re.sub(r"\s+", " ", sentence).strip()
+
+
+def usable(sentence):
+    if len(sentence) > 240:  # the plot is in the first clause; the rest is trivia
+        sentence = re.split(r"\s*[;—]\s*", sentence)[0].rstrip(" ,") + "."
+    # A sentence this short says something like "The film is set in Ohio.",
+    # which is true of the film and no use to somebody choosing one.
+    if not 55 <= len(sentence) <= 240 or PRODUCTION.search(sentence):
+        return None
+    if not WELL_FORMED.match(sentence) or sentence.count("(") != sentence.count(")"):
+        return None
+    return sentence
+
+
+def synopsis(extract):
+    """One sentence about what happens in the film, or nothing."""
+    plot, in_film, cast = [], [], []
+    for raw in sentences(extract):
+        sentence = tidy(raw)
+        if IN_THE_FILM.match(sentence):
+            in_film.append(IN_THE_FILM.sub("", sentence))
+            continue
+        cue = PLOT.search(sentence)
+        if cue:
+            if cue.start() and CREDITS.search(sentence[: cue.start()]):
+                sentence = sentence[cue.start() :]
+            plot.append(sentence)
+            continue
+        role = CAST.search(sentence)
+        if role and re.search(r"\b(?:who|whose|which)\b", role.group("plot")) \
+                and not CAST_LIST.search(role.group("plot")):
+            cast.append(role.group("plot"))
+    for tier in (plot, in_film, cast):
+        for sentence in tier:
+            sentence = usable(sentence[:1].upper() + sentence[1:])
+            if sentence:
+                return sentence
+    return None
+
+
+def build():
+    found = candidates()
+    print(f"{len(found)} films with a full record")
+    extracts = fetch_extracts([film["article"] for film in found])
+
+    programme = {film["id"]: dict(film) for film in CURATED}
+    already = {(film["title"].lower(), film["year"]) for film in CURATED}
+    unsaid = 0
+    for film in found:
+        # The same film reaches Wikidata under more than one entry, and the
+        # ten hand-written ones are in the programme already.
+        if (film["title"].lower(), film["year"]) in already:
+            continue
+        already.add((film["title"].lower(), film["year"]))
+        told = synopsis(extracts.get(film["article"], ""))
+        if not told:
+            unsaid += 1
+            continue
+        # Two films can share a title; the better known one keeps the plain id.
+        film_id = film["id"]
+        if film_id in programme:
+            film_id = f"{film_id}-{film['year']}"
+            if film_id in programme:
+                continue
+        programme[film_id] = {
+            "id": film_id, "title": film["title"], "director": film["director"],
+            "year": film["year"], "runtimeMinutes": film["runtimeMinutes"],
+            "genre": film["genre"], "language": film["language"], "synopsis": told,
+        }
+
+    films = sorted(programme.values(), key=lambda film: film["id"])
+    with open(OUTPUT, "w") as out:
+        out.write("[\n")
+        for index, film in enumerate(films):
+            out.write("  " + json.dumps(film, ensure_ascii=False))
+            out.write(",\n" if index < len(films) - 1 else "\n")
+        out.write("]\n")
+
+    print(f"{len(films)} screenings written to {os.path.relpath(OUTPUT, ROOT)}")
+    print(f"({unsaid} films left out: their article never says what happens in them)")
+    print(dict(Counter(film["genre"] for film in films).most_common()))
+
+
+def main():
+    if "--refetch" in sys.argv:
+        shutil.rmtree(CACHE, ignore_errors=True)
+    os.makedirs(CACHE, exist_ok=True)
+    fetch_years()
+    build()
+
+
+if __name__ == "__main__":
+    main()

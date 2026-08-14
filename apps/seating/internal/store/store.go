@@ -1,12 +1,15 @@
 // Package store owns live seat state for every show. Everything is in
 // memory: seat state is disposable by design (holds expire, houses reopen
-// empty each week), so a restart simply resets the theatre.
+// each week), so a restart simply resets the theatre.
 package store
 
 import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"hash/fnv"
+	mathrand "math/rand/v2"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -62,7 +65,7 @@ type show struct {
 	id    string
 	seats map[string]*seat
 	// startsAt is the curtain-up this house was built for. When the catalog
-	// moves it on to next week, the house reopens empty.
+	// moves it on to next week, the house reopens.
 	startsAt time.Time
 	watchers map[chan *api.SeatUpdate]struct{}
 }
@@ -104,9 +107,47 @@ func buildSeats(basePriceCents int) map[string]*seat {
 	return seats
 }
 
+// advanceSale fills a freshly built house the way the week already would
+// have. The programme runs to a couple of thousand screenings and the crowd
+// can only be in one house at a time, so a house nobody has opened yet would
+// otherwise be a perfectly empty one — which is the least interesting seat
+// map there is. The sale is seeded from the show and its curtain-up, so a
+// house looks the same every time it opens, different from its neighbour,
+// and fuller the closer the performance is.
+func advanceSale(seats map[string]*seat, showID string, startsAt time.Time) {
+	untilShow := time.Until(startsAt)
+	if untilShow < 0 {
+		untilShow = 0
+	}
+	closeness := 1 - untilShow.Hours()/(7*24)
+	if closeness < 0 {
+		closeness = 0
+	}
+
+	seed := fnv.New64a()
+	seed.Write([]byte(showID))
+	fmt.Fprint(seed, startsAt.Unix())
+	rng := mathrand.New(mathrand.NewPCG(seed.Sum64(), uint64(startsAt.Unix())))
+
+	// How well a screening has been selling is the house's own business —
+	// the store has no opinions about the programme to read it off.
+	sold := (0.15 + 0.5*rng.Float64()) * closeness
+
+	ids := make([]string, 0, len(seats))
+	for id := range seats {
+		ids = append(ids, id)
+	}
+	sort.Strings(ids)
+	rng.Shuffle(len(ids), func(i, j int) { ids[i], ids[j] = ids[j], ids[i] })
+
+	for _, id := range ids[:int(float64(len(ids))*sold)] {
+		seats[id].status = api.SeatStatus_SEAT_STATUS_SOLD
+	}
+}
+
 // state returns the live house for a show, building it the first time the
-// show is touched and reopening it empty once last week's performance is
-// over. The catalog lookup is cached and happens outside the lock.
+// show is touched and reopening it once last week's performance is over. The
+// catalog lookup is cached and happens outside the lock.
 func (s *Store) state(showID string) (*show, error) {
 	info, err := s.theatre.Show(showID)
 	if err != nil {
@@ -124,6 +165,7 @@ func (s *Store) state(showID string) (*show, error) {
 	if !sh.startsAt.Equal(info.StartsAt) {
 		sh.startsAt = info.StartsAt
 		sh.seats = buildSeats(info.BasePriceCents)
+		advanceSale(sh.seats, sh.id, sh.startsAt)
 	}
 	return sh, nil
 }

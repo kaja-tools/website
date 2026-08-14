@@ -12,10 +12,12 @@ import (
 )
 
 // newStore builds a store over a one-screening programme, so a test never
-// depends on the real catalog.
+// depends on the real catalog. Curtain-up is a full week out, which is the
+// moment a house goes on sale: nothing has been sold in advance yet, so the
+// test has every seat to itself.
 func newStore(t *testing.T) *Store {
 	t.Helper()
-	startsAt := time.Now().Add(48 * time.Hour).UTC().Format(time.RFC3339)
+	startsAt := time.Now().Add(7 * 24 * time.Hour).UTC().Format(time.RFC3339)
 	programme := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Write([]byte(`[{"id":"a-film","title":"A Film","startsAt":"` + startsAt + `","basePriceCents":1000}]`))
