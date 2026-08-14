@@ -6,6 +6,7 @@ package theatre
 import (
 	"encoding/json"
 	"net/http"
+	neturl "net/url"
 	"sync"
 	"time"
 
@@ -49,18 +50,20 @@ func (c *Client) Shows() ([]Show, error) {
 	}
 	c.mu.Unlock()
 
-	resp, err := c.http.Get(c.baseURL + "/shows")
-	if err != nil {
-		return nil, status.Errorf(codes.Unavailable, "theatre catalog unreachable: %v", err)
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return nil, status.Errorf(codes.Unavailable, "theatre catalog returned %d", resp.StatusCode)
-	}
-
 	var shows []Show
-	if err := json.NewDecoder(resp.Body).Decode(&shows); err != nil {
-		return nil, status.Errorf(codes.Internal, "bad catalog response: %v", err)
+	for cursor := ""; ; {
+		page, err := c.page(cursor)
+		if err != nil {
+			return nil, err
+		}
+		if shows == nil {
+			shows = make([]Show, 0, page.Total)
+		}
+		shows = append(shows, page.Shows...)
+		if page.NextCursor == nil {
+			break
+		}
+		cursor = *page.NextCursor
 	}
 
 	c.mu.Lock()
@@ -68,6 +71,37 @@ func (c *Client) Shows() ([]Show, error) {
 	c.until = time.Now().Add(cacheTTL)
 	c.mu.Unlock()
 	return shows, nil
+}
+
+// page is one response from the catalog, which paginates. The client takes
+// whatever page size the catalog defaults to and follows the cursor; total is
+// only there to size the slice up front.
+type page struct {
+	Shows      []Show  `json:"shows"`
+	Total      int     `json:"total"`
+	NextCursor *string `json:"nextCursor"`
+}
+
+func (c *Client) page(cursor string) (page, error) {
+	url := c.baseURL + "/shows"
+	if cursor != "" {
+		url += "?cursor=" + neturl.QueryEscape(cursor)
+	}
+
+	resp, err := c.http.Get(url)
+	if err != nil {
+		return page{}, status.Errorf(codes.Unavailable, "theatre catalog unreachable: %v", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return page{}, status.Errorf(codes.Unavailable, "theatre catalog returned %d", resp.StatusCode)
+	}
+
+	var out page
+	if err := json.NewDecoder(resp.Body).Decode(&out); err != nil {
+		return page{}, status.Errorf(codes.Internal, "bad catalog response: %v", err)
+	}
+	return out, nil
 }
 
 // Show validates a show id against the catalog and returns its details.

@@ -1,14 +1,15 @@
 openapi: 3.1.0
 info:
   title: The Kaja Theatre
-  version: 3.0.0
+  version: 3.1.0
   description: |
     The programme of **The Kaja Theatre** — a repertory cinema used to demo
     [kaja](https://kaja.tools). The films are real; the cinema is not.
 
-    There is one operation, and it takes no parameters:
+    There is one operation, and it needs no parameters to get started:
 
-    1. `GET /shows` — the whole week. Pick any screening and copy its `id`.
+    1. `GET /shows` — the first page of the week. Pick any screening and copy
+       its `id`.
     2. Pass that `id` to the seating service over gRPC as `showId`
        (`seating.Seating/GetSeatMap`) to see who is sitting where, then
        `BookSeats` to buy some.
@@ -24,27 +25,80 @@ paths:
       operationId: listShows
       summary: Everything screening this week
       description: |
-        The whole programme, soonest first. Every film screens weekly, so this
-        list never empties and every `id` in it is always bookable.
+        The programme, soonest first, a page at a time. Every film screens
+        weekly, so this list never empties and every `id` in it is always
+        bookable.
 
-        The repertory runs to a bit over a thousand screenings and they all
-        come back in this one response; send `Accept-Encoding: gzip` and it
-        arrives at a fifth of the size.
+        The repertory runs to a bit over a thousand screenings. Call this with
+        no parameters for the first hundred, then pass the `nextCursor` you got
+        back as `cursor` for the next page, until `nextCursor` is `null`. Every
+        page carries `total`, the size of the whole programme, so you know how
+        far along you are. Send `Accept-Encoding: gzip` and a page arrives at a
+        fifth of the size.
+
+        A cursor is a position in the programme rather than a page number, so
+        a screening is never skipped or repeated. It is tied to the moment the
+        walk started and stops working an hour later; start again at `/shows`
+        if that happens.
 
         Seats are not part of this API — they live in the seating gRPC service,
         which owns live seat state.
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          description: How many screenings to return. A hundred is both the default and the most.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 100
+        - name: cursor
+          in: query
+          required: false
+          description: The `nextCursor` of the page before this one. Omit for the first page.
+          schema:
+            type: string
       responses:
         "200":
-          description: The programme.
+          description: One page of the programme.
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Show"
+                $ref: "#/components/schemas/ShowPage"
+        "400":
+          description: The `limit` is out of range, or the `cursor` is unreadable or expired.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
 components:
   schemas:
+    ShowPage:
+      description: One page of the programme.
+      type: object
+      required: [shows, total, nextCursor]
+      properties:
+        shows:
+          type: array
+          items:
+            $ref: "#/components/schemas/Show"
+        total:
+          type: integer
+          description: How many screenings the whole programme holds, not just this page.
+          example: 1283
+        nextCursor:
+          type: [string, "null"]
+          description: Pass this back as `cursor` for the next page. `null` on the last page.
+          example: MTc2NTAwMDAwMDoxNzY1MDM2MDAwOmR1bmUtcGFydC10d28
+    Error:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+          example: cursor has expired — start again at /shows
     Show:
       description: One weekly screening.
       type: object
