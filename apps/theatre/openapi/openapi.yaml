@@ -27,6 +27,10 @@ paths:
         The whole programme, soonest first. Every film screens weekly, so this
         list never empties and every `id` in it is always bookable.
 
+        The repertory runs to a bit over a thousand screenings and they all
+        come back in this one response; send `Accept-Encoding: gzip` and it
+        arrives at a fifth of the size.
+
         Seats are not part of this API — they live in the seating gRPC service,
         which owns live seat state.
       responses:

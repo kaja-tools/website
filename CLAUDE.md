@@ -48,11 +48,21 @@ still supported by kaja itself, and `apps/quirks` still exercises it).
   the seat map over gRPC, and turns a sentence somebody typed into a `showId`
   and a list of seat ids the other two services understand.
 
-**The films are real; the cinema is not.** `apps/theatre/internal/catalog` is
-ten actual films with their real director, year, running time and language,
-because a demo you understand in seconds cannot also be teaching you an
-invented repertoire. Nothing about a film is invented except its weekly slot
-and its price.
+**The films are real; the cinema is not.**
+`apps/theatre/internal/catalog/films.json` is a couple of thousand actual
+films with their real director, year, running time, language and a sentence
+of synopsis, because a demo you understand in seconds cannot also be teaching
+you an invented repertoire. Nothing about a film is invented: the two things
+that are — the weekly slot it screens in and what it costs — are derived from
+its id in `catalog.go` rather than stored, so there is no schedule to keep in
+step with the films.
+
+Regenerate the repertory with `scripts/catalog`, which takes the facts from
+Wikidata (CC0) and the synopsis from the English Wikipedia article's lead
+(CC BY-SA 4.0) and caches every response under `build/`. A film whose article
+never says what happens in it is left out rather than described by guesswork.
+The ten films the demo was built on are in the script by hand and keep their
+own synopses and their ids, which the OpenAPI examples point at.
 
 A screening's `id` is the only identifier in the demo: copy it out of `/shows`
 and pass it to seating as `showId`, or let the concierge hand you one. Keep it

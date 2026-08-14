@@ -6,191 +6,109 @@
 //
 // A screening is the unit the whole demo is built on: its id is what you pass
 // to the seating service. There is no separate "film" and "screening".
+//
+// The repertory is films.json, embedded at build time. Every fact in it —
+// director, year, running time, language, and the sentence of synopsis — is
+// real, taken from Wikidata (CC0) and English Wikipedia (CC BY-SA 4.0) by
+// scripts/catalog. Nothing about a film is invented, which leaves only the
+// two things a cinema decides for itself: the slot it screens in and what it
+// charges, and both are derived below from the film's own id rather than
+// written down, so the programme has nothing to keep in step.
 package catalog
 
-import "time"
+import (
+	_ "embed"
+	"encoding/json"
+	"fmt"
+	"hash/fnv"
+	"time"
+)
+
+//go:embed films.json
+var filmsJSON []byte
 
 type Show struct {
-	ID             string
-	Title          string
-	Director       string
-	Year           int
-	RuntimeMinutes int
-	Genre          string
-	Language       string
-	Synopsis       string
-	BasePriceCents int
-	// moods the concierge matches a request against. Not published: the
-	// programme is the film, and taste is the concierge's job.
-	Moods []string
+	ID             string `json:"id"`
+	Title          string `json:"title"`
+	Director       string `json:"director"`
+	Year           int    `json:"year"`
+	RuntimeMinutes int    `json:"runtimeMinutes"`
+	Genre          string `json:"genre"`
+	Language       string `json:"language"`
+	Synopsis       string `json:"synopsis"`
+
+	BasePriceCents int `json:"-"`
 	// The weekly slot. Times are UTC.
-	Weekday time.Weekday
-	Hour    int
-	Minute  int
+	Weekday time.Weekday `json:"-"`
+	Hour    int          `json:"-"`
+	Minute  int          `json:"-"`
 }
 
-var shows = []Show{
-	{
-		ID:             "dune-part-two",
-		Title:          "Dune: Part Two",
-		Director:       "Denis Villeneuve",
-		Year:           2024,
-		RuntimeMinutes: 165,
-		Genre:          "sci-fi",
-		Language:       "English",
-		Synopsis:       "Paul Atreides joins the Fremen and rides the desert into a war he can see the end of.",
-		BasePriceCents: 1800,
-		Moods:          []string{"loud", "epic", "spectacle", "big screen", "sci-fi"},
-		Weekday:        time.Friday,
-		Hour:           19,
-		Minute:         30,
-	},
-	{
-		ID:             "parasite",
-		Title:          "Parasite",
-		Director:       "Bong Joon Ho",
-		Year:           2019,
-		RuntimeMinutes: 132,
-		Genre:          "thriller",
-		Language:       "Korean",
-		Synopsis:       "One family talks its way into another family's house, one job at a time.",
-		BasePriceCents: 1500,
-		Moods:          []string{"tense", "clever", "dark", "modern classic", "thriller"},
-		Weekday:        time.Thursday,
-		Hour:           20,
-		Minute:         0,
-	},
-	{
-		ID:             "spirited-away",
-		Title:          "Spirited Away",
-		Director:       "Hayao Miyazaki",
-		Year:           2001,
-		RuntimeMinutes: 124,
-		Genre:          "animation",
-		Language:       "Japanese",
-		Synopsis:       "A ten-year-old takes a job in a bathhouse for spirits to win her parents back.",
-		BasePriceCents: 1400,
-		Moods:          []string{"gentle", "family", "beautiful", "kids", "animation"},
-		Weekday:        time.Sunday,
-		Hour:           14,
-		Minute:         0,
-	},
-	{
-		ID:             "grand-budapest-hotel",
-		Title:          "The Grand Budapest Hotel",
-		Director:       "Wes Anderson",
-		Year:           2014,
-		RuntimeMinutes: 100,
-		Genre:          "comedy",
-		Language:       "English",
-		Synopsis:       "A concierge and his lobby boy inherit a painting and the trouble attached to it.",
-		BasePriceCents: 1400,
-		Moods:          []string{"funny", "light", "charming", "short", "comedy"},
-		Weekday:        time.Wednesday,
-		Hour:           19,
-		Minute:         0,
-	},
-	{
-		ID:             "blade-runner",
-		Title:          "Blade Runner",
-		Director:       "Ridley Scott",
-		Year:           1982,
-		RuntimeMinutes: 117,
-		Genre:          "sci-fi",
-		Language:       "English",
-		Synopsis:       "A detective hunts four fugitives who are harder to tell from people than the job allows.",
-		BasePriceCents: 1300,
-		Moods:          []string{"moody", "classic", "rainy", "sci-fi", "late"},
-		Weekday:        time.Friday,
-		Hour:           22,
-		Minute:         30,
-	},
-	{
-		ID:             "in-the-mood-for-love",
-		Title:          "In the Mood for Love",
-		Director:       "Wong Kar-wai",
-		Year:           2000,
-		RuntimeMinutes: 98,
-		Genre:          "romance",
-		Language:       "Cantonese",
-		Synopsis:       "Two neighbours work out that their spouses are having an affair, and say almost nothing about it.",
-		BasePriceCents: 1300,
-		Moods:          []string{"romantic", "quiet", "sad", "date", "short"},
-		Weekday:        time.Tuesday,
-		Hour:           20,
-		Minute:         30,
-	},
-	{
-		ID:             "mad-max-fury-road",
-		Title:          "Mad Max: Fury Road",
-		Director:       "George Miller",
-		Year:           2015,
-		RuntimeMinutes: 120,
-		Genre:          "action",
-		Language:       "English",
-		Synopsis:       "A war rig turns left across the wasteland and everything that can drive follows it.",
-		BasePriceCents: 1600,
-		Moods:          []string{"loud", "fast", "action", "spectacle", "big screen"},
-		Weekday:        time.Saturday,
-		Hour:           21,
-		Minute:         0,
-	},
-	{
-		ID:             "seven-samurai",
-		Title:          "Seven Samurai",
-		Director:       "Akira Kurosawa",
-		Year:           1954,
-		RuntimeMinutes: 207,
-		Genre:          "drama",
-		Language:       "Japanese",
-		Synopsis:       "A village with nothing to pay with hires seven swordsmen anyway.",
-		BasePriceCents: 1200,
-		Moods:          []string{"classic", "long", "epic", "drama"},
-		Weekday:        time.Sunday,
-		Hour:           17,
-		Minute:         0,
-	},
-	{
-		ID:             "get-out",
-		Title:          "Get Out",
-		Director:       "Jordan Peele",
-		Year:           2017,
-		RuntimeMinutes: 104,
-		Genre:          "horror",
-		Language:       "English",
-		Synopsis:       "A weekend meeting the parents goes wrong slowly, and then all at once.",
-		BasePriceCents: 1400,
-		Moods:          []string{"scary", "tense", "horror", "short", "late"},
-		Weekday:        time.Thursday,
-		Hour:           22,
-		Minute:         30,
-	},
-	{
-		ID:             "everything-everywhere",
-		Title:          "Everything Everywhere All at Once",
-		Director:       "Daniel Kwan and Daniel Scheinert",
-		Year:           2022,
-		RuntimeMinutes: 139,
-		Genre:          "sci-fi",
-		Language:       "English",
-		Synopsis:       "A laundromat audit becomes a tour of every life its owner didn't live.",
-		BasePriceCents: 1500,
-		Moods:          []string{"funny", "weird", "loud", "sci-fi", "modern classic"},
-		Weekday:        time.Saturday,
-		Hour:           18,
-		Minute:         0,
-	},
+var (
+	shows []Show
+	byID  map[string]Show
+)
+
+func init() {
+	if err := json.Unmarshal(filmsJSON, &shows); err != nil {
+		panic(fmt.Sprintf("catalog: films.json: %v", err))
+	}
+	byID = make(map[string]Show, len(shows))
+	for i := range shows {
+		show := &shows[i]
+		show.Weekday, show.Hour, show.Minute = slot(show.ID)
+		show.BasePriceCents = price(*show)
+		if _, clash := byID[show.ID]; clash {
+			panic(fmt.Sprintf("catalog: two screenings called %q", show.ID))
+		}
+		byID[show.ID] = *show
+	}
+}
+
+// The house runs from late morning to the last late show, on the quarter
+// hour. A film's slot is its id hashed into that grid: stable week to week,
+// spread across the week, and nowhere written down.
+const (
+	firstHour  = 10
+	hoursOpen  = 14
+	quarters   = 4
+	daysOfWeek = 7
+)
+
+func slot(id string) (time.Weekday, int, int) {
+	h := fnv.New64a()
+	h.Write([]byte(id))
+	n := h.Sum64()
+	hour := firstHour + int(n%hoursOpen)
+	minute := 15 * int((n/hoursOpen)%quarters)
+	weekday := time.Weekday((n / (hoursOpen * quarters)) % daysOfWeek)
+	return weekday, hour, minute
+}
+
+// What the house charges for an orchestra seat. A new print costs more than
+// an old one and a long evening costs more than a short one, which is the
+// whole of the pricing policy.
+func price(s Show) int {
+	cents := 1200
+	switch {
+	case s.Year >= 2015:
+		cents = 1800
+	case s.Year >= 2000:
+		cents = 1600
+	case s.Year >= 1980:
+		cents = 1400
+	}
+	if s.RuntimeMinutes >= 150 {
+		cents += 100
+	}
+	return cents
 }
 
 func Shows() []Show { return shows }
 
 func ByID(id string) (Show, bool) {
-	for _, s := range shows {
-		if s.ID == id {
-			return s, true
-		}
-	}
-	return Show{}, false
+	s, ok := byID[id]
+	return s, ok
 }
 
 // NextStart is the screening's next start after now. A weekly slot always has

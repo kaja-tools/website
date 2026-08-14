@@ -20,21 +20,23 @@ import (
 	"github.com/kaja-tools/website/v2/internal/theatre"
 )
 
-// How much of the house each screening's crowd wants, at most.
-var demand = map[string]float64{
-	"dune-part-two":         0.85,
-	"mad-max-fury-road":     0.75,
-	"everything-everywhere": 0.70,
-	"parasite":              0.65,
-	"spirited-away":         0.60,
-	"get-out":               0.55,
-	"grand-budapest-hotel":  0.50,
-	"blade-runner":          0.45,
-	"in-the-mood-for-love":  0.40,
-	"seven-samurai":         0.30,
+// How much of the house a screening's crowd wants, at most. It is read off
+// the ticket price rather than looked up by film, because the programme is
+// thousands of screenings long and a table of opinions about it would be
+// stale by the weekend: the house charges more for the films it expects to
+// fill, so the price already says what a table would have.
+func demand(s theatre.Show) float64 {
+	switch {
+	case s.BasePriceCents >= 1800:
+		return 0.85
+	case s.BasePriceCents >= 1600:
+		return 0.65
+	case s.BasePriceCents >= 1400:
+		return 0.5
+	default:
+		return 0.35
+	}
 }
-
-const defaultDemand = 0.5
 
 type Crowd struct {
 	seats   *store.Store
@@ -83,10 +85,6 @@ func (c *Crowd) tick(ctx context.Context) {
 // targetOccupancy grows linearly from 0 (a week out) to the show's demand
 // cap (at curtain-up).
 func targetOccupancy(s theatre.Show) float64 {
-	d, ok := demand[s.ID]
-	if !ok {
-		d = defaultDemand
-	}
 	week := 7 * 24 * time.Hour
 	untilShow := time.Until(s.StartsAt)
 	if untilShow < 0 {
@@ -96,7 +94,7 @@ func targetOccupancy(s theatre.Show) float64 {
 	if closeness < 0 {
 		closeness = 0
 	}
-	return d * closeness
+	return demand(s) * closeness
 }
 
 // pickWeighted prefers hot shows and near curtain-ups.
@@ -104,15 +102,11 @@ func pickWeighted(shows []theatre.Show) theatre.Show {
 	weights := make([]float64, len(shows))
 	total := 0.0
 	for i, s := range shows {
-		d, ok := demand[s.ID]
-		if !ok {
-			d = defaultDemand
-		}
 		hoursUntil := time.Until(s.StartsAt).Hours()
 		if hoursUntil < 0 {
 			hoursUntil = 0
 		}
-		weights[i] = d / (1 + hoursUntil/24)
+		weights[i] = demand(s) / (1 + hoursUntil/24)
 		total += weights[i]
 	}
 	roll := rand.Float64() * total
