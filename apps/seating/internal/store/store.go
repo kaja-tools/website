@@ -28,19 +28,38 @@ const (
 	watchBuffer = 256
 )
 
-// The house layout. The catalog does not publish it — a seat map describes
-// itself, so there is nothing to look up first.
+// The house layout. The Theatre service does not publish it — a seat map
+// describes itself, so there is nothing to look up first.
 type layoutSection struct {
 	section  api.Section
-	rows     string // row letters
+	rows     string // row letters, skipping I and O
 	seats    int    // per row
 	priceNum int    // price = base * priceNum / priceDen
 	priceDen int
 }
 
-var layout = []layoutSection{
-	{api.Section_SECTION_ORCHESTRA, "ABCDEFGH", 14, 1, 1},
-	{api.Section_SECTION_BALCONY, "JKLM", 12, 3, 4},
+// Three sizes of house. Which one a theater is, is read off its id: the
+// schedule says which house a screening is at, and that is enough to know
+// that the same film seats a different number of people two towns over. A
+// small house has no balcony at all.
+var layouts = [][]layoutSection{
+	{
+		{api.Section_SECTION_ORCHESTRA, "ABCDEF", 12, 1, 1},
+	},
+	{
+		{api.Section_SECTION_ORCHESTRA, "ABCDEFGH", 14, 1, 1},
+		{api.Section_SECTION_BALCONY, "JKLM", 12, 3, 4},
+	},
+	{
+		{api.Section_SECTION_ORCHESTRA, "ABCDEFGHJK", 16, 1, 1},
+		{api.Section_SECTION_BALCONY, "LMNPQ", 14, 3, 4},
+	},
+}
+
+func layoutFor(theaterID string) []layoutSection {
+	h := fnv.New64a()
+	h.Write([]byte(theaterID))
+	return layouts[h.Sum64()%uint64(len(layouts))]
 }
 
 type seat struct {
@@ -64,7 +83,10 @@ type hold struct {
 type show struct {
 	id    string
 	seats map[string]*seat
-	// startsAt is the curtain-up this house was built for. When the catalog
+	// layout is the house this screening is in, which the schedule's
+	// theaterId decides.
+	layout []layoutSection
+	// startsAt is the curtain-up this house was built for. When the schedule
 	// moves it on to next week, the house reopens.
 	startsAt time.Time
 	watchers map[chan *api.SeatUpdate]struct{}
@@ -86,10 +108,10 @@ func New(theatreClient *theatre.Client) *Store {
 	}
 }
 
-func buildSeats(basePriceCents int) map[string]*seat {
+func buildSeats(layout []layoutSection, priceCents int) map[string]*seat {
 	seats := map[string]*seat{}
 	for _, sec := range layout {
-		price := int32(basePriceCents * sec.priceNum / sec.priceDen)
+		price := int32(priceCents * sec.priceNum / sec.priceDen)
 		for _, letter := range strings.Split(sec.rows, "") {
 			for n := 1; n <= sec.seats; n++ {
 				id := fmt.Sprintf("%s%d", letter, n)
@@ -145,9 +167,9 @@ func advanceSale(seats map[string]*seat, showID string, startsAt time.Time) {
 	}
 }
 
-// state returns the live house for a show, building it the first time the
-// show is touched and reopening it once last week's performance is over. The
-// catalog lookup is cached and happens outside the lock.
+// state returns the live house for a screening, building it the first time
+// the screening is touched and reopening it once last week's performance is
+// over. The schedule lookup is cached and happens outside the lock.
 func (s *Store) state(showID string) (*show, error) {
 	info, err := s.theatre.Show(showID)
 	if err != nil {
@@ -164,7 +186,8 @@ func (s *Store) state(showID string) (*show, error) {
 	}
 	if !sh.startsAt.Equal(info.StartsAt) {
 		sh.startsAt = info.StartsAt
-		sh.seats = buildSeats(info.BasePriceCents)
+		sh.layout = layoutFor(info.TheaterID)
+		sh.seats = buildSeats(sh.layout, info.PriceCents)
 		advanceSale(sh.seats, sh.id, sh.startsAt)
 	}
 	return sh, nil
@@ -175,7 +198,7 @@ func (sh *show) snapshotLocked() *api.SeatMap {
 		ShowId:             sh.id,
 		AvailableBySection: map[string]int32{},
 	}
-	for _, sec := range layout {
+	for _, sec := range sh.layout {
 		sectionMap := &api.SectionMap{Section: sec.section}
 		sectionName := strings.TrimPrefix(sec.section.String(), "SECTION_")
 		m.AvailableBySection[sectionName] = 0

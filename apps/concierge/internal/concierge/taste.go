@@ -10,16 +10,16 @@ import (
 )
 
 // The concierge's taste, and the whole of it. Every signal is read off what
-// the programme already publishes — genre, running time, year, language — so
-// a film added to the programme tomorrow is understood the same day. There is
-// no table of opinions keyed by film id here: that would go stale the first
-// time the programme changed, and a concierge who has only memorised this
-// week is not one.
+// the catalog already publishes — genre, running time, year, language — so a
+// film added to it tomorrow is understood the same day. There is no table of
+// opinions keyed by film id here: that would go stale the first time the
+// catalog changed, and a concierge who has only memorised this week is not
+// one.
 type signal struct {
 	// words in the request that fire this signal.
 	words []string
 	// matches reports whether a screening satisfies it.
-	matches func(Show) bool
+	matches func(Screening) bool
 	// because is the half-sentence this signal contributes to the answer.
 	because string
 }
@@ -54,7 +54,7 @@ var signals = []signal{
 		// Quiet is about scale as much as genre: a three-hour battle epic is
 		// many things, and quiet is not one of them.
 		words:   []string{"quiet", "slow", "gentle", "calm", "intimate", "small"},
-		matches: func(s Show) bool { return genreIn("romance", "drama")(s) && s.RuntimeMinutes <= 140 },
+		matches: func(s Screening) bool { return genreIn("romance", "drama")(s) && s.Movie.RuntimeMinutes <= 140 },
 		because: "it is a small, quiet one",
 	},
 	{
@@ -74,53 +74,53 @@ var signals = []signal{
 	},
 	{
 		words:   []string{"classic", "old", "vintage", "black and white", "restored"},
-		matches: func(s Show) bool { return s.Year < 1990 },
+		matches: func(s Screening) bool { return s.Movie.Year < 1990 },
 		because: "it is a proper old print",
 	},
 	{
 		words:   []string{"new", "recent", "modern"},
-		matches: func(s Show) bool { return s.Year >= 2015 },
+		matches: func(s Screening) bool { return s.Movie.Year >= 2015 },
 		because: "it is recent",
 	},
 	{
 		words:   []string{"short", "quick", "early", "brief", "school night"},
-		matches: func(s Show) bool { return s.RuntimeMinutes <= 110 },
+		matches: func(s Screening) bool { return s.Movie.RuntimeMinutes <= 110 },
 		because: "it is done inside two hours",
 	},
 	{
 		words:   []string{"long", "all evening", "marathon"},
-		matches: func(s Show) bool { return s.RuntimeMinutes >= 150 },
+		matches: func(s Screening) bool { return s.Movie.RuntimeMinutes >= 150 },
 		because: "it takes the whole evening, on purpose",
 	},
 	{
 		words:   []string{"subtitles", "subtitled", "foreign", "world cinema"},
-		matches: func(s Show) bool { return s.Language != "English" },
+		matches: func(s Screening) bool { return s.Movie.Language != "English" },
 		because: "it is subtitled",
 	},
 	{
 		words:   []string{"english", "no subtitles", "no reading"},
-		matches: func(s Show) bool { return s.Language == "English" },
+		matches: func(s Screening) bool { return s.Movie.Language == "English" },
 		because: "it is in English",
 	},
 }
 
 // Match is one screening the concierge would put forward, and why.
 type Match struct {
-	Show  Show
-	Why   string
-	score int
+	Screening Screening
+	Why       string
+	score     int
 }
 
 // Suggest ranks the programme against a request in somebody's own words. It
 // never returns nothing: a request that matches no signal at all is answered
 // with what is on soonest, which is what a concierge with no information to go
 // on would say.
-func Suggest(shows []Show, mood string, maxMinutes int) []Match {
+func Suggest(screenings []Screening, mood string, maxMinutes int) []Match {
 	want := strings.ToLower(mood)
 
-	matches := make([]Match, 0, len(shows))
-	for _, show := range shows {
-		if maxMinutes > 0 && show.RuntimeMinutes > maxMinutes {
+	matches := make([]Match, 0, len(screenings))
+	for _, screening := range screenings {
+		if maxMinutes > 0 && screening.Movie.RuntimeMinutes > maxMinutes {
 			continue
 		}
 
@@ -130,12 +130,12 @@ func Suggest(shows []Show, mood string, maxMinutes int) []Match {
 			if !mentions(want, sig.words) {
 				continue
 			}
-			if sig.matches(show) {
+			if sig.matches(screening) {
 				score++
 				reasons = append(reasons, sig.because)
 			}
 		}
-		matches = append(matches, Match{Show: show, Why: explain(show, reasons), score: score})
+		matches = append(matches, Match{Screening: screening, Why: explain(screening, reasons), score: score})
 	}
 
 	// Soonest first among equals: two films that answer the request equally
@@ -144,19 +144,38 @@ func Suggest(shows []Show, mood string, maxMinutes int) []Match {
 		if matches[i].score != matches[j].score {
 			return matches[i].score > matches[j].score
 		}
-		return matches[i].Show.StartsAt.Before(matches[j].Show.StartsAt)
+		return matches[i].Screening.StartsAt.Before(matches[j].Screening.StartsAt)
 	})
 	return matches
 }
 
+// InCity narrows the programme to one town. The city is the schedule's to
+// know, not the concierge's — it is on the house the screening is at — which
+// is why this reads off the join rather than asking the Theatre service again.
+func InCity(screenings []Screening, city string) []Screening {
+	want := strings.ToLower(strings.TrimSpace(city))
+	if want == "" {
+		return screenings
+	}
+	var out []Screening
+	for _, s := range screenings {
+		if strings.ToLower(s.Theater.City) == want {
+			out = append(out, s)
+		}
+	}
+	return out
+}
+
 // explain writes the sentence the concierge says out loud. With nothing
 // matched it falls back to describing the film, which is honest: it is a
-// suggestion, not a deduction.
-func explain(show Show, reasons []string) string {
-	subject := fmt.Sprintf("%s (%s, %d)", show.Title, show.Director, show.Year)
+// suggestion, not a deduction. Where it is on is always in it: the same film
+// is playing in four towns this week, and only one of them is yours.
+func explain(s Screening, reasons []string) string {
+	subject := fmt.Sprintf("%s (%s, %d) at %s",
+		s.Movie.Title, s.Movie.Director, s.Movie.Year, s.Theater.Where())
 	if len(reasons) == 0 {
 		return fmt.Sprintf("%s — %s, and it is the next thing starting.",
-			subject, strings.TrimRight(show.Synopsis, "."))
+			subject, strings.TrimRight(s.Movie.Synopsis, "."))
 	}
 	if len(reasons) > 2 {
 		reasons = reasons[:2]
@@ -164,10 +183,10 @@ func explain(show Show, reasons []string) string {
 	return fmt.Sprintf("%s — %s.", subject, joinWithAnd(reasons))
 }
 
-func genreIn(genres ...string) func(Show) bool {
-	return func(s Show) bool {
+func genreIn(genres ...string) func(Screening) bool {
+	return func(s Screening) bool {
 		for _, genre := range genres {
-			if s.Genre == genre {
+			if s.Movie.Genre == genre {
 				return true
 			}
 		}

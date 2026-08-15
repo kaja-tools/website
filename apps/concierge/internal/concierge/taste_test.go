@@ -8,16 +8,22 @@ import (
 	"github.com/kaja-tools/website/v2/internal/api"
 )
 
-var programme = []Show{
-	{ID: "loud-one", Title: "Loud One", Genre: "action", Year: 2015, RuntimeMinutes: 120, Language: "English",
-		Synopsis: "Cars.", StartsAt: time.Now().Add(72 * time.Hour)},
-	{ID: "quiet-one", Title: "Quiet One", Genre: "romance", Year: 2000, RuntimeMinutes: 98, Language: "Cantonese",
-		Synopsis: "Neighbours.", StartsAt: time.Now().Add(96 * time.Hour)},
-	{ID: "funny-one", Title: "Funny One", Genre: "comedy", Year: 2014, RuntimeMinutes: 100, Language: "English",
-		Synopsis: "A hotel.", StartsAt: time.Now().Add(24 * time.Hour)},
-	{ID: "long-one", Title: "Long One", Genre: "drama", Year: 1954, RuntimeMinutes: 207, Language: "Japanese",
-		Synopsis: "Swords.", StartsAt: time.Now().Add(48 * time.Hour)},
+// A programme is already joined by the time taste sees it: every screening
+// carries its film and its house.
+func screening(id string, in Theater, hours int, movie Movie) Screening {
+	return Screening{ID: id, StartsAt: time.Now().Add(time.Duration(hours) * time.Hour), Movie: movie, Theater: in}
 }
+
+var (
+	uptown    = Theater{ID: "uptown", Name: "The Uptown", City: "Chicago", State: "IL"}
+	seaside   = Theater{ID: "seaside", Name: "The Seaside", City: "Miami", State: "FL"}
+	programme = []Screening{
+		screening("loud-one", uptown, 72, Movie{ID: "loud", Title: "Loud One", Genre: "action", Year: 2015, RuntimeMinutes: 120, Language: "English", Synopsis: "Cars."}),
+		screening("quiet-one", seaside, 96, Movie{ID: "quiet", Title: "Quiet One", Genre: "romance", Year: 2000, RuntimeMinutes: 98, Language: "Cantonese", Synopsis: "Neighbours."}),
+		screening("funny-one", uptown, 24, Movie{ID: "funny", Title: "Funny One", Genre: "comedy", Year: 2014, RuntimeMinutes: 100, Language: "English", Synopsis: "A hotel."}),
+		screening("long-one", seaside, 48, Movie{ID: "long", Title: "Long One", Genre: "drama", Year: 1954, RuntimeMinutes: 207, Language: "Japanese", Synopsis: "Swords."}),
+	}
+)
 
 func TestSuggestReadsTheRequest(t *testing.T) {
 	for _, test := range []struct {
@@ -35,8 +41,8 @@ func TestSuggestReadsTheRequest(t *testing.T) {
 			if len(matches) == 0 {
 				t.Fatal("no suggestion at all")
 			}
-			if matches[0].Show.ID != test.want {
-				t.Errorf("suggested %s, want %s", matches[0].Show.ID, test.want)
+			if matches[0].Screening.ID != test.want {
+				t.Errorf("suggested %s, want %s", matches[0].Screening.ID, test.want)
 			}
 			if matches[0].Why == "" {
 				t.Error("a suggestion with no case for it")
@@ -52,16 +58,36 @@ func TestSuggestAlwaysAnswers(t *testing.T) {
 	if len(matches) != len(programme) {
 		t.Fatalf("ranked %d of %d films", len(matches), len(programme))
 	}
-	if matches[0].Show.ID != "funny-one" {
-		t.Errorf("fell back to %s, want the soonest screening", matches[0].Show.ID)
+	if matches[0].Screening.ID != "funny-one" {
+		t.Errorf("fell back to %s, want the soonest screening", matches[0].Screening.ID)
+	}
+}
+
+// The same film is on in four towns this week, so which town somebody is in
+// is a filter over the programme rather than a taste in it.
+func TestInCityNarrowsToOneTown(t *testing.T) {
+	inChicago := InCity(programme, "chicago")
+	if len(inChicago) != 2 {
+		t.Fatalf("%d screenings in Chicago, want 2", len(inChicago))
+	}
+	for _, s := range inChicago {
+		if s.Theater.City != "Chicago" {
+			t.Errorf("%s is at %s", s.ID, s.Theater.Where())
+		}
+	}
+	if len(InCity(programme, "")) != len(programme) {
+		t.Error("no city asked for should leave the programme alone")
+	}
+	if got := InCity(programme, "Boise"); len(got) != 0 {
+		t.Errorf("found %d screenings in a town with no house", len(got))
 	}
 }
 
 func TestSuggestHonoursTheClock(t *testing.T) {
 	matches := Suggest(programme, "anything", 100)
 	for _, match := range matches {
-		if match.Show.RuntimeMinutes > 100 {
-			t.Errorf("%s runs %d minutes, over the 100 asked for", match.Show.ID, match.Show.RuntimeMinutes)
+		if match.Screening.Movie.RuntimeMinutes > 100 {
+			t.Errorf("%s runs %d minutes, over the 100 asked for", match.Screening.ID, match.Screening.Movie.RuntimeMinutes)
 		}
 	}
 	if len(matches) != 2 {

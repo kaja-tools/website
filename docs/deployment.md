@@ -10,7 +10,7 @@ single-domain nginx-ingress that ran on Azure Kubernetes.
 | Fly app        | Source         | Public hostname      | Notes                                    |
 | -------------- | -------------- | -------------------- | ---------------------------------------- |
 | `kaja-home`    | `home`         | `kaja.tools`, `www`  | the website — Astro, served by Caddy     |
-| `kaja-theatre` | `apps/theatre` | `theatre.kaja.tools` | OpenAPI (e.g. `/openapi.yaml`, `/shows`) |
+| `kaja-theatre` | `apps/theatre` | `theatre.kaja.tools` | OpenAPI (`/movies`, `/theaters`, `/shows`) |
 | `kaja-seating` | `apps/seating` | `seating.kaja.tools` | gRPC over TLS on :443                    |
 | `kaja-concierge` | `apps/concierge` | `concierge.kaja.tools` | MCP over Streamable HTTP at `/mcp`  |
 | `kaja-quirks`  | `apps/quirks`  | `quirks.kaja.tools`  | Twirp under `/twirp`                     |
@@ -37,16 +37,16 @@ that repository's own `workspace/` — the same image its pull-request previews
 run. This repository owns the demo *services* the IDE calls; it no longer holds
 a second copy of the IDE's configuration to keep in step.
 
-Each service is served at the root of its own hostname (e.g. the theatre spec
+Each service is served at the root of its own hostname (e.g. the Theatre spec
 is at `https://theatre.kaja.tools/openapi.yaml`, Twirp uses the standard
-`/twirp/...` prefix). The theatre OpenAPI `servers` URL — and the IDE's
+`/twirp/...` prefix). The Theatre OpenAPI `servers` URL — and the IDE's
 `workspace/kaja.json` over in wham/kaja — point at these hostnames.
 
 ### East-west (service-to-service) traffic
 
-`seating` calls `theatre` (HTTP) to look up which screenings exist and what
-they cost, and `concierge` calls both — `theatre` for the programme and
-`seating` for the live seat map. Those calls stay on Fly's private network via
+`seating` calls `theatre` (HTTP) to look up which screenings exist, when they
+start and what they cost, and `concierge` calls both — `theatre` for all three
+lists, which it joins into a programme, and `seating` for the live seat map. Those calls stay on Fly's private network via
 `<app>.internal` DNS (`kaja-theatre.internal:41530`,
 `kaja-seating.internal:50053`) — they never leave the org, so only public
 browser/IDE traffic goes through the edge.

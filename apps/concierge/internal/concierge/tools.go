@@ -3,19 +3,23 @@ package concierge
 import (
 	"encoding/json"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
 	"github.com/kaja-tools/website/v2/internal/mcp"
 )
 
-const instructions = `You are talking to the concierge of The Kaja Theatre, a repertory cinema.
+const instructions = `You are talking to the concierge of the Theatre, a chain of repertory cinemas.
 
-Ask suggest_film what somebody feels like in their own words and it answers with
-one screening and the case for it. Pass that screening's showId to best_seats
-with the size of the party and it reads the live seat map and picks a block of
-seats together. Buying them is not the concierge's to do: pass the showId and
-the seat ids to the seating service's BookSeats.`
+Ask suggest_film what somebody feels like in their own words — and which city
+they are in, if they said — and it answers with one screening and the case for
+it. The concierge has already joined the catalog, the chain and the schedule,
+so a screening it names knows its title, its house and its time. Pass that
+screening's showId to best_seats with the size of the party and it reads the
+live seat map and picks a block of seats together. Buying them is not the
+concierge's to do: pass the showId and the seat ids to the seating service's
+BookSeats.`
 
 // Tools is the concierge's whole surface. Three verbs, in the order somebody
 // actually uses them: what should we see, where should we sit, and what do I
@@ -25,7 +29,7 @@ func Tools(house *House) []mcp.Tool {
 		{
 			Name:        "suggest_film",
 			Title:       "Suggest a film",
-			Description: "Pick one screening from this week's programme for somebody who has described what they feel like in their own words. Answers with the case for it and two runners-up.",
+			Description: "Pick one screening from this week's programme for somebody who has described what they feel like in their own words, and optionally which city they are in. Answers with the case for it and two runners-up.",
 			Annotations: mcp.ReadOnly(),
 			InputSchema: json.RawMessage(`{
 				"type": "object",
@@ -43,6 +47,10 @@ func Tools(house *House) []mcp.Tool {
 					"maxMinutes": {
 						"type": "integer",
 						"description": "The longest running time they will sit through. Leave it out if they did not say."
+					},
+					"city": {
+						"type": "string",
+						"description": "Which town they are in, e.g. \"Chicago\". Leave it out to search the whole chain."
 					}
 				},
 				"required": ["mood"]
@@ -56,7 +64,10 @@ func Tools(house *House) []mcp.Tool {
 					"year": { "type": "integer" },
 					"runtimeMinutes": { "type": "integer" },
 					"genre": { "type": "string" },
-					"startsAt": { "type": "string", "description": "The next screening, RFC 3339." },
+					"theater": { "type": "string", "description": "The house it is playing at." },
+					"city": { "type": "string" },
+					"startsAt": { "type": "string", "description": "The next screening, in the house's own local time, RFC 3339." },
+					"priceCents": { "type": "integer", "description": "What an orchestra seat costs at that house." },
 					"why": { "type": "string", "description": "The case for it, in the concierge's own words." },
 					"runnersUp": {
 						"type": "array",
@@ -66,6 +77,7 @@ func Tools(house *House) []mcp.Tool {
 							"properties": {
 								"showId": { "type": "string" },
 								"title": { "type": "string" },
+								"theater": { "type": "string" },
 								"why": { "type": "string" }
 							}
 						}
@@ -78,42 +90,54 @@ func Tools(house *House) []mcp.Tool {
 					Mood       string `json:"mood"`
 					Party      int    `json:"party"`
 					MaxMinutes int    `json:"maxMinutes"`
+					City       string `json:"city"`
 				}
 				if err := json.Unmarshal(arguments, &input); err != nil {
 					return mcp.Result{}, mcp.Failf("I could not read that request: %v", err)
 				}
 
-				shows, err := house.Programme()
+				programme, err := house.Programme()
 				if err != nil {
 					return mcp.Result{}, err
 				}
-				matches := Suggest(shows, input.Mood, input.MaxMinutes)
+				screenings := InCity(programme, input.City)
+				if len(screenings) == 0 {
+					return mcp.Result{}, mcp.Failf(
+						"the chain has no house in %s — we are in %s.",
+						input.City, joinWithAnd(cities(programme)))
+				}
+
+				matches := Suggest(screenings, input.Mood, input.MaxMinutes)
 				if len(matches) == 0 {
 					return mcp.Result{}, mcp.Failf(
-						"nothing this week runs in under %d minutes — the shortest is %d.",
-						input.MaxMinutes, shortest(shows))
+						"nothing there runs in under %d minutes — the shortest is %d.",
+						input.MaxMinutes, shortest(screenings))
 				}
 
 				pick := matches[0]
 				runnersUp := []map[string]any{}
 				for _, match := range matches[1:min(3, len(matches))] {
 					runnersUp = append(runnersUp, map[string]any{
-						"showId": match.Show.ID,
-						"title":  match.Show.Title,
-						"why":    match.Why,
+						"showId":  match.Screening.ID,
+						"title":   match.Screening.Movie.Title,
+						"theater": match.Screening.Theater.Where(),
+						"why":     match.Why,
 					})
 				}
 
 				return mcp.Result{
 					Text: pick.Why,
 					Structured: map[string]any{
-						"showId":         pick.Show.ID,
-						"title":          pick.Show.Title,
-						"director":       pick.Show.Director,
-						"year":           pick.Show.Year,
-						"runtimeMinutes": pick.Show.RuntimeMinutes,
-						"genre":          pick.Show.Genre,
-						"startsAt":       pick.Show.StartsAt.Format(time.RFC3339),
+						"showId":         pick.Screening.ID,
+						"title":          pick.Screening.Movie.Title,
+						"director":       pick.Screening.Movie.Director,
+						"year":           pick.Screening.Movie.Year,
+						"runtimeMinutes": pick.Screening.Movie.RuntimeMinutes,
+						"genre":          pick.Screening.Movie.Genre,
+						"theater":        pick.Screening.Theater.Where(),
+						"city":           pick.Screening.Theater.City,
+						"startsAt":       pick.Screening.StartsAt.Format(time.RFC3339),
+						"priceCents":     pick.Screening.PriceCents,
 						"why":            pick.Why,
 						"runnersUp":      runnersUp,
 					},
@@ -130,8 +154,8 @@ func Tools(house *House) []mcp.Tool {
 				"properties": {
 					"showId": {
 						"type": "string",
-						"description": "A screening id from the programme, e.g. \"dune-part-two\".",
-						"examples": ["dune-part-two"]
+						"description": "A screening id from the schedule, e.g. \"dune-part-two@the-lantern\".",
+						"examples": ["dune-part-two@the-lantern"]
 					},
 					"party": {
 						"type": "integer",
@@ -174,7 +198,7 @@ func Tools(house *House) []mcp.Tool {
 					return mcp.Result{}, mcp.Failf("the house sells at most 6 seats at a time; you asked for %d.", input.Party)
 				}
 
-				show, err := house.Show(input.ShowID)
+				screening, err := house.Screening(input.ShowID)
 				if err != nil {
 					return mcp.Result{}, mcp.Failf("%v", err)
 				}
@@ -186,13 +210,14 @@ func Tools(house *House) []mcp.Tool {
 				seats, ok := PickSeats(seatMap, input.Party)
 				if !ok {
 					return mcp.Result{}, mcp.Failf(
-						"there is no run of %d seats together left for %s — %d seats are free, but scattered.",
-						input.Party, show.Title, seatMap.Available)
+						"there is no run of %d seats together left for %s at %s — %d seats are free, but scattered.",
+						input.Party, screening.Movie.Title, screening.Theater.Where(), seatMap.Available)
 				}
 
 				return mcp.Result{
-					Text: fmt.Sprintf("%s for %s: %s. %s",
-						strings.Join(seats.IDs, ", "), show.Title, money(seats.TotalCents), seats.Why),
+					Text: fmt.Sprintf("%s for %s at %s: %s. %s",
+						strings.Join(seats.IDs, ", "), screening.Movie.Title,
+						screening.Theater.Where(), money(seats.TotalCents), seats.Why),
 					Structured: map[string]any{
 						"seatIds":    seats.IDs,
 						"section":    seats.Section,
@@ -212,7 +237,7 @@ func Tools(house *House) []mcp.Tool {
 			InputSchema: json.RawMessage(`{
 				"type": "object",
 				"properties": {
-					"showId": { "type": "string", "description": "The screening that was booked." },
+					"showId": { "type": "string", "description": "The screening that was booked, as the schedule published it." },
 					"seatIds": {
 						"type": "array",
 						"description": "The seats that were bought, as the seating service reported them.",
@@ -226,7 +251,7 @@ func Tools(house *House) []mcp.Tool {
 				"type": "object",
 				"properties": {
 					"note": { "type": "string", "description": "The confirmation, ready to send." },
-					"arriveBy": { "type": "string", "description": "When to be in the building, RFC 3339." }
+					"arriveBy": { "type": "string", "description": "When to be in the building, in the house's own local time, RFC 3339." }
 				},
 				"required": ["note"]
 			}`),
@@ -243,29 +268,32 @@ func Tools(house *House) []mcp.Tool {
 					return mcp.Result{}, mcp.Failf("a confirmation needs the seats that were bought.")
 				}
 
-				show, err := house.Show(input.ShowID)
+				screening, err := house.Screening(input.ShowID)
 				if err != nil {
 					return mcp.Result{}, mcp.Failf("%v", err)
 				}
 
 				// Doors are fifteen minutes before, and the trailers run ten
 				// past that. Arriving on the hour is arriving on time.
-				arriveBy := show.StartsAt.Add(-15 * time.Minute)
+				arriveBy := screening.StartsAt.Add(-15 * time.Minute)
 				greeting := "You are booked in"
 				if input.Name != "" {
 					greeting = input.Name + ", you are booked in"
 				}
 
 				note := fmt.Sprintf(
-					"%s for %s (%s, %d) at %s — %s %s.\n\n"+
-						"Doors are at %s and the trailers run about ten minutes, so there is no need to sprint. "+
-						"The film runs %d minutes and is in %s.\n\n— The Kaja Theatre",
+					"%s for %s (%s, %d), %s at %s — %s %s.\n\n"+
+						"The house is %s, %s, %s. Doors are at %s and the trailers run about ten "+
+						"minutes, so there is no need to sprint. The film runs %d minutes and is in %s."+
+						"\n\n— the Theatre",
 					greeting,
-					show.Title, show.Director, show.Year,
-					show.StartsAt.Format("Monday 2 January, 15:04"),
+					screening.Movie.Title, screening.Movie.Director, screening.Movie.Year,
+					screening.StartsAt.Format("Monday 2 January, 15:04"),
+					screening.Theater.Name,
 					plural(len(input.SeatIDs), "seat", "seats"), strings.Join(input.SeatIDs, ", "),
+					screening.Theater.Address, screening.Theater.City, screening.Theater.State,
 					arriveBy.Format("15:04"),
-					show.RuntimeMinutes, show.Language)
+					screening.Movie.RuntimeMinutes, screening.Movie.Language)
 
 				return mcp.Result{
 					Text: note,
@@ -282,18 +310,33 @@ func Tools(house *House) []mcp.Tool {
 // Instructions is what the server tells a client it is for.
 func Instructions() string { return instructions }
 
-func shortest(shows []Show) int {
+func shortest(screenings []Screening) int {
 	shortest := 0
-	for _, show := range shows {
-		if shortest == 0 || show.RuntimeMinutes < shortest {
-			shortest = show.RuntimeMinutes
+	for _, s := range screenings {
+		if shortest == 0 || s.Movie.RuntimeMinutes < shortest {
+			shortest = s.Movie.RuntimeMinutes
 		}
 	}
 	return shortest
 }
 
+// cities is every town the chain is in, in alphabetical order, which is what
+// a request naming somewhere it is not gets told instead.
+func cities(screenings []Screening) []string {
+	seen := map[string]bool{}
+	var out []string
+	for _, s := range screenings {
+		if !seen[s.Theater.City] {
+			seen[s.Theater.City] = true
+			out = append(out, s.Theater.City)
+		}
+	}
+	sort.Strings(out)
+	return out
+}
+
 func money(cents int32) string {
-	return fmt.Sprintf("€%d.%02d", cents/100, cents%100)
+	return fmt.Sprintf("$%d.%02d", cents/100, cents%100)
 }
 
 func plural(n int, one, many string) string {

@@ -1,10 +1,14 @@
-// Package theatre is a small client for the theatre catalog's REST API.
-// The seating service trusts the catalog for which shows exist and what
-// they cost; it owns everything about seats itself.
+// Package theatre is a small client for the Theatre service's REST API.
+// The seating service trusts it for which screenings exist, when they start
+// and what they cost; it owns everything about seats itself.
+//
+// Only the schedule is read. What the film is called and where the house is
+// are the other two lists' to say, and a seat map needs neither.
 package theatre
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	neturl "net/url"
 	"sync"
@@ -14,14 +18,19 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// How long the programme is cached. It changes at most once a week.
+// How long the schedule is cached. It changes at most once a week.
 const cacheTTL = 5 * time.Minute
 
+// The biggest page the Theatre service will hand over, so that walking a
+// schedule of a few thousand screenings is a handful of requests.
+const pageSize = 500
+
 type Show struct {
-	ID             string    `json:"id"`
-	Title          string    `json:"title"`
-	StartsAt       time.Time `json:"startsAt"`
-	BasePriceCents int       `json:"basePriceCents"`
+	ID         string    `json:"id"`
+	MovieID    string    `json:"movieId"`
+	TheaterID  string    `json:"theaterId"`
+	StartsAt   time.Time `json:"startsAt"`
+	PriceCents int       `json:"priceCents"`
 }
 
 type Client struct {
@@ -40,7 +49,7 @@ func NewClient(baseURL string) *Client {
 	}
 }
 
-// Shows returns the catalog's whole programme, cached for a few minutes.
+// Shows returns the whole schedule, cached for a few minutes.
 func (c *Client) Shows() ([]Show, error) {
 	c.mu.Lock()
 	if time.Now().Before(c.until) {
@@ -73,9 +82,9 @@ func (c *Client) Shows() ([]Show, error) {
 	return shows, nil
 }
 
-// page is one response from the catalog, which paginates. The client takes
-// whatever page size the catalog defaults to and follows the cursor; total is
-// only there to size the slice up front.
+// page is one response from the schedule, which paginates. The client asks
+// for the biggest page it can and follows the cursor; total is only there to
+// size the slice up front.
 type page struct {
 	Shows      []Show  `json:"shows"`
 	Total      int     `json:"total"`
@@ -83,28 +92,28 @@ type page struct {
 }
 
 func (c *Client) page(cursor string) (page, error) {
-	url := c.baseURL + "/shows"
+	url := fmt.Sprintf("%s/shows?limit=%d", c.baseURL, pageSize)
 	if cursor != "" {
-		url += "?cursor=" + neturl.QueryEscape(cursor)
+		url += "&cursor=" + neturl.QueryEscape(cursor)
 	}
 
 	resp, err := c.http.Get(url)
 	if err != nil {
-		return page{}, status.Errorf(codes.Unavailable, "theatre catalog unreachable: %v", err)
+		return page{}, status.Errorf(codes.Unavailable, "the Theatre schedule is unreachable: %v", err)
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return page{}, status.Errorf(codes.Unavailable, "theatre catalog returned %d", resp.StatusCode)
+		return page{}, status.Errorf(codes.Unavailable, "the Theatre schedule returned %d", resp.StatusCode)
 	}
 
 	var out page
 	if err := json.NewDecoder(resp.Body).Decode(&out); err != nil {
-		return page{}, status.Errorf(codes.Internal, "bad catalog response: %v", err)
+		return page{}, status.Errorf(codes.Internal, "the Theatre schedule is not readable: %v", err)
 	}
 	return out, nil
 }
 
-// Show validates a show id against the catalog and returns its details.
+// Show validates a screening id against the schedule and returns its details.
 func (c *Client) Show(id string) (Show, error) {
 	shows, err := c.Shows()
 	if err != nil {
@@ -116,5 +125,5 @@ func (c *Client) Show(id string) (Show, error) {
 		}
 	}
 	return Show{}, status.Errorf(codes.NotFound,
-		"no show %q — list them all at %s/shows", id, c.baseURL)
+		"no screening %q — list them all at %s/shows", id, c.baseURL)
 }

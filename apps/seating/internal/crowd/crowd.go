@@ -21,17 +21,17 @@ import (
 )
 
 // How much of the house a screening's crowd wants, at most. It is read off
-// the ticket price rather than looked up by film, because the programme is
+// the ticket price rather than looked up by film, because the schedule is
 // thousands of screenings long and a table of opinions about it would be
-// stale by the weekend: the house charges more for the films it expects to
+// stale by the weekend: a house charges more for the films it expects to
 // fill, so the price already says what a table would have.
 func demand(s theatre.Show) float64 {
 	switch {
-	case s.BasePriceCents >= 1800:
+	case s.PriceCents >= 2000:
 		return 0.85
-	case s.BasePriceCents >= 1600:
+	case s.PriceCents >= 1700:
 		return 0.65
-	case s.BasePriceCents >= 1400:
+	case s.PriceCents >= 1400:
 		return 0.5
 	default:
 		return 0.35

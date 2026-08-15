@@ -54,7 +54,7 @@ func main() {
 		grpcServer.GracefulStop()
 	}()
 
-	log.Printf("Starting seating gRPC server on %s (theatre catalog at %s)", lis.Addr().String(), theatreURL)
+	log.Printf("Starting seating gRPC server on %s (Theatre schedule at %s)", lis.Addr().String(), theatreURL)
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatalf("Failed to serve: %v", err)
 	}
