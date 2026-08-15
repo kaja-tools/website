@@ -1,19 +1,22 @@
-// Package catalog holds The Kaja Theatre's programme — a repertory cinema in
-// a restored movie palace, so the films are real ones and the house has a
-// balcony. Every film screens once a week in the same slot, so its next
-// showtime is derived from the current time: no storage, and the demo can
-// never run out of screenings.
+// Package catalog holds everything the Theatre publishes, which is three
+// lists: the movies, the theaters that screen them, and the week's schedule
+// relating the two.
 //
-// A screening is the unit the whole demo is built on: its id is what you pass
-// to the seating service. There is no separate "film" and "screening".
+// Only the third is a relationship, and it is deliberately nothing but one. A
+// Show is a movie id, a theater id, a time and a price — no title, no
+// address — so anybody reading a programme has to join it against the other
+// two lists. That join is what the demo is here to show.
 //
-// The repertory is films.json, embedded at build time. Every fact in it —
-// director, year, running time, language, and the sentence of synopsis — is
-// real, taken from Wikidata (CC0) and English Wikipedia (CC BY-SA 4.0) by
-// scripts/catalog. Nothing about a film is invented, which leaves only the
-// two things a cinema decides for itself: the slot it screens in and what it
-// charges, and both are derived below from the film's own id rather than
-// written down, so the programme has nothing to keep in step.
+// Nothing is stored. The movies are films.json, embedded at build time; the
+// theaters are the dozen houses in theaters.go; and every screening is
+// derived from a movie and a house — which of them play it, when, and for how
+// much — so there is no schedule to keep in step and the week never runs out.
+//
+// The films are real. Every fact about one — director, year, running time,
+// language, and the sentence of synopsis — is taken from Wikidata (CC0) and
+// English Wikipedia (CC BY-SA 4.0) by scripts/catalog. The chain is invented,
+// and so is everything it decides: which house plays what, at what time, and
+// for what money.
 package catalog
 
 import (
@@ -21,13 +24,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"hash/fnv"
+	"sort"
 	"time"
 )
 
 //go:embed films.json
 var filmsJSON []byte
 
-type Show struct {
+// Movie is one film in the catalog. It says nothing about when or where it is
+// playing: a movie is in the catalog whether or not it is on this week.
+type Movie struct {
 	ID             string `json:"id"`
 	Title          string `json:"title"`
 	Director       string `json:"director"`
@@ -36,91 +42,172 @@ type Show struct {
 	Genre          string `json:"genre"`
 	Language       string `json:"language"`
 	Synopsis       string `json:"synopsis"`
+}
 
-	BasePriceCents int `json:"-"`
-	// The weekly slot. Times are UTC.
-	Weekday time.Weekday `json:"-"`
-	Hour    int          `json:"-"`
-	Minute  int          `json:"-"`
+// Show is one weekly screening: a movie, at a theater, at a time, for a
+// price. Its id is what the seating service takes, and it is the two ids it
+// relates written out — `dune-part-two@the-lantern` — so a screening says
+// what it is without anything having to be looked up to read it.
+type Show struct {
+	ID         string
+	MovieID    string
+	TheaterID  string
+	PriceCents int
+
+	// The weekly slot, in the theater's own local time.
+	Weekday time.Weekday
+	Hour    int
+	Minute  int
+
+	loc *time.Location
 }
 
 var (
-	shows []Show
-	byID  map[string]Show
+	movies       []Movie
+	moviesByID   map[string]Movie
+	shows        []Show
+	showsByID    map[string]Show
+	showsByMovie map[string][]Show
 )
 
 func init() {
-	if err := json.Unmarshal(filmsJSON, &shows); err != nil {
+	loadTheaters()
+	loadMovies()
+	loadShows()
+}
+
+func loadMovies() {
+	if err := json.Unmarshal(filmsJSON, &movies); err != nil {
 		panic(fmt.Sprintf("catalog: films.json: %v", err))
 	}
-	byID = make(map[string]Show, len(shows))
-	for i := range shows {
-		show := &shows[i]
-		show.Weekday, show.Hour, show.Minute = slot(show.ID)
-		show.BasePriceCents = price(*show)
-		if _, clash := byID[show.ID]; clash {
-			panic(fmt.Sprintf("catalog: two screenings called %q", show.ID))
+	sort.Slice(movies, func(i, j int) bool { return movies[i].ID < movies[j].ID })
+	moviesByID = make(map[string]Movie, len(movies))
+	for _, m := range movies {
+		if _, clash := moviesByID[m.ID]; clash {
+			panic(fmt.Sprintf("catalog: two films called %q", m.ID))
 		}
-		byID[show.ID] = *show
+		moviesByID[m.ID] = m
 	}
 }
 
-// The house runs from late morning to the last late show, on the quarter
-// hour. A film's slot is its id hashed into that grid: stable week to week,
-// spread across the week, and nowhere written down.
+func loadShows() {
+	showsByID = make(map[string]Show)
+	showsByMovie = make(map[string][]Show)
+	for _, m := range movies {
+		for _, t := range housesFor(m.ID) {
+			s := Show{
+				ID:         m.ID + "@" + t.ID,
+				MovieID:    m.ID,
+				TheaterID:  t.ID,
+				PriceCents: price(m, t),
+				loc:        t.loc,
+			}
+			s.Weekday, s.Hour, s.Minute = slot(s.ID)
+			shows = append(shows, s)
+			showsByID[s.ID] = s
+			showsByMovie[m.ID] = append(showsByMovie[m.ID], s)
+		}
+	}
+}
+
+// Which houses play a film, and how many of them. A film runs at one, two or
+// three of the twelve, read off its own id, so the schedule is the same every
+// week and is written down nowhere.
+func housesFor(movieID string) []Theater {
+	n := hash(movieID)
+	count := 1 + int(n%3)
+	index := int(n/3) % len(theaters)
+	stride := 1 + int(n/9)%(len(theaters)-1)
+
+	out := make([]Theater, 0, count)
+	taken := map[int]bool{}
+	for len(out) < count {
+		for taken[index] {
+			index = (index + 1) % len(theaters)
+		}
+		taken[index] = true
+		out = append(out, theaters[index])
+		index = (index + stride) % len(theaters)
+	}
+	return out
+}
+
+// A house runs from late morning to the last late show, on the quarter hour.
+// A screening's slot is its id hashed into that grid: stable week to week,
+// spread across the week, and different for the same film two towns over.
 const (
-	firstHour  = 10
-	hoursOpen  = 14
+	firstHour  = 11
+	hoursOpen  = 12
 	quarters   = 4
 	daysOfWeek = 7
 )
 
-func slot(id string) (time.Weekday, int, int) {
-	h := fnv.New64a()
-	h.Write([]byte(id))
-	n := h.Sum64()
+func slot(showID string) (time.Weekday, int, int) {
+	n := hash(showID)
 	hour := firstHour + int(n%hoursOpen)
 	minute := 15 * int((n/hoursOpen)%quarters)
 	weekday := time.Weekday((n / (hoursOpen * quarters)) % daysOfWeek)
 	return weekday, hour, minute
 }
 
-// What the house charges for an orchestra seat. A new print costs more than
-// an old one and a long evening costs more than a short one, which is the
-// whole of the pricing policy.
-func price(s Show) int {
+// What a seat costs. A new print costs more than an old one and a long
+// evening costs more than a short one; then the house takes its own view of
+// what it can charge, which is the only thing about a price that is the
+// theater's rather than the film's. Rounded to the quarter, because nobody
+// prints a ticket at $16.38.
+func price(m Movie, t Theater) int {
 	cents := 1200
 	switch {
-	case s.Year >= 2015:
+	case m.Year >= 2015:
 		cents = 1800
-	case s.Year >= 2000:
+	case m.Year >= 2000:
 		cents = 1600
-	case s.Year >= 1980:
+	case m.Year >= 1980:
 		cents = 1400
 	}
-	if s.RuntimeMinutes >= 150 {
+	if m.RuntimeMinutes >= 150 {
 		cents += 100
 	}
-	return cents
+	cents = cents * t.priceIndex / 100
+	return (cents + 12) / 25 * 25
+}
+
+func hash(s string) uint64 {
+	h := fnv.New64a()
+	h.Write([]byte(s))
+	return h.Sum64()
+}
+
+func Movies() []Movie { return movies }
+
+func MovieByID(id string) (Movie, bool) {
+	m, ok := moviesByID[id]
+	return m, ok
 }
 
 func Shows() []Show { return shows }
 
-func ByID(id string) (Show, bool) {
-	s, ok := byID[id]
+func ShowByID(id string) (Show, bool) {
+	s, ok := showsByID[id]
 	return s, ok
 }
 
-// NextStart is the screening's next start after now. A weekly slot always has
-// one, so every film in the programme is always on sale.
+// ShowsOf is every screening of one film, across the chain.
+func ShowsOf(movieID string) []Show { return showsByMovie[movieID] }
+
+// NextStart is the screening's next start after now, in the theater's own
+// local time. A weekly slot always has one, so every screening in the
+// schedule is always on sale.
 func (s Show) NextStart(now time.Time) time.Time {
-	now = now.UTC()
-	midnight := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
+	local := now.In(s.loc)
+	midnight := time.Date(local.Year(), local.Month(), local.Day(), 0, 0, 0, 0, s.loc)
 	daysAhead := (int(s.Weekday) - int(midnight.Weekday()) + 7) % 7
-	start := midnight.AddDate(0, 0, daysAhead).
-		Add(time.Duration(s.Hour)*time.Hour + time.Duration(s.Minute)*time.Minute)
+
+	day := midnight.AddDate(0, 0, daysAhead)
+	start := time.Date(day.Year(), day.Month(), day.Day(), s.Hour, s.Minute, 0, 0, s.loc)
 	if !start.After(now) {
-		start = start.AddDate(0, 0, 7)
+		day = day.AddDate(0, 0, 7)
+		start = time.Date(day.Year(), day.Month(), day.Day(), s.Hour, s.Minute, 0, 0, s.loc)
 	}
 	return start
 }

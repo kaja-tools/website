@@ -9,6 +9,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"sort"
 	"strconv"
 	"strings"
@@ -18,12 +19,12 @@ import (
 	"github.com/kaja-tools/website/v2/openapi"
 )
 
-// Server exposes the theatre programme at the root of its host
+// Server publishes the Theatre's three lists at the root of its host
 // (e.g. https://theatre.kaja.tools).
 //
-// There is one operation. It comes back a page at a time: call it with no
-// parameters for the first page and follow nextCursor until it is null for
-// the rest.
+// The lists are the movie catalog, the theaters, and the schedule that
+// relates them. The schedule carries the two ids and nothing else, so seeing
+// what is on somewhere means joining it against the other two.
 type Server struct {
 	now func() time.Time
 }
@@ -35,6 +36,8 @@ func New() *Server {
 func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /openapi.yaml", s.getSpec)
+	mux.HandleFunc("GET /movies", s.listMovies)
+	mux.HandleFunc("GET /theaters", s.listTheaters)
 	mux.HandleFunc("GET /shows", s.listShows)
 	return logRequests(compress(mux))
 }
@@ -46,9 +49,9 @@ func logRequests(next http.Handler) http.Handler {
 	})
 }
 
-// compress gzips the programme for callers that asked for it. A page of it is
-// small, but a caller walking the whole week fetches a dozen of them and gets
-// about a fifth of the bytes this way.
+// compress gzips a list for callers that asked for it. A page is small, but a
+// caller walking the whole catalog fetches a dozen of them and gets about a
+// fifth of the bytes this way.
 func compress(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
@@ -69,111 +72,193 @@ type gzipResponse struct {
 
 func (g gzipResponse) Write(b []byte) (int, error) { return g.writer.Write(b) }
 
-type show struct {
-	ID             string    `json:"id"`
-	Title          string    `json:"title"`
-	Director       string    `json:"director"`
-	Year           int       `json:"year"`
-	RuntimeMinutes int       `json:"runtimeMinutes"`
-	Genre          string    `json:"genre"`
-	Language       string    `json:"language"`
-	Synopsis       string    `json:"synopsis"`
-	StartsAt       time.Time `json:"startsAt"`
-	BasePriceCents int       `json:"basePriceCents"`
-}
-
-func render(c catalog.Show, now time.Time) show {
-	return show{
-		ID:             c.ID,
-		Title:          c.Title,
-		Director:       c.Director,
-		Year:           c.Year,
-		RuntimeMinutes: c.RuntimeMinutes,
-		Genre:          c.Genre,
-		Language:       c.Language,
-		Synopsis:       c.Synopsis,
-		StartsAt:       c.NextStart(now),
-		BasePriceCents: c.BasePriceCents,
-	}
-}
-
 func (s *Server) getSpec(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/yaml")
 	w.Write(openapi.Spec)
 }
 
-// A hundred screenings is a page, and also the most a caller can ask for in
-// one: ?limit= sizes a page down, never up.
-const maxLimit = 100
+// A hundred rows is a page and five hundred is the most a caller can ask for
+// in one, which is what makes walking a list of a few thousand a handful of
+// requests rather than a hundred.
+const (
+	defaultLimit = 100
+	maxLimit     = 500
+	// The most ids one ?ids= lookup may name. A page of screenings names at
+	// most a page of films, so this is the same number as maxLimit.
+	maxIDs = maxLimit
+)
 
-// page is one response: a slice of the programme, how many screenings there
-// are in all, and the cursor that continues it. nextCursor is null on the last
-// page, which is the only stopping condition a caller needs; total is there so
-// a caller can draw how far along it is before it gets there.
-type page struct {
+// listMovies is the catalog: every film the chain has a print of, whether or
+// not it is on this week. Everything a screening does not say about a film is
+// here, which makes this the other half of every join.
+func (s *Server) listMovies(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+	limit, after, err := s.pageRequest(query)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	ids, err := parseIDs(query.Get("ids"))
+	if err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	genre := query.Get("genre")
+
+	movies := []catalog.Movie{}
+	for _, m := range catalog.Movies() {
+		if ids != nil && !ids[m.ID] {
+			continue
+		}
+		if genre != "" && m.Genre != genre {
+			continue
+		}
+		movies = append(movies, m)
+	}
+
+	// The catalog is already in id order, which is the order a cursor walks.
+	rows, next := paginate(movies, func(m catalog.Movie) string { return m.ID }, limit, after, s.anchor(after))
+	writeJSON(w, moviePage{Movies: rows, Total: len(movies), NextCursor: next})
+}
+
+// listTheaters is the chain. A dozen houses is small enough to be one
+// response, so this is the one list with no cursor: read it once and keep it
+// as the lookup table it is.
+func (s *Server) listTheaters(w http.ResponseWriter, r *http.Request) {
+	city := strings.ToLower(strings.TrimSpace(r.URL.Query().Get("city")))
+
+	theaters := []catalog.Theater{}
+	for _, t := range catalog.Theaters() {
+		if city != "" && strings.ToLower(t.City) != city {
+			continue
+		}
+		theaters = append(theaters, t)
+	}
+	writeJSON(w, theaterList{Theaters: theaters, Total: len(theaters)})
+}
+
+// listShows is the schedule and only the schedule: which film plays at which
+// house, when, and for how much. What the film is called and where the house
+// is are the other two lists' to say.
+func (s *Server) listShows(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+	limit, after, err := s.pageRequest(query)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	theaterID, movieID := query.Get("theaterId"), query.Get("movieId")
+	city := strings.ToLower(strings.TrimSpace(query.Get("city")))
+
+	// Every page of one walk is rendered against the time the walk started,
+	// so a screening cannot roll over into next week half way through and be
+	// served twice.
+	anchor := s.anchor(after)
+
+	shows := []show{}
+	for _, c := range catalog.Shows() {
+		if theaterID != "" && c.TheaterID != theaterID {
+			continue
+		}
+		if movieID != "" && c.MovieID != movieID {
+			continue
+		}
+		if city != "" {
+			t, ok := catalog.TheaterByID(c.TheaterID)
+			if !ok || strings.ToLower(t.City) != city {
+				continue
+			}
+		}
+		shows = append(shows, render(c, anchor))
+	}
+	sort.Slice(shows, func(i, j int) bool { return shows[i].key() < shows[j].key() })
+
+	rows, next := paginate(shows, show.key, limit, after, anchor)
+	writeJSON(w, showPage{Shows: rows, Total: len(shows), NextCursor: next})
+}
+
+// show is one screening as the schedule publishes it: the two ids it relates,
+// the next time it starts, and what a seat costs.
+type show struct {
+	ID         string    `json:"id"`
+	MovieID    string    `json:"movieId"`
+	TheaterID  string    `json:"theaterId"`
+	StartsAt   time.Time `json:"startsAt"`
+	PriceCents int       `json:"priceCents"`
+}
+
+func render(c catalog.Show, now time.Time) show {
+	return show{
+		ID:         c.ID,
+		MovieID:    c.MovieID,
+		TheaterID:  c.TheaterID,
+		StartsAt:   c.NextStart(now),
+		PriceCents: c.PriceCents,
+	}
+}
+
+// The schedule's order: soonest first, and by id where two screenings start
+// in the same minute, so that a position in it is a screening rather than a
+// number. Zero-padded because a cursor compares these as text.
+func (s show) key() string {
+	return fmt.Sprintf("%011d:%s", s.StartsAt.Unix(), s.ID)
+}
+
+type moviePage struct {
+	Movies     []catalog.Movie `json:"movies"`
+	Total      int             `json:"total"`
+	NextCursor *string         `json:"nextCursor"`
+}
+
+type theaterList struct {
+	Theaters []catalog.Theater `json:"theaters"`
+	Total    int               `json:"total"`
+}
+
+type showPage struct {
 	Shows      []show  `json:"shows"`
 	Total      int     `json:"total"`
 	NextCursor *string `json:"nextCursor"`
 }
 
-// listShows returns the programme a page at a time, soonest first. Called with
-// no parameters it answers the first page, so a caller still needs to have
-// read nothing first; ?limit= sizes the page and ?cursor= continues it.
-func (s *Server) listShows(w http.ResponseWriter, r *http.Request) {
-	limit, err := parseLimit(r.URL.Query().Get("limit"))
-	if err != nil {
-		writeError(w, http.StatusBadRequest, err.Error())
-		return
-	}
-	now := s.now().UTC()
-	after, err := parseCursor(r.URL.Query().Get("cursor"), now)
-	if err != nil {
-		writeError(w, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	// Every page of one walk is rendered against the time the walk started, so
-	// a screening cannot roll over into next week half way through and be
-	// served twice.
-	anchor := now
+// paginate takes the rows after the cursor, up to limit, and says where to
+// carry on from. items must already be sorted by key.
+func paginate[T any](items []T, key func(T) string, limit int, after *cursor, anchor time.Time) ([]T, *string) {
 	if after != nil {
-		anchor = after.anchor
+		items = items[sort.Search(len(items), func(i int) bool { return key(items[i]) > after.key }):]
 	}
-
-	shows := []show{}
-	for _, c := range catalog.Shows() {
-		shows = append(shows, render(c, anchor))
+	if len(items) <= limit {
+		return items, nil
 	}
-	sort.Slice(shows, func(i, j int) bool { return before(shows[i], shows[j]) })
-	total := len(shows)
-
-	if after != nil {
-		shows = shows[sort.Search(len(shows), func(i int) bool { return after.precedes(shows[i]) }):]
-	}
-	out := page{Shows: shows, Total: total}
-	if len(shows) > limit {
-		out.Shows = shows[:limit]
-		next := cursor{anchor: anchor, startsAt: out.Shows[limit-1].StartsAt, id: out.Shows[limit-1].ID}.encode()
-		out.NextCursor = &next
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(out)
+	items = items[:limit]
+	next := cursor{anchor: anchor, key: key(items[limit-1])}.encode()
+	return items, &next
 }
 
-// The programme's order: soonest first, and by id where two films start at the
-// same minute, so that a position in it is a screening rather than a number.
-func before(a, b show) bool {
-	if !a.StartsAt.Equal(b.StartsAt) {
-		return a.StartsAt.Before(b.StartsAt)
+func (s *Server) pageRequest(query url.Values) (int, *cursor, error) {
+	limit, err := parseLimit(query.Get("limit"))
+	if err != nil {
+		return 0, nil, err
 	}
-	return a.ID < b.ID
+	after, err := parseCursor(query.Get("cursor"), s.now().UTC())
+	if err != nil {
+		return 0, nil, err
+	}
+	return limit, after, nil
+}
+
+// anchor is the moment a walk is rendered against: the one the cursor
+// carries, or now for a walk that is just starting.
+func (s *Server) anchor(after *cursor) time.Time {
+	if after != nil {
+		return after.anchor
+	}
+	return s.now().UTC()
 }
 
 func parseLimit(raw string) (int, error) {
 	if raw == "" {
-		return maxLimit, nil
+		return defaultLimit, nil
 	}
 	limit, err := strconv.Atoi(raw)
 	if err != nil || limit < 1 || limit > maxLimit {
@@ -182,14 +267,31 @@ func parseLimit(raw string) (int, error) {
 	return limit, nil
 }
 
-// A cursor is the screening the last page ended on, plus the time that page
-// was rendered against. It is opaque on purpose: it says where a walk got to,
-// not how far in it got, so the programme growing underneath a caller neither
-// skips a screening nor repeats one.
+// parseIDs reads the ?ids= filter. A nil set means the caller did not ask for
+// particular rows, which is different from asking for none.
+func parseIDs(raw string) (map[string]bool, error) {
+	if strings.TrimSpace(raw) == "" {
+		return nil, nil
+	}
+	ids := map[string]bool{}
+	for _, id := range strings.Split(raw, ",") {
+		if id = strings.TrimSpace(id); id != "" {
+			ids[id] = true
+		}
+	}
+	if len(ids) > maxIDs {
+		return nil, fmt.Errorf("ids names %d films; %d is the most in one lookup", len(ids), maxIDs)
+	}
+	return ids, nil
+}
+
+// A cursor is where the last page stopped: the sort key of its final row,
+// plus the moment that walk began. It is opaque on purpose — it says where a
+// walk got to rather than how far in it got, so a list growing underneath a
+// caller neither skips a row nor repeats one.
 type cursor struct {
-	anchor   time.Time
-	startsAt time.Time
-	id       string
+	anchor time.Time
+	key    string
 }
 
 // How long a walk may take before it has to start again. A cursor carries the
@@ -197,44 +299,38 @@ type cursor struct {
 const cursorTTL = time.Hour
 
 func (c cursor) encode() string {
-	raw := fmt.Sprintf("%d:%d:%s", c.anchor.Unix(), c.startsAt.Unix(), c.id)
+	raw := fmt.Sprintf("%d:%s", c.anchor.Unix(), c.key)
 	return base64.RawURLEncoding.EncodeToString([]byte(raw))
-}
-
-// precedes reports whether s comes after the cursor in the programme's order.
-func (c cursor) precedes(s show) bool {
-	if !s.StartsAt.Equal(c.startsAt) {
-		return s.StartsAt.After(c.startsAt)
-	}
-	return s.ID > c.id
 }
 
 func parseCursor(raw string, now time.Time) (*cursor, error) {
 	if raw == "" {
 		return nil, nil
 	}
-	invalid := errors.New("cursor is not one this service issued — start again at /shows")
+	invalid := errors.New("cursor is not one this service issued — start again without one")
 	decoded, err := base64.RawURLEncoding.DecodeString(raw)
 	if err != nil {
 		return nil, invalid
 	}
-	parts := strings.SplitN(string(decoded), ":", 3)
-	if len(parts) != 3 {
+	unix, key, found := strings.Cut(string(decoded), ":")
+	if !found {
 		return nil, invalid
 	}
-	anchor, err := strconv.ParseInt(parts[0], 10, 64)
+	anchor, err := strconv.ParseInt(unix, 10, 64)
 	if err != nil {
 		return nil, invalid
 	}
-	startsAt, err := strconv.ParseInt(parts[1], 10, 64)
-	if err != nil {
-		return nil, invalid
-	}
-	c := cursor{anchor: time.Unix(anchor, 0).UTC(), startsAt: time.Unix(startsAt, 0).UTC(), id: parts[2]}
+	c := cursor{anchor: time.Unix(anchor, 0).UTC(), key: key}
 	if now.Sub(c.anchor) > cursorTTL || c.anchor.After(now) {
-		return nil, errors.New("cursor has expired — start again at /shows")
+		return nil, errors.New("cursor has expired — start again without one")
 	}
 	return &c, nil
+}
+
+func writeJSON(w http.ResponseWriter, body any) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(body)
 }
 
 func writeError(w http.ResponseWriter, code int, message string) {

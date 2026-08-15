@@ -28,19 +28,21 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
-// Live seat inventory for The Kaja Theatre.
+// Live seat inventory for the Theatre chain.
 //
 // Buying a ticket is two calls: look at the house, buy some seats. Show ids
-// come from the theatre programme — start at https://theatre.kaja.tools/shows
-// and copy any `id`.
+// come from the Theatre service's schedule — start at
+// https://theatre.kaja.tools/shows and copy any `id`. One reads
+// `dune-part-two@the-lantern`: the film, at the house playing it.
 //
 // The house is busy. Other customers are holding and buying these seats the
 // whole time, so a seat map is only true for a moment: call GetSeatMap twice
 // and it will have changed underneath you. Losing a seat to somebody faster
 // is a normal thing to see here.
 type SeatingClient interface {
-	// The whole house for a show: every seat with its section, price, and
-	// whether it is free.
+	// The whole house for a screening: every seat with its section, price,
+	// and whether it is free. Houses are not all the same size, so how many
+	// rows come back depends on which theater the screening is at.
 	GetSeatMap(ctx context.Context, in *GetSeatMapRequest, opts ...grpc.CallOption) (*GetSeatMapResponse, error)
 	// Buy up to 6 seats. This is the one call that spends money, and it is
 	// all or nothing: if somebody took one of the seats first, nothing is
@@ -104,19 +106,21 @@ type Seating_WatchSeatsClient = grpc.ServerStreamingClient[SeatUpdate]
 // All implementations must embed UnimplementedSeatingServer
 // for forward compatibility.
 //
-// Live seat inventory for The Kaja Theatre.
+// Live seat inventory for the Theatre chain.
 //
 // Buying a ticket is two calls: look at the house, buy some seats. Show ids
-// come from the theatre programme — start at https://theatre.kaja.tools/shows
-// and copy any `id`.
+// come from the Theatre service's schedule — start at
+// https://theatre.kaja.tools/shows and copy any `id`. One reads
+// `dune-part-two@the-lantern`: the film, at the house playing it.
 //
 // The house is busy. Other customers are holding and buying these seats the
 // whole time, so a seat map is only true for a moment: call GetSeatMap twice
 // and it will have changed underneath you. Losing a seat to somebody faster
 // is a normal thing to see here.
 type SeatingServer interface {
-	// The whole house for a show: every seat with its section, price, and
-	// whether it is free.
+	// The whole house for a screening: every seat with its section, price,
+	// and whether it is free. Houses are not all the same size, so how many
+	// rows come back depends on which theater the screening is at.
 	GetSeatMap(context.Context, *GetSeatMapRequest) (*GetSeatMapResponse, error)
 	// Buy up to 6 seats. This is the one call that spends money, and it is
 	// all or nothing: if somebody took one of the seats first, nothing is

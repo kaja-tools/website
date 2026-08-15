@@ -29,7 +29,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	server := mcp.NewServer("The Kaja Theatre Concierge", "1.0.0", concierge.Instructions(), concierge.Tools(house))
+	server := mcp.NewServer("Theatre Concierge", "1.0.0", concierge.Instructions(), concierge.Tools(house))
 
 	mux := http.NewServeMux()
 	// The endpoint is /mcp because that is where every client looks first.
