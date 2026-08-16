@@ -1,0 +1,92 @@
+---
+/* The hero composition: the diagram, then the app itself. Five nodes — the
+   three surfaces Kaja reads on the left, the agent and the approval gate on
+   the right — with wires converging on the Kaja tab sitting on the top edge
+   of the screenshot.
+
+   The wires are drawn on a 1180x264 grid stretched to whatever width the page
+   frame is, so every endpoint stays under the node it leaves. Below `lg` there
+   is no room for any of that: the wires and the tab go, and the nodes become a
+   plain two-column grid above the screenshot. */
+import Mark from "./Mark.astro";
+
+const node = "flex items-center gap-2.5 rounded-lg border border-border bg-card px-3.5 lg:h-12";
+
+const surfaces = [
+  { name: "gRPC", kind: ".proto", dot: "bg-brand-cool", delay: "0.35s" },
+  { name: "OpenAPI", kind: "schema", dot: "bg-brand-warm", delay: "0.42s" },
+  { name: "MCP", kind: "tools", dot: "bg-brand-sky", delay: "0.49s" },
+];
+
+/* Each wire is drawn from its node to the tab. `pathLength` normalises every
+   path to 1 so one dash offset animates them all, however long they are. */
+const wires = [
+  { d: "M186 40 C 420 40, 430 236, 590 250", delay: "0.45s" },
+  { d: "M186 112 C 420 112, 440 240, 590 250", delay: "0.55s" },
+  { d: "M186 184 C 420 184, 450 244, 590 250", delay: "0.65s" },
+  { d: "M994 52 C 760 52, 740 236, 590 250", delay: "0.8s" },
+  { d: "M994 172 C 760 172, 730 242, 590 250", delay: "0.92s" },
+];
+---
+
+<div class="mx-auto w-full max-w-page px-6 md:px-8">
+  <div class="lg:relative lg:h-66">
+    <svg viewBox="0 0 1180 264" preserveAspectRatio="none" class="absolute inset-0 hidden h-full w-full overflow-visible lg:block" aria-hidden="true">
+      {
+        wires.map((wire) => (
+          <path
+            class="animate-draw fill-none stroke-wire"
+            pathLength="1"
+            stroke-dasharray="1"
+            stroke-dashoffset="1"
+            stroke-width="1.5"
+            vector-effect="non-scaling-stroke"
+            d={wire.d}
+            style={{ animationDelay: wire.delay }}
+          />
+        ))
+      }
+    </svg>
+
+    <div class="grid gap-4 sm:grid-cols-2 lg:block">
+      <div class="flex flex-col gap-4 lg:absolute lg:top-0 lg:left-0 lg:w-52.5 lg:gap-6">
+        {
+          surfaces.map((surface) => (
+            <div class:list={["h-12 animate-rise opacity-0", node]} style={{ animationDelay: surface.delay }}>
+              <span class:list={["size-1.5 rounded-full", surface.dot]} />
+              <span class="text-fine font-medium">{surface.name}</span>
+              <span class="ml-auto font-mono text-micro text-muted-foreground">{surface.kind}</span>
+            </div>
+          ))
+        }
+      </div>
+
+      <div class="flex flex-col gap-4 lg:absolute lg:top-2 lg:right-0 lg:w-52.5 lg:items-end lg:gap-15">
+        <div class="w-full animate-rise rounded-lg border border-border bg-card px-3.5 py-3 opacity-0" style={{ animationDelay: "0.72s" }}>
+          <p class="mb-1 text-fine font-medium">An agent</p>
+          <p class="text-xs/[1.4] text-muted-foreground">can write the script and run it</p>
+        </div>
+        <div class="w-full animate-rise rounded-lg border border-approve/40 bg-approve/10 px-3.5 py-3 opacity-0" style={{ animationDelay: "0.84s" }}>
+          <p class="mb-1 text-fine font-medium text-approve-foreground">You approve</p>
+          <p class="text-xs/[1.4] text-muted-foreground">if the script asks you to</p>
+        </div>
+      </div>
+    </div>
+
+    {
+      /* Sits astride the seam between the diagram and the screenshot: the tab
+        has no bottom border, so it reads as part of the window below it. */
+    }
+    <div
+      class="hidden animate-rise items-center gap-2.5 rounded-t-frame border border-b-0 border-border bg-card px-4 py-2 opacity-0 lg:absolute lg:-bottom-px lg:left-1/2 lg:flex lg:-translate-x-1/2"
+      style={{ animationDelay: "0.3s" }}
+    >
+      <Mark id="kaja-mark-canvas" class="h-3.5 w-auto" />
+      <span class="text-fine font-semibold tracking-tight">Kaja</span>
+    </div>
+  </div>
+
+  <div data-hero-shot class="mt-8 origin-top overflow-hidden rounded-xl border border-border bg-card shadow-hero will-change-transform lg:mt-0">
+    <img src="/assets/app-hero.png" width="3104" height="2024" alt="Kaja running a script against gRPC, OpenAPI and MCP apps" class="block h-auto w-full" />
+  </div>
+</div>

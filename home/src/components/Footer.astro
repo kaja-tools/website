@@ -1,13 +1,14 @@
 ---
-const year = new Date().getFullYear();
-
 const link = "transition-colors hover:text-foreground";
 ---
 
-<footer class="flex flex-col items-center justify-between gap-3 border-t border-border px-6 py-6 text-fine text-muted-foreground sm:flex-row md:px-8">
-  <span>&copy; {year} Kaja</span>
-  <span class="flex gap-5">
-    <a href="https://github.com/wham/kaja" class={link} target="_blank" rel="noopener">Open source under MIT</a>
-    <a href="/privacy" class={link}>Privacy Policy</a>
-  </span>
+<footer class="border-t border-border px-6 py-8 text-fine text-muted-foreground md:px-8">
+  <div class="mx-auto flex w-full max-w-page flex-col items-center justify-between gap-4 sm:flex-row">
+    <span>&copy; Kaja Tools</span>
+    <span class="flex gap-5">
+      <a href="https://github.com/wham/kaja" class={link} target="_blank" rel="noopener">GitHub</a>
+      <a href="https://demo.kaja.tools/" class={link}>Demo</a>
+      <a href="/privacy" class={link}>Privacy</a>
+    </span>
+  </div>
 </footer>
