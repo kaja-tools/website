@@ -140,8 +140,14 @@ home/
 - Tailwind's preset `text-*` sizes carry their own `line-height`, and the
   design's body copy runs looser than the presets do, so pin it with the slash
   modifier (`text-lg/[1.6]`) wherever the design gives a line height.
-- The one non-neutral colour on the site is the brand mark's gradient, in
-  `Logo.astro` and the two favicons.
+- The brand mark's gradient is `Mark.astro` and the two favicons. The only
+  other non-neutral colours are the hero diagram's: a dot per protocol and the
+  amber of the approval gate.
+- **Everything scroll-driven is a data attribute `Motion.astro` reads** —
+  `data-reveal`, `data-parallax`, `data-hero-shot`, `data-pin`. There is one
+  scroll listener on the site and it lives there; a section stays plain markup.
+  All of it is decorative and drops out under `prefers-reduced-motion`, except
+  the pinned section's pane swap, which is how that section shows its content.
 
 Commands, all from `home/`:
 

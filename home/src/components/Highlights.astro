@@ -1,0 +1,79 @@
+---
+/* Three close-ups of the app, pinned. The section is three viewports tall and
+   its contents stick to the top of one of them, so scrolling past it swaps the
+   screenshot rather than moving it — Motion.astro decides which pane is live.
+
+   Below `lg` there is no pin and no swap: each article is text then its
+   screenshot, straight down the page. That is the same markup — `contents`
+   drops the article out of the grid at `lg` so its two halves can land in
+   different columns, and the screenshots stack in the second one. */
+const panes = [
+  {
+    kicker: "Output",
+    title: "See the results, not a log",
+    body: "A script can draw its output instead of printing it. Tables fill in as a loop runs, and they page and search on their own.",
+    src: "/assets/shot-run.png",
+    width: 2297,
+    height: 172,
+  },
+  {
+    kicker: "The record",
+    title: "Every call is on the record",
+    body: "Request, response, headers and duration for every call a run made, kept whether you or an agent started it.",
+    src: "/assets/shot-response.png",
+    width: 1226,
+    height: 304,
+  },
+  {
+    kicker: "Writing calls",
+    title: "You can write the calls too",
+    body: "Click a method and Kaja writes the call for you. Autocomplete covers apps, methods and message fields.",
+    src: "/assets/shot-apps.png",
+    width: 698,
+    height: 961,
+  },
+];
+---
+
+<section data-pin class="relative mt-24 lg:mt-30 lg:h-[300vh]">
+  {/* The viewport minus the header, which is `h-14` and stays put. */}
+  <div class="lg:sticky lg:top-14 lg:flex lg:h-[calc(100vh-3.5rem)] lg:items-center">
+    <div
+      class="mx-auto grid w-full max-w-page gap-10 px-6 md:px-8 lg:auto-rows-min lg:grid-cols-[minmax(280px,380px)_1fr] lg:content-center lg:gap-x-16 lg:gap-y-7"
+    >
+      {
+        panes.map((pane, i) => (
+          <article class="contents">
+            <div data-pane-text class:list={["flex gap-4 transition-opacity duration-400", i === 0 ? "lg:opacity-100" : "lg:opacity-[0.32]"]}>
+              <div data-pane-bar class:list={["w-0.5 shrink-0 rounded-full bg-border transition-colors duration-400", i === 0 && "lg:bg-foreground"]} />
+              <div>
+                <p class="mb-2 text-micro font-semibold tracking-widest text-muted-foreground uppercase">{pane.kicker}</p>
+                <h3 class="mb-2.5 font-display text-2xl/[1.15] font-semibold tracking-tight md:text-pane">{pane.title}</h3>
+                <p class="text-prose/[1.6] text-pretty text-muted-foreground">{pane.body}</p>
+              </div>
+            </div>
+
+            <figure
+              class:list={[
+                "m-0 transition duration-500 ease-out lg:col-start-2 lg:row-start-1 lg:row-span-3 lg:flex lg:justify-center lg:self-center",
+                i === 0 ? "lg:opacity-100" : "lg:translate-y-[18px] lg:opacity-0",
+              ]}
+              data-pane-shot
+            >
+              <div class="overflow-hidden rounded-frame border border-border bg-card shadow-frame lg:max-w-full">
+                <img
+                  src={pane.src}
+                  width={pane.width}
+                  height={pane.height}
+                  alt={pane.title}
+                  loading="lazy"
+                  class="block h-auto w-full lg:max-h-[60vh] lg:w-auto"
+                />
+              </div>
+            </figure>
+          </article>
+        ))
+      }
+    </div>
+  </div>
+</section>

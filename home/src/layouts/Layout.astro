@@ -9,6 +9,10 @@ interface Props {
 }
 
 const { title, description } = Astro.props;
+
+/* The body clips horizontally rather than hiding: `overflow-x: hidden` here
+   would make the body the scroll container the header sticks to, and the
+   header would stop sticking to the viewport. */
 ---
 
 <!doctype html>
@@ -21,7 +25,7 @@ const { title, description } = Astro.props;
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   </head>
-  <body class="flex min-h-screen flex-col bg-background font-sans text-foreground">
+  <body class="flex min-h-screen flex-col overflow-x-clip bg-background font-sans text-foreground">
     <Header />
     <main class="flex flex-1 flex-col"><slot /></main>
     <Footer />

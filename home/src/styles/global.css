@@ -1,5 +1,7 @@
-/* Figtree is the wordmark typeface and nothing else, so only the one weight
-   the lockup uses is loaded, self-hosted rather than fetched from Google. */
+/* Figtree is the display face — the wordmark and every heading — so the two
+   weights the design uses are loaded, self-hosted rather than fetched from
+   Google. Body copy stays on the system stack. */
+@import "@fontsource/figtree/latin-600.css";
 @import "@fontsource/figtree/latin-700.css";
 
 /* `source(none)` turns off Tailwind's automatic source detection and the
@@ -29,25 +31,47 @@
   --color-ring: oklch(0.556 0 0);
 
   /* The two stops of the brand mark's gradient, warm to cool. The mark is the
-     only colour on the site that isn't on the neutral ramp. */
+     only place both appear together; the hero diagram borrows one stop each to
+     dot its gRPC and OpenAPI nodes, and `brand-sky` is the third dot. */
   --color-brand-warm: #b0503f;
   --color-brand-cool: #8a35d8;
+  --color-brand-sky: #4a9eda;
+
+  /* Approval is the one state the site draws, on the hero diagram's gate.
+     Amber on the neutral ramp, borrowed from the app's own warning colour. */
+  --color-approve: #f59e0b;
+  --color-approve-foreground: #fbbf24;
+
+  /* The hero diagram's wires. Lighter than `border` because they are hairlines
+     over the page background rather than an edge between two surfaces. */
+  --color-wire: #3a3a3a;
 
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-display: Figtree, var(--font-sans);
 
-  /* Sizes the preset scale doesn't cover. `prose` is body copy a step above
-     `text-sm`; `fine` is the footer; the other three are one element each. */
+  /* Sizes the preset scale doesn't cover. The display sizes carry the one line
+     height they are ever set at; the copy sizes don't, because the design runs
+     them at a different leading in different places. */
+  --text-micro: 0.6875rem;
   --text-fine: 0.8125rem;
   --text-prose: 0.9375rem;
+  --text-intro: 1.0625rem;
+  --text-lede: 1.1875rem;
   --text-wordmark: 1.1875rem;
   --text-wordmark--line-height: 1;
+  --text-pane: 1.75rem;
+  --text-pane--line-height: 1.15;
   --text-title: 2.5rem;
-  --text-title--line-height: 1.15;
-  --text-hero: 3.25rem;
-  --text-hero--line-height: 1.1;
+  --text-title--line-height: 1.1;
+  --text-cta: 2.75rem;
+  --text-cta--line-height: 1.08;
+  --text-hero: 4.125rem;
+  --text-hero--line-height: 1.05;
 
-  --tracking-wordmark: -0.03em;
+  /* Headings tighten as they grow: `display` is every heading and the
+     wordmark, `hero` is the one size above them. */
+  --tracking-display: -0.03em;
+  --tracking-hero: -0.035em;
 
   /* Below this the header nav runs out of room and sheds a link. Tailwind's
      own breakpoints all sit above the phone widths that matters for. */
@@ -56,19 +80,59 @@
   /* Column widths, widest to narrowest: the page frame, a page of body copy,
      the hero headline, the hero tagline. `doc` rather than `prose` because
      Tailwind already ships a `max-w-prose`. */
-  --container-page: 1120px;
+  --container-page: 1180px;
   --container-doc: 680px;
-  --container-headline: 760px;
-  --container-tagline: 600px;
+  --container-headline: 820px;
+  --container-tagline: 660px;
 
-  /* The window frame around the screenshots sits between Tailwind's `lg` and
-     `xl` radii, and casts the one shadow on the site. */
+  /* The window frame around a screenshot sits between Tailwind's `lg` and
+     `xl` radii. `frame` is the shadow under a screenshot in the page, `hero`
+     the deeper one under the app shot at the top. */
   --radius-frame: 10px;
-  --shadow-frame: 0 24px 60px rgb(0 0 0 / 0.45);
+  --shadow-frame: 0 24px 70px rgb(0 0 0 / 0.5);
+  --shadow-hero: 0 40px 120px rgb(0 0 0 / 0.6);
+
+  /* Entrances. `rise` is anything that arrives on load, `draw` is a wire in
+     the hero diagram drawing itself from the node it leaves. */
+  --animate-rise: rise 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+  --animate-draw: draw 1.1s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes draw {
+    from {
+      stroke-dashoffset: 1;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
 }
 
 @layer base {
   html {
     color-scheme: dark;
+  }
+
+  /* Every animation on the site is decorative and fill-mode `forwards`, so
+     collapsing the duration lands on the finished state rather than removing
+     it. Motion.astro drops the scroll-driven effects on the same signal. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 1ms !important;
+      animation-delay: 0ms !important;
+      transition-duration: 1ms !important;
+    }
   }
 }
