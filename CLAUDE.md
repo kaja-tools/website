@@ -117,9 +117,10 @@ back.
 
 ```
 home/
-  src/pages/       one file per route (index, privacy, 404)
+  src/pages/       one file per route (index, docs, privacy, 404)
   src/layouts/     the page shell — <head>, header, footer
   src/components/  everything reused across pages
+  src/data/        the lists a page is built from, out of its markup
   src/styles/      global.css: the Tailwind import and the design tokens
   public/          served verbatim at the root: favicons, logo, /assets/
   Caddyfile        serving rules for the runtime image
@@ -143,11 +144,31 @@ home/
 - The brand mark's gradient is `Mark.astro` and the two favicons. The only
   other non-neutral colours are the hero diagram's: a dot per protocol and the
   amber of the approval gate.
+- **The docs are one page, not one per platform** (`src/pages/docs.astro`).
+  Most of what there is to say is true of both builds, so the two differences
+  per section are `<Platform only="desktop">` / `only="docker"` blocks in the
+  one page and the toggle picks between them clientside — **Desktop first, and
+  the default**, with Docker as the variant. A second page would fork every
+  shared paragraph to keep four differences apart; if that balance ever tips,
+  `Platform` is the seam to split on. A reader with no JavaScript gets both
+  blocks, labelled, by the `noscript` rule at the foot of the page.
+- `data/docs.ts` is the section list — the nav, the screenshot rail and the
+  scroll spy all read it, so a section is added there and its body written in
+  the page under the same `id`. A section with no `shot` leaves the rail empty
+  rather than borrowing a picture of something else; **Variables and Agents
+  have none yet**, because `public/assets/` holds crops the home page took for
+  its own layout and none of them is of those screens.
+- Snippets are plain strings in `data/snippets.ts`, highlighted at build time
+  by Shiki in `styles/codeTheme.ts` — which maps scopes onto the `code-*`
+  custom properties rather than repeating them, so the palette stays in
+  `global.css`. Keep a snippet narrow enough to fit the column; one you have
+  to scroll sideways is one nobody finishes.
 - **Everything scroll-driven is a data attribute `Motion.astro` reads** —
   `data-reveal`, `data-parallax`, `data-hero-shot`, `data-pin`. There is one
   scroll listener on the site and it lives there; a section stays plain markup.
   All of it is decorative and drops out under `prefers-reduced-motion`, except
   the pinned section's pane swap, which is how that section shows its content.
+  The docs page has its own one listener, `DocsMotion.astro`, on the same rule.
 
 Commands, all from `home/`:
 

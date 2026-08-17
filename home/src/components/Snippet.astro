@@ -1,0 +1,41 @@
+---
+/* A code block, framed like a file: a title bar with a dot and the file's
+   name, then the code. The dot takes one of the mark's three hues, by what
+   the file is — a shell, the configuration, a script — so the docs' snippets
+   are told apart before they are read.
+
+   Highlighted at build time by Shiki, in the site's own theme, so a snippet
+   is written here as the code it is and nothing ships to the browser. */
+import { Code } from "astro:components";
+import { codeTheme } from "../styles/codeTheme";
+
+interface Props {
+  /* The name in the title bar. */
+  file: string;
+  kind: keyof typeof dots;
+  lang: "json" | "shell" | "ts";
+  code: string;
+}
+
+const dots = {
+  shell: "bg-brand-sky",
+  configuration: "bg-brand-cool",
+  script: "bg-brand-warm",
+};
+
+const { file, kind, lang, code } = Astro.props;
+---
+
+<div class="overflow-hidden rounded-frame border border-border bg-card">
+  <div class="flex h-8.5 items-center gap-2 border-b border-border px-3">
+    <span class:list={["size-1.5 rounded-full", dots[kind]]}></span>
+    <span class="font-mono text-micro text-muted-foreground">{file}</span>
+  </div>
+  {
+    /* Shiki writes the `pre` itself, so its padding and type are set from out
+      here rather than passed in. */
+  }
+  <div class="[&_pre]:overflow-x-auto [&_pre]:p-4 [&_pre]:font-mono [&_pre]:text-fine/[1.75]">
+    <Code code={code.trim()} lang={lang} theme={codeTheme} />
+  </div>
+</div>

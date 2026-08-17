@@ -42,6 +42,18 @@
   --color-approve: #f59e0b;
   --color-approve-foreground: #fbbf24;
 
+  /* The docs' code blocks. Three hues and two greys: a key or a keyword takes
+     the cool stop, a string the warm one, a number or a literal the sky — the
+     same three the mark and the hero diagram are drawn in, lightened until
+     they read as code on `card` rather than as accents on the page. The app
+     colours code differently (`ui/src/monacoTheme.ts`); these are the site's,
+     because a snippet here is an illustration and not an editor. */
+  --color-code: #e6e6e6;
+  --color-code-muted: #9a9a9a;
+  --color-code-key: #c39bee;
+  --color-code-string: #e0a08f;
+  --color-code-literal: #7fb2d9;
+
   /* The hero diagram's wires. Lighter than `border` because they are hairlines
      over the page background rather than an edge between two surfaces. */
   --color-wire: #3a3a3a;
@@ -84,6 +96,12 @@
   --container-doc: 680px;
   --container-headline: 820px;
   --container-tagline: 660px;
+
+  /* The docs are three columns — nav, copy, screenshots — so they run wider
+     than the rest of the site, and a paragraph inside them runs narrower than
+     a page of body copy, because the rail is reading alongside it. */
+  --container-docs: 1400px;
+  --container-copy: 620px;
 
   /* The window frame around a screenshot sits between Tailwind's `lg` and
      `xl` radii. `frame` is the shadow under a screenshot in the page, `hero`

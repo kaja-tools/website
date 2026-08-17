@@ -1,0 +1,73 @@
+---
+/* The docs page's one scroll listener, and its one click handler — the same
+   arrangement `Motion.astro` makes for the home page:
+
+     data-docs-section   a section, read to work out which one is being read
+     data-docs-link      its link in the sidebar, lit while it is
+     data-docs-shot      its screenshot in the rail, faded up while it is
+     data-platform-pick  the Desktop/Docker toggle
+
+   The rail's cross-fade is the only motion here, and the reduced-motion rule
+   in global.css already collapses it to a cut. */
+---
+
+<script>
+  const wrap = document.querySelector<HTMLElement>("[data-docs-platform]");
+  const sections = [...document.querySelectorAll<HTMLElement>("[data-docs-section]")];
+  const links = [...document.querySelectorAll<HTMLElement>("[data-docs-link]")];
+  const shots = [...document.querySelectorAll<HTMLElement>("[data-docs-shot]")];
+  const picks = [...document.querySelectorAll<HTMLButtonElement>("[data-platform-pick]")];
+
+  const STORE = "kaja-docs-platform";
+
+  function pick(platform: string) {
+    if (!wrap) return;
+    wrap.dataset.docsPlatform = platform;
+    for (const button of picks) button.setAttribute("aria-pressed", String(button.dataset.platformPick === platform));
+    try {
+      localStorage.setItem(STORE, platform);
+    } catch {
+      // A browser that refuses storage still gets the toggle, just not the memory of it.
+    }
+    // The blocks that appeared or went are above the fold as often as below
+    // it, so where you are in the page has just changed.
+    spy();
+  }
+
+  for (const button of picks) button.addEventListener("click", () => pick(button.dataset.platformPick ?? "desktop"));
+
+  let live = -1;
+
+  function spy() {
+    if (!sections.length) return;
+
+    // The section being read is the last one whose top has passed the upper
+    // third of the window — near enough to where the eye sits, and it never
+    // leaves the first section highlighted while its heading is off-screen.
+    const mark = window.innerHeight * 0.42;
+    let index = 0;
+    sections.forEach((section, i) => {
+      if (section.getBoundingClientRect().top <= mark) index = i;
+    });
+    if (index === live) return;
+    live = index;
+
+    links.forEach((link, i) => {
+      if (i === index) link.setAttribute("aria-current", "page");
+      else link.removeAttribute("aria-current");
+    });
+
+    // A figure names the section it belongs to, because the sections with no
+    // shot put none in the rail — so the rail simply empties on those.
+    shots.forEach((shot) => {
+      const owner = Number(shot.dataset.docsShot);
+      shot.style.opacity = owner === index ? "1" : "0";
+      shot.style.transform = owner === index ? "translateY(0)" : `translateY(${owner < index ? "-16px" : "16px"})`;
+    });
+  }
+
+  pick(wrap?.dataset.docsPlatform ?? "desktop");
+  window.addEventListener("scroll", spy, { passive: true });
+  window.addEventListener("resize", spy);
+  spy();
+</script>

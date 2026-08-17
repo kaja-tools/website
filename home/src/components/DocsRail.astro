@@ -1,0 +1,37 @@
+---
+/* The docs' right column: one screenshot, of whichever section is being
+   read. The figures are stacked in a single grid cell and cross-faded by
+   DocsMotion, so the rail never reflows and the copy beside it never moves.
+   Decorative — the page reads whole without it, which is why it is the first
+   column a narrow window drops, and why a section with nothing worth showing
+   simply leaves it empty. */
+import { sections } from "../data/docs";
+---
+
+<div class="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-100 items-center xl:flex" aria-hidden="true">
+  <div class="grid w-full">
+    {
+      /* A figure carries the index of the section it belongs to rather than
+         its own position, so the sections with no shot need nothing here. */
+      sections.map((section, index) =>
+        section.shot ? (
+          <figure
+            data-docs-shot={index}
+            class:list={[
+              "col-start-1 row-start-1 m-0 self-center transition-[opacity,transform] duration-500 ease-[cubic-bezier(.2,.7,.2,1)]",
+              /* The first shot is the one the page opens on, so the stack
+                 isn't every screenshot deep for the frame before the script
+                 runs. */
+              index === 0 ? "opacity-100" : "opacity-0",
+            ]}
+          >
+            <div class="overflow-hidden rounded-frame border border-border bg-card shadow-frame">
+              <img src={section.shot.src} alt="" width={section.shot.width} height={section.shot.height} class="block h-auto w-full" loading="lazy" />
+            </div>
+            <figcaption class="mt-2.5 text-fine/[1.5] text-muted-foreground">{section.shot.caption}</figcaption>
+          </figure>
+        ) : null,
+      )
+    }
+  </div>
+</div>

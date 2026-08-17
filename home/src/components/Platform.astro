@@ -1,0 +1,36 @@
+---
+/* A block of the docs that belongs to one platform. Both platforms' blocks
+   are in the page; the toggle in the sidebar sets `data-docs-platform` on the
+   wrapper and this hides whichever isn't picked.
+
+   One page rather than two, because most of the docs is the same on both and
+   a second page would fork every paragraph to keep two copies of four
+   differences. If that balance ever tips, this is the seam to split on. */
+interface Props {
+  only: "desktop" | "docker";
+}
+
+const labels = { desktop: "Desktop", docker: "Docker" };
+
+const { only } = Astro.props;
+---
+
+<div data-platform={only}>
+  {
+    /* Read by the page's noscript rule, which shows both blocks — so a visitor
+      who never runs the toggle still gets the whole page, labelled. */
+  }
+  <span
+    data-platform-label
+    class="mb-3 hidden w-fit rounded-md border border-border bg-card px-2 py-0.5 text-micro font-medium tracking-wide text-muted-foreground uppercase"
+    >{labels[only]}</span
+  >
+  <slot />
+</div>
+
+<style>
+  :global([data-docs-platform="desktop"]) [data-platform="docker"],
+  :global([data-docs-platform="docker"]) [data-platform="desktop"] {
+    display: none;
+  }
+</style>

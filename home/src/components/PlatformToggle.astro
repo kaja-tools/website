@@ -1,0 +1,28 @@
+---
+/* Which platform the docs are read for. Desktop first, and the one the page
+   opens on — Docker is the same app with the verbs that write a file taken
+   out, so it reads as the variant.
+
+   Rendered twice: in the sidebar, and above the copy on a window too narrow
+   to have one. Both are wired by `data-platform-pick`, so DocsMotion keeps
+   them in step without either knowing about the other. */
+const platforms = [
+  { id: "desktop", label: "Desktop" },
+  { id: "docker", label: "Docker" },
+];
+---
+
+<div class="flex gap-0.5 rounded-lg border border-border bg-card p-0.75">
+  {
+    platforms.map((platform) => (
+      <button
+        type="button"
+        data-platform-pick={platform.id}
+        aria-pressed="false"
+        class="h-6.5 flex-1 cursor-pointer rounded-md text-fine font-medium text-muted-foreground transition-colors hover:text-foreground aria-pressed:bg-muted aria-pressed:text-foreground"
+      >
+        {platform.label}
+      </button>
+    ))
+  }
+</div>
