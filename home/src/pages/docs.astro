@@ -26,6 +26,20 @@ const code = "rounded-sm border border-border bg-card px-1.5 py-0.5 font-mono te
 const link = "text-foreground underline decoration-border underline-offset-4 transition-colors hover:decoration-foreground";
 const card = "rounded-frame border border-border bg-card p-4.5";
 
+/* The `docker run` above, argument by argument. The two mounts and the host
+   alias are the ones worth spelling out; the rest are ordinary Docker flags
+   nobody should have to go and look up. */
+const dockerArguments = [
+  { flag: "--pull always", says: "Always pull the latest image. Kaja is updated often." },
+  { flag: "--name kaja", says: "Name the container, so it is one to stop and start by hand." },
+  { flag: "-d", says: "Run it detached, in the background." },
+  { flag: "-p 41520:41520", says: "Map the port. Kaja listens on 41520." },
+  { flag: "-v .../proto:/workspace/proto", says: "Mount the .proto files your gRPC and Twirp apps read." },
+  { flag: "-v .../kaja.json:/workspace/kaja.json", says: "Mount your configuration file, which is the next section." },
+  { flag: "-v .../scripts:/workspace/scripts", says: "Optional. A folder of .ts files, which land in the sidebar ready to run." },
+  { flag: "--add-host=host.docker.internal:host-gateway", says: "Reach a service running on the host from inside the container." },
+];
+
 /* The app types, and the parameters each one's block takes. */
 const types = [
   { name: "grpc", parameters: ["url", "proto_dir", "reflection", "headers"] },
@@ -115,6 +129,17 @@ const description =
               Then open <a href="http://localhost:41520" class={link}>localhost:41520</a>. The container serves a workspace it does not own, so nothing in it
               can be edited from the browser.
             </p>
+            <p class:list={["mt-5", muted]}>What each argument is for:</p>
+            <dl class="mt-3 flex flex-col gap-3">
+              {
+                dockerArguments.map((argument) => (
+                  <div class="flex flex-col gap-1 sm:flex-row sm:gap-4">
+                    <dt class="shrink-0 py-0.5 font-mono text-xs text-code-key sm:w-84">{argument.flag}</dt>
+                    <dd class="text-prose/[1.6] text-muted-foreground">{argument.says}</dd>
+                  </div>
+                ))
+              }
+            </dl>
           </Platform>
         </section>
 
