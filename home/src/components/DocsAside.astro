@@ -1,0 +1,33 @@
+---
+/* The docs' left column: which platform you are reading for, the sections
+   below it, and the two links that leave the page. Sticks under the header
+   and is dropped whole on a narrow window, where the page is one column. */
+import { sections } from "../data/docs";
+import PlatformToggle from "./PlatformToggle.astro";
+---
+
+<aside class="sticky top-14 hidden w-49 flex-col gap-6 py-10 lg:flex">
+  <div>
+    <p class="mb-3 text-micro font-semibold tracking-[0.1em] text-muted-foreground uppercase">Platform</p>
+    <PlatformToggle />
+  </div>
+
+  <nav class="flex flex-col gap-0.5" aria-label="Sections">
+    {
+      sections.map((section) => (
+        <a
+          href={`#${section.id}`}
+          data-docs-link={section.id}
+          class="-ml-2.5 rounded-md px-2.5 py-1.25 text-sm text-muted-foreground transition-colors hover:text-foreground aria-[current=page]:bg-muted aria-[current=page]:text-foreground"
+        >
+          {section.label}
+        </a>
+      ))
+    }
+  </nav>
+
+  <div class="flex flex-col gap-2 border-t border-border pt-5 text-fine text-muted-foreground">
+    <a href="https://github.com/wham/kaja" class="transition-colors hover:text-foreground" target="_blank" rel="noopener">Kaja on GitHub</a>
+    <a href="https://demo.kaja.tools/" class="transition-colors hover:text-foreground">Live demo</a>
+  </div>
+</aside>
