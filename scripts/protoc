@@ -1,51 +1,12 @@
 #!/bin/bash
 set -e
 
-# Protoc version to use
-PROTOC_VERSION="35.1"
+# protoc-go version to use
+PROTOC_GO_VERSION="v0.2.1"
 
 cd "$(dirname "$0")/.."
 BUILD_DIR=$PWD/build
 mkdir -p "$BUILD_DIR"
-
-# Determine OS and architecture
-OS=$(uname -s)
-ARCH=$(uname -m)
-
-case "$OS" in
-    Linux)
-        case "$ARCH" in
-            x86_64)  PROTOC_PLATFORM="linux-x86_64" ;;
-            aarch64) PROTOC_PLATFORM="linux-aarch_64" ;;
-            *)       echo "Unsupported Linux architecture: $ARCH"; exit 1 ;;
-        esac
-        ;;
-    Darwin)
-        case "$ARCH" in
-            x86_64)  PROTOC_PLATFORM="osx-x86_64" ;;
-            arm64)   PROTOC_PLATFORM="osx-aarch_64" ;;
-            *)       echo "Unsupported macOS architecture: $ARCH"; exit 1 ;;
-        esac
-        ;;
-    *)
-        echo "Unsupported OS: $OS"
-        exit 1
-        ;;
-esac
-
-# Install protoc if not present or wrong version
-PROTOC_BIN="$BUILD_DIR/bin/protoc"
-if [[ ! -x "$PROTOC_BIN" ]] || ! "$PROTOC_BIN" --version 2>/dev/null | grep -q "$PROTOC_VERSION"; then
-    echo "Installing protoc $PROTOC_VERSION for $PROTOC_PLATFORM..."
-    PROTOC_ZIP="protoc-${PROTOC_VERSION}-${PROTOC_PLATFORM}.zip"
-    PROTOC_URL="https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/${PROTOC_ZIP}"
-
-    curl -fsSL "$PROTOC_URL" -o "$BUILD_DIR/$PROTOC_ZIP"
-    unzip -o "$BUILD_DIR/$PROTOC_ZIP" -d "$BUILD_DIR"
-    rm "$BUILD_DIR/$PROTOC_ZIP" "$BUILD_DIR/readme.txt"
-    chmod +x "$PROTOC_BIN"
-    echo "protoc $PROTOC_VERSION installed to $BUILD_DIR/bin"
-fi
 
 # Check Go is installed
 if ! command -v go &> /dev/null; then
@@ -53,28 +14,33 @@ if ! command -v go &> /dev/null; then
     exit 1
 fi
 
-# Install Go protoc plugins into build/bin
+# Install protoc-go (a pure Go protoc; the well-known types are embedded, so
+# there is no include directory to install) and the code-gen plugins into
+# build/bin
 export GOBIN=$BUILD_DIR/bin
+go install github.com/wham/protoc-go/cmd/protoc-go@"$PROTOC_GO_VERSION"
 go install github.com/twitchtv/twirp/protoc-gen-twirp@latest
 go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+
+PROTOC_BIN="$GOBIN/protoc-go"
 
 echo "Generating proto files..."
 
 # quirks is the protocol testbed: it speaks Twirp only.
 cd "apps/quirks"
 # Generate v1 proto files (proto_path=proto so files register as v1/quirks.proto, etc.)
-"$PROTOC_BIN" -I"$BUILD_DIR/include" --proto_path=proto --plugin=protoc-gen-go="$GOBIN/protoc-gen-go" --go_out=. --plugin=protoc-gen-twirp="$GOBIN/protoc-gen-twirp" --twirp_out=. $(find proto/v1 -name "*.proto")
+"$PROTOC_BIN" --proto_path=proto --plugin=protoc-gen-go="$GOBIN/protoc-gen-go" --go_out=. --plugin=protoc-gen-twirp="$GOBIN/protoc-gen-twirp" --twirp_out=. $(find proto/v1 -name "*.proto")
 
 # Generate v2 proto files (proto_path=proto so files register as v2/quirks.proto, etc.)
-"$PROTOC_BIN" -I"$BUILD_DIR/include" --proto_path=proto --plugin=protoc-gen-go="$GOBIN/protoc-gen-go" --go_out=. --plugin=protoc-gen-twirp="$GOBIN/protoc-gen-twirp" --twirp_out=. $(find proto/v2 -name "*.proto")
+"$PROTOC_BIN" --proto_path=proto --plugin=protoc-gen-go="$GOBIN/protoc-gen-go" --go_out=. --plugin=protoc-gen-twirp="$GOBIN/protoc-gen-twirp" --twirp_out=. $(find proto/v2 -name "*.proto")
 
 cd "../seating"
-"$PROTOC_BIN" -I"$BUILD_DIR/include" --proto_path=. --plugin=protoc-gen-go="$GOBIN/protoc-gen-go" --go_out=. --plugin=protoc-gen-grpc="$GOBIN/protoc-gen-go-grpc" --grpc_out=. -Iproto/ $(find . -iname "*.proto")
+"$PROTOC_BIN" --proto_path=. --plugin=protoc-gen-go="$GOBIN/protoc-gen-go" --go_out=. --plugin=protoc-gen-grpc="$GOBIN/protoc-gen-go-grpc" --grpc_out=. -Iproto/ $(find . -iname "*.proto")
 
 # concierge is a client of seating, so it generates from seating's proto rather
 # than keeping a copy of it.
 cd "../concierge"
-"$PROTOC_BIN" -I"$BUILD_DIR/include" --plugin=protoc-gen-go="$GOBIN/protoc-gen-go" --go_out=. --plugin=protoc-gen-grpc="$GOBIN/protoc-gen-go-grpc" --grpc_out=. -I../seating/proto ../seating/proto/seating.proto
+"$PROTOC_BIN" --plugin=protoc-gen-go="$GOBIN/protoc-gen-go" --go_out=. --plugin=protoc-gen-grpc="$GOBIN/protoc-gen-go-grpc" --grpc_out=. -I../seating/proto ../seating/proto/seating.proto
 
 echo "Proto generation complete."

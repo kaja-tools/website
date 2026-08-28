@@ -24,7 +24,9 @@ To regenerate proto files after modifying `.proto` definitions, run:
 
 This script:
 
-- Installs a consistent version of `protoc` into the `build/` directory (supports Linux and macOS)
+- Installs a consistent version of [protoc-go](https://github.com/wham/protoc-go)
+  (a pure Go protoc with the well-known types embedded) into the `build/`
+  directory via `go install`
 - Installs the required Go plugins (`protoc-gen-go`, `protoc-gen-go-grpc`, `protoc-gen-twirp`)
 - Regenerates all proto files for the quirks (Twirp) and seating (gRPC) services,
   and the seating client the concierge is built on
