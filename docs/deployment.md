@@ -145,6 +145,9 @@ from a fork is skipped: it has no access to the token.
 
 - The seating service runs the simulated crowd in-process (`CROWD=off` to
   disable), so the seat map keeps moving without a second app driving it.
+- It also rate limits per caller in memory (`RATE_LIMIT=off` to disable), at 120
+  calls per 30 seconds. Behind the Fly edge a caller is its `Fly-Client-IP`, so
+  everyone sharing a hosted Kaja shares a budget; gRPC reflection is exempt.
 - `primary_region` is set to `sjc` in every `fly.toml`. Change it to match the
   region you host in; keeping all apps in one region keeps the private-network
   (east-west) hops fast.
