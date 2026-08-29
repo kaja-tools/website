@@ -23,10 +23,12 @@ import (
 const Policy = "default"
 
 // Big enough that reading a programme, a house and a booking never comes near
-// it; small enough that a script written to hit it does, in a few seconds.
+// it; small enough that a script written to hit it does, in a few seconds. The
+// window is the wait it costs to be wrong about that, so it is short: the same
+// four calls a second, over ten seconds rather than thirty.
 const (
-	Quota  = 120
-	Window = 30 * time.Second
+	Quota  = 40
+	Window = 10 * time.Second
 )
 
 // How many idle clients are kept before the expired ones are swept. In-memory

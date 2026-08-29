@@ -106,14 +106,15 @@ map is always moving. It still holds and releases seats even though holding is
 no longer in the API — a hold is what makes a seat map worth reading twice.
 `CROWD=off` disables it.
 
-`apps/seating/internal/ratelimit` caps a caller at 120 calls per 30 seconds, in
+`apps/seating/internal/ratelimit` caps a caller at 40 calls per 10 seconds, in
 memory and per client, and says so on every response — the `RateLimit` and
 `RateLimit-Policy` structured fields of
 draft-ietf-httpapi-ratelimit-headers, the older
 `RateLimit-Limit`/`-Remaining`/`-Reset` triple beside them, and `Retry-After` on
 a refusal, which comes back as `RESOURCE_EXHAUSTED`. It is high enough that
 reading a programme never nears it and low enough that a script written to hit
-it does; `RATE_LIMIT=off` disables it. A caller is its `Fly-Client-IP` behind
+it does, and the window is short so that hitting it costs seconds rather than
+half a minute; `RATE_LIMIT=off` disables it. A caller is its `Fly-Client-IP` behind
 the edge and its peer address otherwise, so it names the machine, not the
 person: a hosted Kaja calls from its own server and everyone using it shares a
 budget. Reflection is exempt, so a spent budget never leaves a client unable to
