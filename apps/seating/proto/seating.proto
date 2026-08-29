@@ -17,6 +17,10 @@ option go_package = "internal/api";
 // whole time, so a seat map is only true for a moment: call GetSeatMap twice
 // and it will have changed underneath you. Losing a seat to somebody faster
 // is a normal thing to see here.
+//
+// There is a box office queue too: 120 calls per 30 seconds per caller. Every
+// response says what is left of that budget in its RateLimit metadata, and
+// one call past it comes back as RESOURCE_EXHAUSTED with a Retry-After.
 service Seating {
     // The whole house for a screening: every seat with its section, price,
     // and whether it is free. Houses are not all the same size, so how many
