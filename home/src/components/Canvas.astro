@@ -13,8 +13,10 @@
    Below `md` the drawing is too small to read, so the same five things are a
    plain stack of cards with the two labels between them.
 
-   The one thing not ported verbatim is the width of the app cards: the site's
-   body face is wider than the app's, and `OpenAPI` ran into `schema`. */
+   Two things are not ported verbatim: the width of the app cards, because the
+   site's body face is wider than the app's and `OpenAPI` ran into `schema`,
+   and the viewBox, which is cropped to the drawing so the hero fits a 13-inch
+   screen rather than paying for the app's own margins twice. */
 import Icon from "./Icon.astro";
 
 /* The apps down the right-hand side, each with the one word its surface is
@@ -44,7 +46,7 @@ const stackLabel = "text-center font-mono text-micro tracking-[0.12em] text-mute
 
 <div class="mx-auto w-full max-w-page px-6 md:px-8">
   <svg
-    viewBox="0 0 880 300"
+    viewBox="0 30 880 253"
     role="img"
     aria-label="An agent writes and runs a script over MCP; every call it makes lands on Kaja's canvas, and Kaja speaks gRPC, OpenAPI, MCP and Twirp to your apps."
     fill="none"
