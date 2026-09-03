@@ -1,10 +1,24 @@
 ---
-/* The icons the site uses, in the two families it draws them from.
+/* The icons the site uses, in the three families it draws them from.
    `lucide` are the 24px-grid outline icons kaja-ui ships, copied verbatim so
-   the site and the app draw the same glyph. `brand` are the two marks the
-   site links out with, which come as solid paths from their owners. */
+   the site and the app draw the same glyph. `marks` are kaja's own four
+   protocol marks (`ui/src/protocolMarks.ts`), copied the same way — lucide has
+   no gRPC, so the app draws them on lucide's grid and so does this. `brand`
+   are the two marks the site links out with, which come as solid paths from
+   their owners. */
 const lucide = {
   search: '<path d="m21 21-4.34-4.34" /><circle cx="11" cy="11" r="8" />',
+};
+
+/* One node and what leaves it, four times over: gRPC is two nodes on a double
+   rail, OpenAPI a node fanning to three paths, MCP a hexagon around a node,
+   Twirp a node reaching one box. They have to read at 13px in muted grey. */
+const marks = {
+  grpc: '<circle cx="6" cy="12" r="2.5" /><circle cx="18" cy="12" r="2.5" /><path d="M8.5 9.5h7M8.5 14.5h7" />',
+  openapi:
+    '<circle cx="6" cy="12" r="2.5" /><path d="M8.5 12h6M8.3 10.8 16 6M8.3 13.2 16 18" /><circle cx="18" cy="12" r="1.25" /><circle cx="18" cy="5" r="1.25" /><circle cx="18" cy="19" r="1.25" />',
+  mcp: '<path d="M12 3l7.8 4.5v9L12 21l-7.8-4.5v-9z" /><circle cx="12" cy="12" r="2.5" />',
+  twirp: '<circle cx="6" cy="12" r="2.5" /><path d="M8.5 12H15" /><rect x="15" y="8.5" width="5" height="7" rx="1" />',
 };
 
 const brand = {
@@ -15,13 +29,15 @@ const brand = {
 };
 
 interface Props {
-  name: keyof typeof lucide | keyof typeof brand;
+  name: keyof typeof lucide | keyof typeof marks | keyof typeof brand;
   /* Pixels, on lucide's terms: 16 inside a control, 40 in an empty state. */
   size?: number;
+  class?: string;
 }
 
-const { name, size = 16 } = Astro.props;
-const outline = name in lucide;
+const { name, size = 16, class: className } = Astro.props;
+const glyph = { ...lucide, ...marks, ...brand }[name];
+const outline = !(name in brand);
 ---
 
 <svg
@@ -33,6 +49,7 @@ const outline = name in lucide;
   stroke-width={outline ? 2 : undefined}
   stroke-linecap={outline ? "round" : undefined}
   stroke-linejoin={outline ? "round" : undefined}
+  class={className}
   aria-hidden="true"
-  set:html={outline ? lucide[name as keyof typeof lucide] : brand[name as keyof typeof brand]}
+  set:html={glyph}
 />

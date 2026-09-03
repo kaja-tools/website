@@ -31,20 +31,23 @@
   --color-ring: oklch(0.556 0 0);
 
   /* The two stops of the brand mark's gradient, warm to cool. The mark is the
-     only place both appear together; the hero diagram borrows one stop each to
-     dot its gRPC and OpenAPI nodes, and `brand-sky` is the third dot. */
+     only place both appear together; the docs' snippets borrow one stop each
+     to tag a shell, a configuration and a script, `brand-sky` being the third.
+     The hero diagram used to dot its protocol nodes with them and now draws
+     each protocol's own mark instead, which is what tells the four apart. */
   --color-brand-warm: #b0503f;
   --color-brand-cool: #8a35d8;
   --color-brand-sky: #4a9eda;
 
-  /* Approval is the one state the site draws, on the hero diagram's gate.
-     Amber on the neutral ramp, borrowed from the app's own warning colour. */
+  /* Approval is the one state the site draws, on the hero diagram's gate, and
+     the only non-neutral colour in it. Amber on the neutral ramp, borrowed
+     from the app's own warning colour. */
   --color-approve: #f59e0b;
   --color-approve-foreground: #fbbf24;
 
   /* The docs' code blocks. Three hues and two greys: a key or a keyword takes
      the cool stop, a string the warm one, a number or a literal the sky — the
-     same three the mark and the hero diagram are drawn in, lightened until
+     same three the mark and the snippet tags are drawn in, lightened until
      they read as code on `card` rather than as accents on the page. The app
      colours code differently (`ui/src/monacoTheme.ts`); these are the site's,
      because a snippet here is an illustration and not an editor. */

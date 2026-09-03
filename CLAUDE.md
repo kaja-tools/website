@@ -157,9 +157,21 @@ home/
 - Tailwind's preset `text-*` sizes carry their own `line-height`, and the
   design's body copy runs looser than the presets do, so pin it with the slash
   modifier (`text-lg/[1.6]`) wherever the design gives a line height.
-- The brand mark's gradient is `Mark.astro` and the two favicons. The only
-  other non-neutral colours are the hero diagram's: a dot per protocol and the
-  amber of the approval gate.
+- The brand mark's gradient is `Mark.astro` and the two favicons; the docs'
+  snippet tags borrow its stops. The only other non-neutral colour is the amber
+  of the hero diagram's approval gate.
+- **The four protocol marks are kaja's own** (`ui/src/protocolMarks.ts` in
+  [wham/kaja](https://github.com/wham/kaja)), copied into `Icon.astro` the way
+  the lucide glyphs are, so the site and the app draw the same thing. They are
+  what tells gRPC, OpenAPI, MCP and Twirp apart wherever the four are named
+  together — the hero diagram, the pills on the home page, the app types in the
+  docs — which is what the hero's coloured dots used to do badly. Don't draw a
+  fifth: a mark exists per protocol, not per idea.
+- **The hero diagram is the app's own map** (`ui/src/McpMap.tsx`), read left to
+  right: an agent, Kaja, the four protocols. Here the middle is not drawn — the
+  Kaja tab sits astride the top edge of the screenshot, so the wires land on
+  the real window. Its wires ride a stretched viewBox, so a label on one is an
+  ordinary element centred in the gap the wires cross, never SVG text.
 - **The docs are one page, not one per platform** (`src/pages/docs.astro`).
   Most of what there is to say is true of both builds, so the two differences
   per section are `<Platform only="desktop">` / `only="docker"` blocks in the

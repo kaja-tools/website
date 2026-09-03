@@ -1,31 +1,40 @@
 ---
-/* The hero composition: the diagram, then the app itself. Five nodes — the
-   three surfaces Kaja reads on the left, the agent and the approval gate on
-   the right — with wires converging on the Kaja tab sitting on the top edge
-   of the screenshot.
+/* The hero composition: the diagram, then the app itself. It is the same map
+   the app draws on its MCP page (`ui/src/McpMap.tsx`) — an agent on the left,
+   the four protocols on the right, and every call landing in Kaja in the
+   middle — except that here the middle is not drawn. It is the screenshot: the
+   Kaja tab sits astride the top edge of it, so the wires converge on the real
+   window rather than on a picture of one.
 
    The wires are drawn on a 1180x264 grid stretched to whatever width the page
-   frame is, so every endpoint stays under the node it leaves. Below `lg` there
-   is no room for any of that: the wires and the tab go, and the nodes become a
-   plain two-column grid above the screenshot. */
+   frame is, so every endpoint stays under the node it leaves. Text can't ride
+   that stretch, so the two wire labels are ordinary elements, centred in the
+   gap the wires cross. Below `lg` there is no room for any of that: the wires,
+   the labels and the tab go, and the nodes become a plain two-column grid
+   above the screenshot. */
+import Icon from "./Icon.astro";
 import Mark from "./Mark.astro";
 
-const node = "flex items-center gap-2.5 rounded-lg border border-border bg-card px-3.5 lg:h-12";
+/* What travels each way, said once. MCP comes in from the agent; calls go out
+   to whatever the apps speak. */
+const label = "hidden text-center font-mono text-micro tracking-[0.12em] text-muted-foreground uppercase lg:block";
 
-const surfaces = [
-  { name: "gRPC", kind: ".proto", dot: "bg-brand-cool", delay: "0.35s" },
-  { name: "OpenAPI", kind: "schema", dot: "bg-brand-warm", delay: "0.42s" },
-  { name: "MCP", kind: "tools", dot: "bg-brand-sky", delay: "0.49s" },
-];
+const apps = [
+  { name: "gRPC", mark: "grpc", source: ".proto", delay: "0.35s" },
+  { name: "OpenAPI", mark: "openapi", source: "schema", delay: "0.42s" },
+  { name: "MCP", mark: "mcp", source: "tools", delay: "0.49s" },
+  { name: "Twirp", mark: "twirp", source: ".proto", delay: "0.56s" },
+] as const;
 
 /* Each wire is drawn from its node to the tab. `pathLength` normalises every
    path to 1 so one dash offset animates them all, however long they are. */
 const wires = [
-  { d: "M186 40 C 420 40, 430 236, 590 250", delay: "0.45s" },
-  { d: "M186 112 C 420 112, 440 240, 590 250", delay: "0.55s" },
-  { d: "M186 184 C 420 184, 450 244, 590 250", delay: "0.65s" },
-  { d: "M994 52 C 760 52, 740 236, 590 250", delay: "0.8s" },
-  { d: "M994 172 C 760 172, 730 242, 590 250", delay: "0.92s" },
+  { d: "M186 92 C 400 92, 430 236, 590 250", delay: "0.5s" },
+  { d: "M186 172 C 400 172, 450 242, 590 250", delay: "0.6s" },
+  { d: "M994 32 C 780 32, 740 230, 590 250", delay: "0.62s" },
+  { d: "M994 96 C 780 96, 720 238, 590 250", delay: "0.72s" },
+  { d: "M994 160 C 780 160, 700 244, 590 250", delay: "0.82s" },
+  { d: "M994 224 C 760 224, 680 248, 590 250", delay: "0.92s" },
 ];
 ---
 
@@ -48,28 +57,34 @@ const wires = [
       }
     </svg>
 
+    <span class:list={[label, "lg:absolute lg:top-33 lg:right-[calc(50%+3rem)] lg:left-52.5"]}>MCP</span>
+    <span class:list={[label, "lg:absolute lg:top-30 lg:right-80 lg:left-[calc(50%+2rem)]"]}>Calls</span>
+
     <div class="grid gap-4 sm:grid-cols-2 lg:block">
-      <div class="flex flex-col gap-4 lg:absolute lg:top-0 lg:left-0 lg:w-52.5 lg:gap-6">
+      <div class="flex flex-col gap-4 lg:absolute lg:top-1/2 lg:left-0 lg:w-52.5 lg:-translate-y-1/2 lg:gap-6">
+        <div class="animate-rise rounded-lg border border-border bg-card px-3.5 py-3 opacity-0" style={{ animationDelay: "0.6s" }}>
+          <p class="mb-1 text-fine font-medium">An agent</p>
+          <p class="text-xs/[1.4] text-muted-foreground">writes the script and runs it</p>
+        </div>
+        <div class="animate-rise rounded-lg border border-approve/40 bg-approve/10 px-3.5 py-3 opacity-0" style={{ animationDelay: "0.72s" }}>
+          <p class="mb-1 text-fine font-medium text-approve-foreground">You approve</p>
+          <p class="text-xs/[1.4] text-muted-foreground">when the script asks you to</p>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-4 lg:absolute lg:top-2 lg:right-0 lg:w-52.5">
         {
-          surfaces.map((surface) => (
-            <div class:list={["h-12 animate-rise opacity-0", node]} style={{ animationDelay: surface.delay }}>
-              <span class:list={["size-1.5 rounded-full", surface.dot]} />
-              <span class="text-fine font-medium">{surface.name}</span>
-              <span class="ml-auto font-mono text-micro text-muted-foreground">{surface.kind}</span>
+          apps.map((app) => (
+            <div
+              class="flex h-12 animate-rise items-center gap-2.5 rounded-lg border border-border bg-card px-3.5 opacity-0"
+              style={{ animationDelay: app.delay }}
+            >
+              <Icon name={app.mark} class="shrink-0 text-muted-foreground" />
+              <span class="text-fine font-medium">{app.name}</span>
+              <span class="ml-auto font-mono text-micro text-muted-foreground">{app.source}</span>
             </div>
           ))
         }
-      </div>
-
-      <div class="flex flex-col gap-4 lg:absolute lg:top-2 lg:right-0 lg:w-52.5 lg:items-end lg:gap-15">
-        <div class="w-full animate-rise rounded-lg border border-border bg-card px-3.5 py-3 opacity-0" style={{ animationDelay: "0.72s" }}>
-          <p class="mb-1 text-fine font-medium">An agent</p>
-          <p class="text-xs/[1.4] text-muted-foreground">can write the script and run it</p>
-        </div>
-        <div class="w-full animate-rise rounded-lg border border-approve/40 bg-approve/10 px-3.5 py-3 opacity-0" style={{ animationDelay: "0.84s" }}>
-          <p class="mb-1 text-fine font-medium text-approve-foreground">You approve</p>
-          <p class="text-xs/[1.4] text-muted-foreground">if the script asks you to</p>
-        </div>
       </div>
     </div>
 
