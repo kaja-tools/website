@@ -31,20 +31,22 @@
   --color-ring: oklch(0.556 0 0);
 
   /* The two stops of the brand mark's gradient, warm to cool. The mark is the
-     only place both appear together; the hero diagram borrows one stop each to
-     dot its gRPC and OpenAPI nodes, and `brand-sky` is the third dot. */
+     only place both appear together; the docs' snippets borrow one stop each
+     to tag a shell, a configuration and a script, `brand-sky` being the third.
+     The hero diagram used to dot its protocol nodes with them and now draws
+     each protocol's own mark instead, which is what tells the four apart. */
   --color-brand-warm: #b0503f;
   --color-brand-cool: #8a35d8;
   --color-brand-sky: #4a9eda;
 
-  /* Approval is the one state the site draws, on the hero diagram's gate.
-     Amber on the neutral ramp, borrowed from the app's own warning colour. */
+  /* Approval is the one state the site draws, on the docs' watch note. Amber
+     on the neutral ramp, borrowed from the app's own warning colour. */
   --color-approve: #f59e0b;
   --color-approve-foreground: #fbbf24;
 
   /* The docs' code blocks. Three hues and two greys: a key or a keyword takes
      the cool stop, a string the warm one, a number or a literal the sky — the
-     same three the mark and the hero diagram are drawn in, lightened until
+     same three the mark and the snippet tags are drawn in, lightened until
      they read as code on `card` rather than as accents on the page. The app
      colours code differently (`ui/src/monacoTheme.ts`); these are the site's,
      because a snippet here is an illustration and not an editor. */
@@ -54,8 +56,9 @@
   --color-code-string: #e0a08f;
   --color-code-literal: #7fb2d9;
 
-  /* The hero diagram's wires. Lighter than `border` because they are hairlines
-     over the page background rather than an edge between two surfaces. */
+  /* The hero map's wires, and the blocks on the canvas it draws inside Kaja.
+     Lighter than `border` because they are hairlines over a surface rather
+     than an edge between two of them. */
   --color-wire: #3a3a3a;
 
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -89,10 +92,11 @@
      own breakpoints all sit above the phone widths that matters for. */
   --breakpoint-xs: 24rem;
 
-  /* Column widths, widest to narrowest: the page frame, a page of body copy,
-     the hero headline, the hero tagline. `doc` rather than `prose` because
-     Tailwind already ships a `max-w-prose`. */
+  /* Column widths, widest to narrowest: the page frame, the hero map, a page
+     of body copy, the hero headline, the hero tagline. `doc` rather than
+     `prose` because Tailwind already ships a `max-w-prose`. */
   --container-page: 1180px;
+  --container-map: 1000px;
   --container-doc: 680px;
   --container-headline: 820px;
   --container-tagline: 660px;
@@ -104,14 +108,12 @@
   --container-copy: 620px;
 
   /* The window frame around a screenshot sits between Tailwind's `lg` and
-     `xl` radii. `frame` is the shadow under a screenshot in the page, `hero`
-     the deeper one under the app shot at the top. */
+     `xl` radii, and `frame` is the shadow under one in the page. */
   --radius-frame: 10px;
   --shadow-frame: 0 24px 70px rgb(0 0 0 / 0.5);
-  --shadow-hero: 0 40px 120px rgb(0 0 0 / 0.6);
 
   /* Entrances. `rise` is anything that arrives on load, `draw` is a wire in
-     the hero diagram drawing itself from the node it leaves. */
+     the hero map drawing itself from the node it leaves. */
   --animate-rise: rise 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
   --animate-draw: draw 1.1s cubic-bezier(0.65, 0, 0.35, 1) forwards;
 

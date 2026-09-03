@@ -40,13 +40,14 @@ const dockerArguments = [
   { flag: "--add-host=host.docker.internal:host-gateway", says: "Reach a service running on the host from inside the container." },
 ];
 
-/* The app types, and the parameters each one's block takes. */
+/* The app types, and the parameters each one's block takes. Each wears the
+   mark the app draws it with, so a type is recognised here and in the tree. */
 const types = [
   { name: "grpc", parameters: ["url", "proto_dir", "reflection", "headers"] },
   { name: "twirp", parameters: ["url", "proto_dir", "headers"] },
   { name: "openapi", parameters: ["spec_url", "base_url", "headers"] },
   { name: "mcp", parameters: ["url", "headers"] },
-];
+] as const;
 
 /* What a value in `variables` may be, in the order they are worth learning.
    `says` is split around the one thing in it that is itself code, which is
@@ -153,11 +154,14 @@ const description =
             <Snippet file="kaja.json" kind="configuration" lang="json" code={snippets.apps} />
           </div>
 
-          <dl class="mt-5 grid grid-cols-[5.5rem_1fr] gap-px overflow-hidden rounded-frame border border-border bg-border">
+          <dl class="mt-5 grid grid-cols-[7rem_1fr] gap-px overflow-hidden rounded-frame border border-border bg-border">
             {
               types.map((type) => (
                 <>
-                  <dt class="bg-card px-3.5 py-2.5 font-mono text-xs text-code-key">{type.name}</dt>
+                  <dt class="flex items-center gap-2 bg-card px-3.5 py-2.5 font-mono text-xs text-code-key">
+                    <Icon name={type.name} size={14} class="shrink-0 text-muted-foreground" />
+                    {type.name}
+                  </dt>
                   <dd class="bg-card px-3.5 py-2.5 text-fine/[1.6] text-muted-foreground">
                     {type.parameters.map((parameter, i) => (
                       <>

@@ -157,9 +157,26 @@ home/
 - Tailwind's preset `text-*` sizes carry their own `line-height`, and the
   design's body copy runs looser than the presets do, so pin it with the slash
   modifier (`text-lg/[1.6]`) wherever the design gives a line height.
-- The brand mark's gradient is `Mark.astro` and the two favicons. The only
-  other non-neutral colours are the hero diagram's: a dot per protocol and the
-  amber of the approval gate.
+- The brand mark's gradient is `Mark.astro` and the two favicons; the docs'
+  snippet tags borrow its stops. The only other non-neutral colour is the amber
+  of the docs' watch note (`Note.astro`).
+- **The four protocol marks are kaja's own** (`ui/src/protocolMarks.ts` in
+  [wham/kaja](https://github.com/wham/kaja)), copied into `Icon.astro` the way
+  the lucide glyphs are, so the site and the app draw the same thing. They are
+  what tells gRPC, OpenAPI, MCP and Twirp apart wherever the four are named
+  together — the hero diagram, the pills on the home page, the app types in the
+  docs — which is what the hero's coloured dots used to do badly. Don't draw a
+  fifth: a mark exists per protocol, not per idea.
+- **The hero is the app's own map** (`ui/src/McpMap.tsx`), ported stroke for
+  stroke: an agent, Kaja drawn as its own canvas, the four protocols. Three
+  weights and no colour — `wire` for the wires and the canvas blocks,
+  `muted-foreground` for the node frames and arrows, `foreground` for names and
+  marks. **There is no screenshot in it**: the app is shown further down the
+  page, and a picture of the window beside the drawing says the same thing
+  twice. The site's own layer is the entrance, and the one thing not ported
+  verbatim is the width of the app cards, because the site's body face is wider
+  than the app's. Below `md` the drawing is too small to read, so the same five
+  things are a plain stack of cards.
 - **The docs are one page, not one per platform** (`src/pages/docs.astro`).
   Most of what there is to say is true of both builds, so the two differences
   per section are `<Platform only="desktop">` / `only="docker"` blocks in the
