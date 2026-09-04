@@ -2,14 +2,14 @@
 /* The one scroll listener on the site. Everything scroll-driven is a data
    attribute this reads, so a section stays plain markup:
 
-     data-reveal      fades and lifts into place the first time it is seen
      data-parallax    drifts by its value's share of the scroll past it
-     data-hero-shot   scales up a little as the page leaves the hero
-     data-pin         a pinned section, whose panes swap as it scrolls by
+     data-ink-item    a statement, a crop, and the red line drawn between them
 
-   All of it is decorative, so a visitor who asked for less motion gets the
-   finished state and no listener at all. Drift and the swap are also `lg` and
-   up only: below that the pinned section is a plain stacked list. */
+   Drift is decorative and drops out for a visitor who asked for less motion,
+   and it is `lg` and up only, because below that a statement sits above its
+   crop and there is nothing to pull apart. The ink runs either way: the line
+   and the box are how an item points at the thing it is talking about, and the
+   reduced-motion rule already collapsed the drawing to an instant. */
 ---
 
 <script>
@@ -17,15 +17,11 @@
   const wide = window.matchMedia("(min-width: 64rem)");
 
   const drifters = [...document.querySelectorAll<HTMLElement>("[data-parallax]")];
-  const heroShot = document.querySelector<HTMLElement>("[data-hero-shot]");
-  const pin = document.querySelector<HTMLElement>("[data-pin]");
-  const texts = [...document.querySelectorAll<HTMLElement>("[data-pane-text]")];
-  const bars = [...document.querySelectorAll<HTMLElement>("[data-pane-bar]")];
-  const shots = [...document.querySelectorAll<HTMLElement>("[data-pane-shot]")];
+  const items = [...document.querySelectorAll<HTMLElement>("[data-ink-item]")];
 
-  // -1 is "the panes are showing themselves", which is both the state below
-  // `lg` and the state before the first measurement.
-  let live = -1;
+  // The items whose line has already been drawn. It is drawn once, when the
+  // crop first comes halfway into view, and stays.
+  const drawn = new Set<HTMLElement>();
 
   function drift(viewport: number) {
     for (const el of drifters) {
@@ -35,76 +31,79 @@
       }
       const rate = Number(el.dataset.parallax) || 0;
       const box = el.getBoundingClientRect();
-      // How far the card's centre is from the viewport's, in viewports.
+      // How far the half's centre is from the viewport's, in viewports.
       const off = (box.top + box.height / 2 - viewport / 2) / viewport;
       el.style.transform = `translate3d(0, ${(-off * rate * 70).toFixed(1)}px, 0)`;
     }
   }
 
-  function zoom() {
-    if (!heroShot) return;
-    const progress = Math.min(1, Math.max(0, window.scrollY / 900));
-    heroShot.style.transform = `scale(${(1 + progress * 0.07).toFixed(4)})`;
-  }
+  function ink(viewport: number) {
+    for (const item of items) {
+      const statement = item.querySelector<HTMLElement>("[data-statement]");
+      const crop = item.querySelector<HTMLElement>("[data-crop]");
+      const dot = item.querySelector<SVGCircleElement>("[data-dot]");
+      const line = item.querySelector<SVGPathElement>("[data-line]");
+      const box = item.querySelector<SVGRectElement>("[data-box]");
+      if (!statement || !crop || !dot || !line || !box) continue;
 
-  function swap(viewport: number) {
-    if (!pin) return;
+      // Measured rather than written down: both halves drift as the page
+      // scrolls, so where they are is only known here.
+      const base = item.getBoundingClientRect();
+      const s = statement.getBoundingClientRect();
+      const c = crop.getBoundingClientRect();
 
-    if (!wide.matches) {
-      if (live === -1) return;
-      live = -1;
-      for (const el of [...texts, ...bars, ...shots]) el.style.cssText = "";
-      return;
+      // The highlight box, in fractions of the crop, placed in the item.
+      const [hx, hy, hw, hh] = (item.dataset.highlight ?? "").split(",").map(Number);
+      const left = c.left - base.left + hx * c.width;
+      const top = c.top - base.top + hy * c.height;
+      const width = hw * c.width;
+      const height = hh * c.height;
+      const right = left + width;
+      const bottom = top + height;
+
+      // Where the line leaves the statement, and the path it takes to the box:
+      // straight in if the two already line up, one right-angled turn if not.
+      const beside = c.right <= s.left || c.left >= s.right;
+      let ax: number;
+      let ay: number;
+      let path: string;
+
+      if (beside) {
+        const cropLeft = c.right <= s.left;
+        ax = (cropLeft ? s.left - 22 : s.right + 22) - base.left;
+        ay = s.top + s.height / 2 - base.top;
+        const end = cropLeft ? right : left;
+        path = ay >= top && ay <= bottom ? `M${ax} ${ay} H${end}` : `M${ax} ${ay} H${(ax + end) / 2} V${top + height / 2} H${end}`;
+      } else {
+        const cropAbove = c.top + c.height / 2 < s.top;
+        ax = (item.dataset.align === "right" ? s.right : s.left) - base.left;
+        ay = (cropAbove ? s.top - 26 : s.bottom + 26) - base.top;
+        const end = cropAbove ? bottom : top;
+        path = ax >= left && ax <= right ? `M${ax} ${ay} V${end}` : `M${ax} ${ay} V${(ay + end) / 2} H${Math.min(Math.max(ax, left + 24), right - 24)} V${end}`;
+      }
+
+      dot.setAttribute("cx", String(ax));
+      dot.setAttribute("cy", String(ay));
+      line.setAttribute("d", path);
+      box.setAttribute("x", String(left));
+      box.setAttribute("y", String(top));
+      box.setAttribute("width", String(Math.max(0, width)));
+      box.setAttribute("height", String(Math.max(0, height)));
+
+      if (drawn.has(item)) continue;
+      const shown = Math.min(c.bottom, viewport) - Math.max(c.top, 0);
+      if (shown < Math.min(c.height, viewport) * 0.5) continue;
+      drawn.add(item);
+      dot.style.opacity = "1";
+      line.style.strokeDashoffset = "0";
+      box.style.strokeDashoffset = "0";
     }
-
-    const box = pin.getBoundingClientRect();
-    const travel = Math.max(1, box.height - viewport);
-    const progress = Math.min(0.9999, Math.max(0, -box.top / travel));
-    const index = Math.floor(progress * texts.length);
-    if (index === live) return;
-    live = index;
-
-    texts.forEach((el, i) => (el.style.opacity = i === index ? "1" : "0.32"));
-    bars.forEach((el, i) => (el.style.background = i === index ? "var(--color-foreground)" : "var(--color-border)"));
-    shots.forEach((el, i) => {
-      el.style.opacity = i === index ? "1" : "0";
-      el.style.transform = i === index ? "translateY(0)" : `translateY(${i < index ? "-18px" : "18px"})`;
-    });
   }
 
   function frame() {
     const viewport = window.innerHeight;
-    if (!still.matches) {
-      drift(viewport);
-      zoom();
-    }
-    // The swap runs either way: it is how the pinned section shows its second
-    // and third pane, and the reduced-motion rule already made it instant.
-    swap(viewport);
-  }
-
-  if (!still.matches) {
-    const seen = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (!entry.isIntersecting) continue;
-          const el = entry.target as HTMLElement;
-          el.style.opacity = "1";
-          el.style.transform = "none";
-          seen.unobserve(el);
-        }
-      },
-      { threshold: 0.12 },
-    );
-
-    // Hidden from script rather than from CSS, so the page reads whole to
-    // anyone who never runs it.
-    for (const el of document.querySelectorAll<HTMLElement>("[data-reveal]")) {
-      el.style.opacity = "0";
-      el.style.transform = "translateY(26px)";
-      el.style.transition = "opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1)";
-      seen.observe(el);
-    }
+    if (!still.matches) drift(viewport);
+    ink(viewport);
   }
 
   window.addEventListener("scroll", frame, { passive: true });

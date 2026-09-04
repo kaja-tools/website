@@ -2,44 +2,27 @@
 import Layout from "../layouts/Layout.astro";
 import Button from "../components/Button.astro";
 import Canvas from "../components/Canvas.astro";
-import Feature from "../components/Feature.astro";
-import Gallery from "../components/Gallery.astro";
-import Highlights from "../components/Highlights.astro";
 import Icon from "../components/Icon.astro";
 import Motion from "../components/Motion.astro";
+import Poster from "../components/Poster.astro";
 
 const frame = "mx-auto w-full max-w-page px-6 md:px-8";
 
 const appStore = "https://apps.apple.com/us/app/kaja-for-grpc-and-twirp/id6761604205?mt=12";
 const tagline = "An API client like Postman or Bruno, except your agent writes the payloads. Kaja draws the flow, and you can inspect every call.";
-
-const pill = "inline-flex items-center gap-1.5 rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground";
-
-/* The four Kaja tells apart by a mark of its own, in the order the hero draws
-   them. Reflection is not one of them: it is where a gRPC app reads its
-   surface, which the paragraph above already says. */
-const protocols = [
-  { name: "gRPC", mark: "grpc" },
-  { name: "OpenAPI", mark: "openapi" },
-  { name: "MCP", mark: "mcp" },
-  { name: "Twirp", mark: "twirp" },
-] as const;
 ---
 
 <Layout title="Kaja - A canvas for your APIs" description={tagline}>
   <section class="pt-14 md:pt-16">
     <div class:list={[frame, "text-center"]}>
-      <p class="mb-4 animate-rise text-xs font-semibold tracking-widest text-muted-foreground uppercase opacity-0" style={{ animationDelay: "0.05s" }}>
-        macOS · Docker
-      </p>
       <h1
-        class="mx-auto mb-4 max-w-headline animate-rise font-display text-4xl/[1.05] font-bold tracking-hero text-balance opacity-0 md:text-hero"
+        class="mx-auto mb-5 max-w-headline animate-rise font-display text-4xl/[1.05] font-bold tracking-hero text-balance opacity-0 md:text-hero"
         style={{ animationDelay: "0.12s" }}
       >
         A canvas for your APIs
       </h1>
       <p
-        class="mx-auto mb-7 max-w-tagline animate-rise text-intro/[1.55] text-pretty text-muted-foreground opacity-0 md:text-lede"
+        class="mx-auto mb-8 max-w-tagline animate-rise text-intro/[1.55] text-pretty text-muted-foreground opacity-0 md:text-lede"
         style={{ animationDelay: "0.2s" }}
       >
         {tagline}
@@ -54,61 +37,19 @@ const protocols = [
     </div>
 
     <div class="mt-10 md:mt-12"><Canvas /></div>
-  </section>
 
-  <Highlights />
-
-  <section class:list={[frame, "pt-24 lg:pt-10"]}>
-    <h2 data-reveal class="mb-3 max-w-headline font-display text-3xl/[1.1] font-semibold tracking-display md:text-title">What else it does</h2>
-    <p data-reveal class="mb-12 max-w-tagline text-intro/[1.6] text-muted-foreground">
-      Connect the apps you already have, and let an agent work in the same window you do.
-    </p>
-
-    <div class="grid gap-5 md:grid-cols-2">
-      <Feature title="An agent can drive it" drift={0.5}>
-        Kaja runs an MCP server, so your agent can read what your apps expose, write TypeScript against them, and run it. Those runs show up in the sidebar next
-        to your own.
-      </Feature>
-      <Feature title="Approval when you want it" drift={-0.5}>
-        A script can pause and wait for you before it makes a call. Useful when something writes.
-      </Feature>
-      <Feature title="gRPC, OpenAPI and MCP" drift={0.35}>
-        <p class="mb-4.5">
-          Read the surface from your <code class="font-mono text-fine">.proto</code> files, from gRPC server reflection, from an OpenAPI document, or from another
-          MCP server. Twirp is supported too.
-        </p>
-        <div class="flex flex-wrap gap-2">
-          {
-            protocols.map((protocol) => (
-              <span class={pill}>
-                <Icon name={protocol.mark} size={14} />
-                {protocol.name}
-              </span>
-            ))
-          }
-        </div>
-      </Feature>
-      <Feature title="macOS & Docker" drift={-0.35}>
-        <p class="mb-4.5">Available on the Mac App Store or as a Docker container for any environment.</p>
-        <pre
-          class="overflow-x-auto rounded-lg border border-border bg-background p-3.5 font-mono text-xs/[1.6]">docker run --pull always --name kaja -d \
-    -p 41520:41520 kajatools/kaja:latest</pre>
-      </Feature>
-    </div>
-  </section>
-
-  <Gallery />
-
-  <section class:list={[frame, "pt-24 pb-24 md:pt-24 md:pb-30"]}>
-    <div data-reveal class="rounded-2xl border border-border bg-card px-8 py-14 text-center md:px-12 md:py-16">
-      <h2 class="mx-auto mb-3.5 max-w-tagline font-display text-3xl/[1.08] font-bold tracking-display md:text-cta">Try it on your own apps</h2>
-      <p class="mx-auto mb-8 max-w-tagline text-intro/[1.6] text-muted-foreground">Free and open source. Point it at a server and see how it goes.</p>
-      <div class="flex flex-wrap items-center justify-center gap-3">
-        <Button href={appStore} size="lg" target="_blank" rel="noopener">Mac App Store</Button>
-        <Button href="https://hub.docker.com/r/kajatools/kaja" variant="outline" size="lg" target="_blank" rel="noopener">Docker Hub</Button>
+    {
+      /* The app itself, once and whole, under the drawing of what it does.
+         Every crop below this is a region of the same picture. */
+    }
+    <div class:list={[frame, "mt-16"]}>
+      <div class="overflow-hidden rounded-xl border border-border bg-card shadow-hero">
+        <img src="/assets/app-hero.png" width="3104" height="2024" alt="Kaja running a script against gRPC, OpenAPI and MCP apps" class="block h-auto w-full" />
       </div>
     </div>
   </section>
+
+  <Poster />
 
   <Motion />
 </Layout>
