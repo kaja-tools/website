@@ -105,9 +105,13 @@
 
   /* Column widths, widest to narrowest: the page frame, the hero map, a page
      of body copy, the hero headline, the hero tagline. `doc` rather than
-     `prose` because Tailwind already ships a `max-w-prose`. */
+     `prose` because Tailwind already ships a `max-w-prose`. The map has a
+     second width because it has a second layout: stacked down the page it is
+     capped narrow, so the drawing stays the size it was drawn at rather than
+     growing with a tablet. */
   --container-page: 1180px;
   --container-map: 1000px;
+  --container-map-portrait: 340px;
   --container-doc: 680px;
   --container-headline: 820px;
   --container-tagline: 660px;

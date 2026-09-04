@@ -1,31 +1,37 @@
 ---
 /* The hero, which is the map the app draws on its MCP page
-   (`ui/src/McpMap.tsx`), ported stroke for stroke: an agent on the left, Kaja
-   in the middle drawn as its own canvas, and the four protocols it speaks on
-   the right. There is no screenshot here — the app is shown further down the
-   page, and a picture of the window would say what this already says, twice.
+   (`ui/src/McpMap.tsx`), ported stroke for stroke: an agent, Kaja in the
+   middle drawn as its own canvas, and the four protocols it speaks. There is
+   no screenshot here — the app is shown further down the page, and a picture
+   of the window would say what this already says, twice.
 
    Three weights and no colour, as in the app: `wire` for the wires and the
    canvas's own blocks, `muted-foreground` for the node frames and the arrows,
    `foreground` for names and marks. The site's own layer over it is the
    entrance — the map rises, the wires draw themselves, the arrows land last.
 
-   Below `md` the drawing is too small to read, so the same five things are a
-   plain stack of cards with the two labels between them.
+   Two layouts, one drawing. The map runs left to right where there is room
+   for it; below `md` the same five nodes are stacked down the page and the
+   four protocols hang off a spine, because the landscape drawing scaled to a
+   phone is a picture of text nobody can read. The nodes themselves are
+   `MapAgent`, `MapKaja` and `MapApp`, each drawn from its own origin so both
+   layouts place the same strokes.
 
    Two things are not ported verbatim: the width of the app cards, because the
    site's body face is wider than the app's and `OpenAPI` ran into `schema`,
    and the viewBox, which is cropped to the drawing so the hero fits a 13-inch
    screen rather than paying for the app's own margins twice. */
-import Icon from "./Icon.astro";
+import MapAgent from "./MapAgent.astro";
+import MapApp from "./MapApp.astro";
+import MapKaja from "./MapKaja.astro";
 
-/* The apps down the right-hand side, each with the one word its surface is
-   read from, and the y its 44px card sits at. */
+/* The apps, each with the one word its surface is read from, and the y its
+   44px card sits at in either layout. */
 const apps = [
-  { name: "gRPC", mark: "grpc", source: ".proto", y: 40 },
-  { name: "OpenAPI", mark: "openapi", source: "schema", y: 100 },
-  { name: "MCP", mark: "mcp", source: "tools", y: 160 },
-  { name: "Twirp", mark: "twirp", source: ".proto", y: 220 },
+  { name: "gRPC", mark: "grpc", source: ".proto", wide: 40, tall: 376 },
+  { name: "OpenAPI", mark: "openapi", source: "schema", wide: 100, tall: 432 },
+  { name: "MCP", mark: "mcp", source: "tools", wide: 160, tall: 488 },
+  { name: "Twirp", mark: "twirp", source: ".proto", wide: 220, tall: 544 },
 ] as const;
 
 /* `pathLength` normalises every wire to 1, so one dash offset animates them
@@ -38,17 +44,31 @@ const wires = [
   { d: "M540 150 C 600 150, 620 242, 680 242", delay: "0.95s" },
 ];
 
-const caption = "every call lands here, for you to see and approve";
+/* Stacked, the four wires are one spine down the left with a stub into each
+   card, because four curves from one point to four boxes under it cross. */
+const stackedWires = [
+  { d: "M122 80 V 122", delay: "0.45s" },
+  { d: "M62 302 C 38 302, 26 314, 26 336 V 566", delay: "0.6s" },
+  { d: "M26 398 H 36", delay: "0.95s" },
+  { d: "M26 454 H 36", delay: "1s" },
+  { d: "M26 510 H 36", delay: "1.05s" },
+  { d: "M26 566 H 36", delay: "1.1s" },
+];
 
-const card = "rounded-lg border border-border bg-card px-4 py-3.5";
-const stackLabel = "text-center font-mono text-micro tracking-[0.12em] text-muted-foreground uppercase";
+/* One sentence, set on two lines where the column is a phone wide. */
+const captionLines = ["every call lands here,", "for you to see and approve"];
+const caption = captionLines.join(" ");
+
+const label =
+  "An agent writes and runs a script over MCP; every call it makes lands on Kaja's canvas, and Kaja speaks gRPC, OpenAPI, MCP and Twirp to your apps.";
+const wire = "animate-draw stroke-wire";
 ---
 
 <div class="mx-auto w-full max-w-page px-6 md:px-8">
   <svg
     viewBox="0 30 880 253"
     role="img"
-    aria-label="An agent writes and runs a script over MCP; every call it makes lands on Kaja's canvas, and Kaja speaks gRPC, OpenAPI, MCP and Twirp to your apps."
+    aria-label={label}
     fill="none"
     stroke-linecap="round"
     stroke-linejoin="round"
@@ -56,16 +76,8 @@ const stackLabel = "text-center font-mono text-micro tracking-[0.12em] text-mute
     style={{ animationDelay: "0.3s" }}
   >
     {
-      wires.map((wire) => (
-        <path
-          class="animate-draw stroke-wire"
-          pathLength="1"
-          stroke-dasharray="1"
-          stroke-dashoffset="1"
-          stroke-width="1.5"
-          d={wire.d}
-          style={{ animationDelay: wire.delay }}
-        />
+      wires.map((w) => (
+        <path class={wire} pathLength="1" stroke-dasharray="1" stroke-dashoffset="1" stroke-width="1.5" d={w.d} style={{ animationDelay: w.delay }} />
       ))
     }
     <g class="animate-rise stroke-muted-foreground opacity-0" stroke-width="1.5" style={{ animationDelay: "1.35s" }}>
@@ -75,81 +87,55 @@ const stackLabel = "text-center font-mono text-micro tracking-[0.12em] text-mute
     <text x="270" y="140" text-anchor="middle" font-size="10.5" letter-spacing="1.2" class="fill-muted-foreground font-mono">MCP</text>
     <text x="610" y="112" text-anchor="middle" font-size="10.5" letter-spacing="1.2" class="fill-muted-foreground font-mono">CALLS</text>
 
-    <rect x="20" y="110" width="200" height="80" rx="8" class="fill-card stroke-muted-foreground" stroke-width="1.5"></rect>
-    {
-      /* Drawn rather than taken from the icon set: the antenna is centred,
-        which is what keeps this bot from reading as a second mark in a
-        picture full of marks. */
-    }
-    <g transform="translate(40 134)" class="stroke-foreground" stroke-width="2">
-      <rect x="3" y="8" width="18" height="13" rx="3"></rect>
-      <path d="M12 8V4M9 4h6"></path>
-      <path d="M8.5 14.5v.01M15.5 14.5v.01"></path>
-    </g>
-    <text x="74" y="146" font-size="13" font-weight="600" class="fill-foreground">An agent</text>
-    <text x="74" y="164" font-size="11" class="fill-muted-foreground">writes the script, runs it</text>
-
-    <g class="stroke-muted-foreground" stroke-width="1.5">
-      <rect x="340" y="60" width="200" height="180" rx="8" class="fill-card stroke-muted-foreground"></rect>
-      <path d="M340 90h200"></path>
-    </g>
-    {
-      /* The Kaja mark at the size this drawing can carry it, in stroke rather
-        than in its gradient: the map has three weights and no colour. */
-    }
-    <path d="M356 75h5l3-6 4 12 3-6h5" stroke-width="2" class="stroke-foreground"></path>
-    <text x="384" y="79" font-size="13" font-weight="600" class="fill-foreground">Kaja</text>
-    <text x="524" y="79" text-anchor="end" font-size="10" class="fill-muted-foreground">canvas</text>
-    <g class="stroke-wire" stroke-width="1.5">
-      <path d="M358 110h96M358 122h64"></path>
-      <rect x="358" y="138" width="164" height="42" rx="3"></rect>
-      <path d="M358 152h164M413 138v42M468 138v42"></path>
-      <rect x="358" y="194" width="164" height="30" rx="3"></rect>
-    </g>
-    <g class="stroke-muted-foreground" stroke-width="1.5">
-      <path d="M370 209h4l2-4 3 8 2-4h4"></path>
-      <path d="M394 209h78"></path>
-      <path d="M496 205l3 4 6-8"></path>
-    </g>
+    <g transform="translate(20 110)"><MapAgent /></g>
+    <g transform="translate(340 60)"><MapKaja /></g>
     <text x="440" y="270" text-anchor="middle" font-size="11" class="fill-muted-foreground">{caption}</text>
-
     {
       apps.map((app) => (
-        <>
-          <rect x="680" y={app.y} width="180" height="44" rx="8" class="fill-card stroke-muted-foreground" stroke-width="1.5" />
-          <g transform={`translate(694 ${app.y + 12})`} class="text-foreground">
-            <Icon name={app.mark} size={20} />
-          </g>
-          <text x="724" y={app.y + 26} font-size="13" font-weight="600" class="fill-foreground">
-            {app.name}
-          </text>
-          <text x="846" y={app.y + 26} text-anchor="end" font-size="11" class="fill-muted-foreground font-mono">
-            {app.source}
-          </text>
-        </>
+        <g transform={`translate(680 ${app.wide})`}>
+          <MapApp name={app.name} mark={app.mark} source={app.source} />
+        </g>
       ))
     }
   </svg>
 
-  <div class="mx-auto flex max-w-tagline animate-rise flex-col gap-3 opacity-0 md:hidden" style={{ animationDelay: "0.3s" }}>
-    <div class={card}>
-      <p class="text-fine font-medium">An agent</p>
-      <p class="mt-1 text-xs/[1.4] text-muted-foreground">writes the script, runs it</p>
-    </div>
-    <p class={stackLabel}>MCP</p>
-    <div class={card}>
-      <p class="text-fine font-medium">Kaja</p>
-      <p class="mt-1 text-xs/[1.4] text-muted-foreground">{caption}</p>
-    </div>
-    <p class={stackLabel}>Calls</p>
+  <svg
+    viewBox="0 0 240 596"
+    role="img"
+    aria-label={label}
+    fill="none"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    class="mx-auto w-full max-w-map-portrait animate-rise opacity-0 md:hidden"
+    style={{ animationDelay: "0.3s" }}
+  >
     {
-      apps.map((app) => (
-        <div class="flex items-center gap-2.5 rounded-lg border border-border bg-card px-4 py-3">
-          <Icon name={app.mark} class="shrink-0 text-muted-foreground" />
-          <span class="text-fine font-medium">{app.name}</span>
-          <span class="ml-auto font-mono text-micro text-muted-foreground">{app.source}</span>
-        </div>
+      stackedWires.map((w) => (
+        <path class={wire} pathLength="1" stroke-dasharray="1" stroke-dashoffset="1" stroke-width="1.5" d={w.d} style={{ animationDelay: w.delay }} />
       ))
     }
-  </div>
+    <g class="animate-rise stroke-muted-foreground opacity-0" stroke-width="1.5" style={{ animationDelay: "1.35s" }}>
+      <path d="M118 116l4 6 4-6M36 394l6 4-6 4M36 450l6 4-6 4M36 506l6 4-6 4M36 562l6 4-6 4"></path>
+    </g>
+
+    <text x="132" y="106" font-size="10.5" letter-spacing="1.2" class="fill-muted-foreground font-mono">MCP</text>
+    <text x="42" y="362" font-size="10.5" letter-spacing="1.2" class="fill-muted-foreground font-mono">CALLS</text>
+
+    <g transform="translate(22 0)"><MapAgent /></g>
+    <g transform="translate(22 122)"><MapKaja /></g>
+    {
+      captionLines.map((line, i) => (
+        <text x="131" y={326 + i * 14} text-anchor="middle" font-size="10" class="fill-muted-foreground">
+          {line}
+        </text>
+      ))
+    }
+    {
+      apps.map((app) => (
+        <g transform={`translate(42 ${app.tall})`}>
+          <MapApp name={app.name} mark={app.mark} source={app.source} />
+        </g>
+      ))
+    }
+  </svg>
 </div>
