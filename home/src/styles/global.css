@@ -44,6 +44,12 @@
   --color-approve: #f59e0b;
   --color-approve-foreground: #fbbf24;
 
+  /* The red the home page marks the screenshot up in: the line from a
+     statement to the box around the thing it names. It is the only colour on
+     that page, which is what makes it read as an annotation over the app
+     rather than as part of it. */
+  --color-ink: #ef4444;
+
   /* The docs' code blocks. Three hues and two greys: a key or a keyword takes
      the cool stop, a string the warm one, a number or a literal the sky — the
      same three the mark and the snippet tags are drawn in, lightened until
@@ -83,6 +89,11 @@
   --text-hero: 4.125rem;
   --text-hero--line-height: 1.05;
 
+  /* The home page's statements, which are set against a crop of the app and so
+     grow with the column rather than stepping at a breakpoint. */
+  --text-poster: clamp(2.125rem, 4.2vw, 3.5rem);
+  --text-poster--line-height: 1.06;
+
   /* Headings tighten as they grow: `display` is every heading and the
      wordmark, `hero` is the one size above them. */
   --tracking-display: -0.03em;
@@ -111,6 +122,11 @@
      `xl` radii, and `frame` is the shadow under one in the page. */
   --radius-frame: 10px;
   --shadow-frame: 0 24px 70px rgb(0 0 0 / 0.5);
+
+  /* The home page lifts its screenshots further off the page than the docs
+     do: `hero` is the whole app under the hero, `crop` a close-up of it. */
+  --shadow-hero: 0 40px 120px rgb(0 0 0 / 0.6);
+  --shadow-crop: 0 30px 90px rgb(0 0 0 / 0.55);
 
   /* Entrances. `rise` is anything that arrives on load, `draw` is a wire in
      the hero map drawing itself from the node it leaves. */
