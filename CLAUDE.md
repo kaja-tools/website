@@ -178,15 +178,18 @@ home/
   verbatim is the width of the app cards, because the site's body face is wider
   than the app's. Below `md` the drawing is too small to read, so the same five
   things are a plain stack of cards.
-- **The home page below the hero is twelve close-ups of eight screenshots.**
-  The app is shown once and whole under the drawing, and every close-up after
-  it (`Poster.astro`, from `data/poster.ts`) is a region of one of the shots in
-  that file, drawn as a background rather than an image file of its own — a
-  crop is four fractions, so a screen contributes as many close-ups as it has
-  things to say and `app-hero.png` carries two of them for nothing. The shots
-  are the window at 2880x1800, which is what `scripts/demo` photographs in
-  [wham/kaja](https://github.com/wham/kaja); a fresh set replaces the files
-  under the same names and the crops still land. Each close-up is a statement
+- **The eight screenshots are `data/shots.ts`, and every picture on the site
+  is a crop of one.** The shots are the window at 2880x1800, which is what
+  `scripts/demo` photographs in [wham/kaja](https://github.com/wham/kaja); a
+  fresh set replaces the files under the same names and every crop still
+  lands. A crop is four fractions drawn as a background by `cropStyle` rather
+  than an image file of its own, so a screen contributes as many close-ups as
+  it has things to say and nothing under `public/assets/` is a cut-out to
+  re-cut.
+- **The home page below the hero is twelve close-ups of those shots.** The app
+  is shown once and whole under the drawing, and every close-up after it
+  (`Poster.astro`, from `data/poster.ts`) is a crop; `app-hero.png` carries
+  two of them for nothing. Each close-up is a statement
   beside its crop, with a red line from the statement to a box around the thing
   it names; the line and the box are geometry `Motion.astro` measures, because
   both halves drift as the page scrolls, so without script the page is the
@@ -195,20 +198,25 @@ home/
   phone**, 40px tall and legible only as texture, so spend those on strips that
   read as one line — a call row, a tile strip — rather than on anything with
   rows to read.
-- **The docs are one page, not one per platform** (`src/pages/docs.astro`).
-  Most of what there is to say is true of both builds, so the two differences
-  per section are `<Platform only="desktop">` / `only="docker"` blocks in the
-  one page and the toggle picks between them clientside — **Desktop first, and
-  the default**, with Docker as the variant. A second page would fork every
-  shared paragraph to keep four differences apart; if that balance ever tips,
-  `Platform` is the seam to split on. A reader with no JavaScript gets both
-  blocks, labelled, by the `noscript` rule at the foot of the page.
-- `data/docs.ts` is the section list — the nav, the screenshot rail and the
-  scroll spy all read it, so a section is added there and its body written in
-  the page under the same `id`. A section with no `shot` leaves the rail empty
-  rather than borrowing a picture of something else; **Variables and Agents
-  have none yet**, because `public/assets/` holds the crops the docs already
-  point at and none of them is of those screens.
+- **The docs are one page, not one per platform** (`src/pages/docs.astro`),
+  and they are the core flow and nothing else: install, connect an app, run a
+  script, keep a secret, run a script from outside, point an agent at it.
+  **The two builds have two audiences**, and a section is written for each
+  where they differ: the desktop does everything in the window and never
+  shows you `kaja.json`, so its blocks name the buttons; the container is set
+  up from the files you mount, so its blocks show the file. What is true of
+  both is written once. `<Platform only="desktop">` / `only="docker"` are the
+  blocks and the toggle picks between them clientside — **Desktop first, and
+  the default**, with Docker as the variant. A reader with no JavaScript gets
+  both blocks, labelled, by the `noscript` rule at the foot of the page.
+- `data/docs.ts` is the section list — the nav, the rail and the scroll spy
+  all read it, so a section is added there and its body written in the page
+  under the same `id`. A section's figures are crops of the shots, each for
+  one platform or both, and the rail shows the one for the section being read
+  on the platform picked; a section with none for it leaves the rail empty
+  rather than borrowing a picture of something else. Crop tight: the rail is
+  a seventh of the shot's width, so a region wider than about a thousand of
+  its pixels is a picture nobody can read the words in.
 - Snippets are plain strings in `data/snippets.ts`, highlighted at build time
   by Shiki in `styles/codeTheme.ts` — which maps scopes onto the `code-*`
   custom properties rather than repeating them, so the palette stays in

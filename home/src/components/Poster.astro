@@ -3,10 +3,10 @@
    it is about, with a red line drawn from the statement to a box around the
    thing itself.
 
-   A crop is a frame with the item's screenshot as its background, scaled so
-   the region fills the frame and positioned so the region is the part on show
-   — arithmetic rather than a dozen image files, so a screen contributes as
-   many close-ups as it has things to say.
+   A crop is a frame with the item's screenshot as its background, scaled and
+   positioned by `cropStyle` so the region is the part on show — arithmetic
+   rather than a dozen image files, so a screen contributes as many close-ups
+   as it has things to say.
 
    The connector and the box are drawn by Motion.astro, which is the only place
    on the site that reads the scroll. The geometry depends on where the two
@@ -14,6 +14,7 @@
    svg stays empty, which is what it should be — the crop and its statement
    already say the thing.  */
 import { items } from "../data/poster";
+import { cropStyle } from "../data/shots";
 
 const frame = "mx-auto w-full max-w-page px-6 md:px-8";
 ---
@@ -39,16 +40,7 @@ const frame = "mx-auto w-full max-w-page px-6 md:px-8";
           </div>
 
           <div data-parallax={item.drift.crop} class:list={[item.cropCell, "will-change-transform"]}>
-            <div
-              data-crop
-              class="rounded-xl border border-border bg-card bg-no-repeat shadow-crop"
-              style={{
-                aspectRatio: `${((crop.w / crop.h) * (shot.width / shot.height)).toFixed(4)}`,
-                backgroundImage: `url(${shot.src})`,
-                backgroundSize: `${(100 / crop.w).toFixed(3)}% auto`,
-                backgroundPosition: `${((crop.x / (1 - crop.w)) * 100).toFixed(3)}% ${((crop.y / (1 - crop.h)) * 100).toFixed(3)}%`,
-              }}
-            />
+            <div data-crop class="rounded-xl border border-border bg-card bg-no-repeat shadow-crop" style={cropStyle(shot, crop)} />
           </div>
 
           <svg
