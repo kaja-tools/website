@@ -1,16 +1,11 @@
 /* The twelve statements the home page makes below the hero, each beside the
    piece of the app it is about.
 
-   A crop is a region of one of the screenshots below, in fractions of its
-   width and height, drawn as a background at `100 / w` of the frame's width,
-   which is what makes the region fill the frame. `Poster.astro` does that
-   arithmetic, so a crop is four numbers rather than an image file of its own
-   and a fresh screenshot at the same size costs nothing but the numbers.
-
-   Every shot is the window at 2880x1800, which is what `scripts/demo`
-   photographs in kaja's own repository. `app-hero.png` is the one the page
-   already shows whole under the drawing, so the two crops taken from it add
-   no weight.
+   A crop is a region of one of the shots in `shots.ts`, drawn by `cropStyle`
+   there, so a crop is four numbers rather than an image file of its own and a
+   fresh screenshot at the same size costs nothing but the numbers.
+   `app-hero.png` is the one the page already shows whole under the drawing,
+   so the two crops taken from it add no weight.
 
    `highlight` is the red box drawn on the crop, in fractions of the crop
    rather than of the shot, because it is placed against what the crop shows.
@@ -20,29 +15,13 @@
    `drift` is the share of the scroll past the item that each half moves by.
    The two signs are always opposite, so the statement and its crop pull apart
    as the item goes by. */
-export interface Shot {
-  src: string;
-  width: number;
-  height: number;
-}
-
-export const shots = {
-  run: { src: "/assets/app-hero.png", width: 2880, height: 1800 },
-  newApp: { src: "/assets/poster-new-app.png", width: 2880, height: 1800 },
-  apps: { src: "/assets/poster-apps.png", width: 2880, height: 1800 },
-  draft: { src: "/assets/poster-draft.png", width: 2880, height: 1800 },
-  canvas: { src: "/assets/poster-canvas.png", width: 2880, height: 1800 },
-  stats: { src: "/assets/poster-stats.png", width: 2880, height: 1800 },
-  variables: { src: "/assets/poster-variables.png", width: 2880, height: 1800 },
-  agent: { src: "/assets/poster-agent.png", width: 2880, height: 1800 },
-} satisfies Record<string, Shot>;
+import { shots, type Crop, type Shot } from "./shots";
 
 export interface Item {
   caption: string;
   /* The screenshot the crop is taken from. */
   shot: Shot;
-  /* The crop, as fractions of the shot: left, top, width, height. */
-  crop: { x: number; y: number; w: number; h: number };
+  crop: Crop;
   /* The highlight box, as fractions of the crop: left, top, width, height. */
   highlight: { x: number; y: number; w: number; h: number };
   /* Where the two halves sit in the twelve-column grid, from `md` up. Below

@@ -4,7 +4,7 @@
 
      data-docs-section   a section, read to work out which one is being read
      data-docs-link      its link in the sidebar, lit while it is
-     data-docs-shot      its screenshot in the rail, faded up while it is
+     data-docs-shot      a figure in the rail, faded up while it is (and for the platform picked)
      data-platform-pick  the Desktop/Docker toggle
 
    The rail's cross-fade is the only motion here, and the reduced-motion rule
@@ -30,7 +30,9 @@
       // A browser that refuses storage still gets the toggle, just not the memory of it.
     }
     // The blocks that appeared or went are above the fold as often as below
-    // it, so where you are in the page has just changed.
+    // it, so where you are in the page has just changed — and the rail's
+    // figure may belong to the other platform.
+    live = -1;
     spy();
   }
 
@@ -57,12 +59,15 @@
       else link.removeAttribute("aria-current");
     });
 
-    // A figure names the section it belongs to, because the sections with no
-    // shot put none in the rail — so the rail simply empties on those.
+    // A figure names the section it belongs to and the platform it is for,
+    // because a section may put nothing in the rail for one or both — so the
+    // rail simply empties on those.
+    const platform = wrap?.dataset.docsPlatform;
     shots.forEach((shot) => {
       const owner = Number(shot.dataset.docsShot);
-      shot.style.opacity = owner === index ? "1" : "0";
-      shot.style.transform = owner === index ? "translateY(0)" : `translateY(${owner < index ? "-16px" : "16px"})`;
+      const shown = owner === index && (!shot.dataset.docsShotPlatform || shot.dataset.docsShotPlatform === platform);
+      shot.style.opacity = shown ? "1" : "0";
+      shot.style.transform = shown ? "translateY(0)" : `translateY(${owner < index ? "-16px" : "16px"})`;
     });
   }
 
