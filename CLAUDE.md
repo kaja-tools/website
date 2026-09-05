@@ -178,16 +178,23 @@ home/
   verbatim is the width of the app cards, because the site's body face is wider
   than the app's. Below `md` the drawing is too small to read, so the same five
   things are a plain stack of cards.
-- **The home page below the hero is one screenshot, seven times over.** The
-  app is shown once and whole under the drawing, and every close-up after it
-  (`Poster.astro`, from `data/poster.ts`) is a region of that same
-  `app-hero.png` drawn as a background rather than a file of its own — a crop
-  is four fractions, and a new screenshot at the same size needs no new files.
-  Each one is a statement beside its crop, with a red line from the statement
-  to a box around the thing it names; the line and the box are geometry
-  `Motion.astro` measures, because both halves drift as the page scrolls, so
-  without script the page is the statements and the crops and no ink. A new
-  statement is an entry in `data/poster.ts`, not markup.
+- **The home page below the hero is twelve close-ups of eight screenshots.**
+  The app is shown once and whole under the drawing, and every close-up after
+  it (`Poster.astro`, from `data/poster.ts`) is a region of one of the shots in
+  that file, drawn as a background rather than an image file of its own — a
+  crop is four fractions, so a screen contributes as many close-ups as it has
+  things to say and `app-hero.png` carries two of them for nothing. The shots
+  are the window at 2880x1800, which is what `scripts/demo` photographs in
+  [wham/kaja](https://github.com/wham/kaja); a fresh set replaces the files
+  under the same names and the crops still land. Each close-up is a statement
+  beside its crop, with a red line from the statement to a box around the thing
+  it names; the line and the box are geometry `Motion.astro` measures, because
+  both halves drift as the page scrolls, so without script the page is the
+  statements and the crops and no ink. A new statement is an entry in
+  `data/poster.ts`, not markup. **A crop wider than about 8:1 is a band on a
+  phone**, 40px tall and legible only as texture, so spend those on strips that
+  read as one line — a call row, a tile strip — rather than on anything with
+  rows to read.
 - **The docs are one page, not one per platform** (`src/pages/docs.astro`).
   Most of what there is to say is true of both builds, so the two differences
   per section are `<Platform only="desktop">` / `only="docker"` blocks in the

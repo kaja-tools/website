@@ -27,8 +27,8 @@ export const sections: Section[] = [
     label: "Installation",
     shot: {
       src: "/assets/app-hero.png",
-      width: 3104,
-      height: 2024,
+      width: 2880,
+      height: 1800,
       caption: "Kaja, with a script open and the run it made below it.",
     },
   },

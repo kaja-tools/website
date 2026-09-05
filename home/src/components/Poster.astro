@@ -1,19 +1,19 @@
 ---
-/* The page below the hero: seven statements, each next to the piece of the app
+/* The page below the hero: twelve statements, each next to the piece of the app
    it is about, with a red line drawn from the statement to a box around the
    thing itself.
 
-   There is one screenshot behind all of it. A crop is a frame with
-   `app-hero.png` as its background, scaled so the region fills the frame and
-   positioned so the region is the part on show — arithmetic rather than seven
-   image files, so the page follows the app from one screenshot.
+   A crop is a frame with the item's screenshot as its background, scaled so
+   the region fills the frame and positioned so the region is the part on show
+   — arithmetic rather than a dozen image files, so a screen contributes as
+   many close-ups as it has things to say.
 
    The connector and the box are drawn by Motion.astro, which is the only place
    on the site that reads the scroll. The geometry depends on where the two
    halves land, so it is measured rather than written down; without script the
    svg stays empty, which is what it should be — the crop and its statement
    already say the thing.  */
-import { items, shot } from "../data/poster";
+import { items } from "../data/poster";
 
 const frame = "mx-auto w-full max-w-page px-6 md:px-8";
 ---
@@ -21,7 +21,7 @@ const frame = "mx-auto w-full max-w-page px-6 md:px-8";
 <section class:list={[frame, "flex flex-col gap-24 pt-28 pb-24 md:gap-45 md:pt-50 md:pb-40"]}>
   {
     items.map((item) => {
-      const { crop, highlight } = item;
+      const { crop, highlight, shot } = item;
       return (
         <div
           data-ink-item
