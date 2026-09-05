@@ -127,15 +127,13 @@ const description =
                 Mac App Store
               </Button>
             </div>
-            <p class:list={["mt-5", muted]}>
-              Everything after this happens in the app. Apps, variables and scripts are added from the sidebar, and there is no file to edit.
-            </p>
+            <p class:list={["mt-5", muted]}>Apps, variables and scripts are added from the sidebar. There is no configuration file to edit.</p>
           </Platform>
 
           <Platform only="docker">
             <p class={copy}>
-              One container, one port. The workspace is <code class={code}>/workspace</code>: mount your configuration file and your protos into it, and a
-              folder of scripts if you have one.
+              Kaja runs as one container and serves the UI on port 41520. The workspace is <code class={code}>/workspace</code>: mount your configuration file
+              and your protos into it, and a folder of scripts if you have one.
             </p>
             <div class="mt-5">
               <Snippet file="shell" kind="shell" lang="shell" code={snippets.dockerRun} />
@@ -155,8 +153,8 @@ const description =
             </dl>
             <div class="mt-5">
               <Note variant="watch" lead="The workspace is read-only.">
-                The browser shows the apps, the variables and the scripts you mounted and changes none of them. They are changed in the files, which is what
-                lets a workspace be checked in and deployed with the container.
+                The browser shows the apps, variables and scripts you mounted and never writes to them. Edit the files instead, so the workspace can be checked
+                in and deployed with the container.
               </Note>
             </div>
           </Platform>
@@ -184,8 +182,8 @@ const description =
               }
             </dl>
             <p class:list={["mt-5", muted]}>
-              Kaja reads the server before it saves anything, so a wrong address or a missing token is said in the form. The credential, and any header every
-              call should carry, are on the same form. Save, and every service and method the app exposes is in the tree.
+              Kaja reads the server before it saves anything, so a wrong address or a missing token is reported in the form. The credential and any header every
+              call should carry are on the same form. On save, every service and method the app exposes appears in the tree.
             </p>
           </Platform>
 
@@ -231,7 +229,7 @@ const description =
         <section id="scripts" data-docs-section class={section}>
           <h2 class={legend}>Scripts</h2>
           <p class={copy}>
-            Click a method in the tree. Kaja drafts the call in a script, typed against that app, and <span class={key}>⌘⏎</span> runs it. The run lands below the
+            Click a method in the tree. Kaja drafts the call in a script, typed against that app, and <span class={key}>⌘⏎</span> runs it. The run appears below the
             editor: <strong class="font-medium text-foreground">Calls</strong> is every call it made, with the request, the response and the headers;{" "}
             <strong class="font-medium text-foreground">Canvas</strong> is what the script drew; <strong class="font-medium text-foreground">Stats</strong> is the
             percentiles.
@@ -244,8 +242,7 @@ const description =
               class={code}>kaja.text</code
             > and <code class={code}>kaja.code</code> draw on the canvas; <code class={code}>kaja.askStr</code> stops the run to ask you something; <code
               class={code}>kaja.approve</code
-            > holds a call on the canvas until you press Approve, which is where a write belongs. <code class={code}>⌘P</code> finds any method, file or draft by
-            name.
+            > holds a call on the canvas until you press Approve, which is where writes belong. <code class={code}>⌘P</code> finds any method, file or draft by name.
           </p>
 
           <Platform only="desktop">
@@ -326,22 +323,22 @@ const description =
             <Platform only="desktop">
               <Snippet file="deeplink" kind="shell" lang="shell" code={snippets.deeplinkDesktop} />
               <p class:list={["mt-4", muted]}>
-                A Raycast quicklink, a Shortcut, or <code class={code}>open</code> in a shell. The script opens with the values filled in, and <span class={key}
-                  >⏎</span
+                Use it in a Raycast quicklink, a Shortcut, or with <code class={code}>open</code> in a shell. The script opens with the values filled in, and <span
+                  class={key}>⏎</span
                 > runs it.
               </p>
             </Platform>
             <Platform only="docker">
               <Snippet file="deeplink" kind="shell" lang="shell" code={snippets.deeplinkDocker} />
               <p class:list={["mt-4", muted]}>
-                The page's own address, with the link after the <code class={code}>#</code>. A bookmark or a link in a document. The script opens with the
-                values filled in, and <span class={key}>⏎</span> runs it.
+                The page's own address, with the link after the <code class={code}>#</code>, so it works as a bookmark or a link in a document. The script opens
+                with the values filled in, and <span class={key}>⏎</span> runs it.
               </p>
             </Platform>
           </div>
           <p class:list={["mt-5", muted]}>
-            The query is the script's: every <code class={code}>key=value</code> arrives as text in <code class={code}>kaja.input</code>, and the sheet lists
-            the keys the script reads. A script run from the editor gets an empty one, so ask when the link didn't say:
+            The query string is the script's input: every <code class={code}>key=value</code> arrives as text in <code class={code}>kaja.input</code>, and the
+            sheet lists the keys the script reads. A script run from the editor gets an empty input, so ask for what the link didn't pass:
           </p>
           <div class="mt-4">
             <Snippet file="scripts/whats-on.ts" kind="script" lang="ts" code={snippets.deeplinkScript} />
@@ -362,15 +359,15 @@ const description =
 
           <Platform only="desktop">
             <p class:list={["mt-5", muted]}>
-              The server listens on <code class={code}>127.0.0.1:41521</code>, so it is reachable from this Mac alone, and the token outlives the switch. Claude
-              Code, Claude Desktop, Cursor, VS Code, Codex CLI, Windsurf, Zed, Cline, Goose and Gemini CLI are listed.
+              The server listens on <code class={code}>127.0.0.1:41521</code>, so only this Mac can reach it, and the token survives turning the server off.
+              Claude Code, Claude Desktop, Cursor, VS Code, Codex CLI, Windsurf, Zed, Cline, Goose and Gemini CLI are listed.
             </p>
           </Platform>
 
           <Platform only="docker">
             <p class:list={["mt-5", muted]}>
-              The endpoint is the page's own address plus <code class={code}>/mcp</code>, and the token is this browser's. Turning the switch on is what lets an
-              agent through, and a run is carried out in this window, so keep it open while the agent works.
+              The endpoint is the page's own address plus <code class={code}>/mcp</code>, and the token is this browser's. An agent can connect only while the
+              switch is on, and runs are carried out in this window, so keep it open while the agent works.
             </p>
           </Platform>
 
@@ -385,8 +382,8 @@ const description =
             }
           </dl>
           <p class:list={["mt-5", muted]}>
-            Nothing it does is invisible. Its script is a draft pinned at the top of the sidebar under the agent's name, every call lands in the console beside
-            your own, and a call it puts behind <code class={code}>kaja.approve</code> waits for you.
+            Every step is visible. Its script is a draft pinned at the top of the sidebar under the agent's name, every call lands in the console beside your
+            own, and a call it puts behind <code class={code}>kaja.approve</code> waits for you.
           </p>
         </section>
       </div>
