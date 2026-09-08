@@ -2,7 +2,7 @@
 set -e
 
 # protoc-go version to use
-PROTOC_GO_VERSION="v0.2.1"
+PROTOC_GO_VERSION="v0.5.0"
 
 cd "$(dirname "$0")/.."
 BUILD_DIR=$PWD/build
