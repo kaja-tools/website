@@ -36,13 +36,13 @@ const link = "text-foreground underline decoration-border underline-offset-4 tra
    Docker flags nobody should have to go and look up. */
 const dockerArguments = [
   { flag: "--pull always", says: "Always pull the latest image. Kaja is updated often." },
-  { flag: "--name kaja", says: "Name the container, so it is one to stop and start by hand." },
-  { flag: "-d", says: "Run it detached, in the background." },
+  { flag: "--name kaja", says: "Name the container." },
+  { flag: "-d", says: "Run it in the background." },
   { flag: "-p 41520:41520", says: "Map the port. Kaja listens on 41520." },
   { flag: "-v .../proto:/workspace/proto", says: "The .proto files your gRPC and Twirp apps read." },
-  { flag: "-v .../kaja.json:/workspace/kaja.json", says: "Your configuration: the apps and the variables, which are the next sections." },
-  { flag: "-v .../scripts:/workspace/scripts", says: "Optional. A folder of .ts files, which land in the sidebar ready to run." },
-  { flag: "-e KAJA_TOKEN=...", says: "Optional. The value of a variable named token that the file keeps out of itself." },
+  { flag: "-v .../kaja.json:/workspace/kaja.json", says: "Your configuration: apps and variables." },
+  { flag: "-v .../scripts:/workspace/scripts", says: "Optional. A folder of .ts scripts, shown in the sidebar." },
+  { flag: "-e KAJA_TOKEN=...", says: "Optional. The value of the secret variable named token." },
   { flag: "--add-host=host.docker.internal:host-gateway", says: "Reach a service running on the host from inside the container." },
 ];
 
@@ -58,25 +58,25 @@ const types = [
 /* What the desktop's New app dialog asks for, type by type, in the order the
    dialog lists them. */
 const forms = [
-  { name: "grpc", label: "gRPC", asks: "The server's address. Kaja reads it over reflection, or you pick a folder of .proto files." },
-  { name: "openapi", label: "OpenAPI", asks: "The document's URL, a file, or the document pasted in." },
-  { name: "twirp", label: "Twirp", asks: "The server's address and a folder of .proto files." },
+  { name: "grpc", label: "gRPC", asks: "The server address. Kaja uses reflection, or you pick a folder of .proto files." },
+  { name: "openapi", label: "OpenAPI", asks: "The spec: a URL, a file, or pasted in." },
+  { name: "twirp", label: "Twirp", asks: "The server address and a folder of .proto files." },
 ] as const;
 
 /* Where a value in `variables` may live. `says` is split around the one
    thing in it that is itself code, which is what keeps the rows a list rather
    than hand-written ones. */
 const sources = [
-  { form: '"value"', says: ["The value is the value. It lives in the file."] },
-  { form: '"${secret}"', says: ["Held outside the file: ", "KAJA_NAME", " in the container's environment."] },
-  { form: '"${env:X}"', says: ["The environment variable ", "X", ", which may sit inside a longer value."] },
+  { form: '"value"', says: ["A plain value, kept in the file."] },
+  { form: '"${secret}"', says: ["A secret, read from ", "KAJA_NAME", " in the container's environment."] },
+  { form: '"${env:X}"', says: ["The environment variable ", "X", "."] },
 ];
 
 /* The three tools an agent gets, and what each one is for. */
 const tools = [
-  { name: "list_services", says: "The index: one TypeScript signature per method, marked read or write." },
-  { name: "describe_method", says: "The types that signature names, and a call to start from." },
-  { name: "run_script", says: "Runs it. Every call's request and response come back in the report." },
+  { name: "list_services", says: "One TypeScript signature per method, marked read or write." },
+  { name: "describe_method", says: "The types a method uses, and an example call." },
+  { name: "run_script", says: "Runs a script. Every request and response comes back in the result." },
 ];
 
 /* The screenshots the page shows, each written into the section it belongs to
@@ -87,22 +87,22 @@ const tools = [
 const figures = {
   app: {
     shot: shots.run,
-    caption: "Kaja, with a script open and the run it made below it.",
+    caption: "A script and its run.",
   },
   newApp: {
     shot: shots.newApp,
     crop: { x: 0.34, y: 0.325, w: 0.32, h: 0.35 },
-    caption: "The + beside Apps. Each type asks for one thing.",
+    caption: "The New app dialog.",
   },
   tree: {
     shot: shots.apps,
     crop: { x: 0.0, y: 0.255, w: 0.168, h: 0.405 },
-    caption: "What the configuration file produces: every app, service and method.",
+    caption: "Every app, service and method from kaja.json.",
   },
   run: {
     shot: shots.run,
     crop: { x: 0.167, y: 0.04, w: 0.5, h: 0.352 },
-    caption: "The drafted call, and the run it made: status, duration, and the response as it came back.",
+    caption: "A drafted call and its run: status, duration, response.",
   },
   variables: {
     shot: shots.variables,
@@ -112,7 +112,7 @@ const figures = {
   agent: {
     shot: shots.agent,
     crop: { x: 0.178, y: 0.185, w: 0.6, h: 0.31 },
-    caption: "Pick the agent and copy what it takes.",
+    caption: "Pick an agent and copy its configuration.",
   },
 };
 
@@ -140,8 +140,9 @@ const description =
         <p class="animate-rise text-xs font-semibold tracking-[0.09em] text-muted-foreground uppercase opacity-0">Documentation</p>
         <h1 class="mt-2.5 animate-rise font-display text-title font-bold tracking-display opacity-0" style={{ animationDelay: "0.06s" }}>Set up Kaja</h1>
         <p class="mt-3.5 max-w-copy animate-rise text-intro/[1.6] text-pretty text-muted-foreground opacity-0" style={{ animationDelay: "0.12s" }}>
-          Install it, connect an app, press Run. The desktop app does all of it in the window; the container is set up from the files you mount. Or skip the
-          install: <a href="https://demo.kaja.tools/" class={link}>the demo</a> is this same app with three apps connected.
+          Install Kaja, connect an app, press Run. The desktop app is full featured and works best with an agent. Docker is for teams that share tooling to
+          develop their services: the configuration is managed in git, so every developer starts preconfigured. Or skip the install and open{" "}
+          <a href="https://demo.kaja.tools/" class={link}>the demo</a>.
         </p>
 
         {
@@ -163,13 +164,13 @@ const description =
                 Mac App Store
               </Button>
             </div>
-            <p class:list={["mt-5", muted]}>Apps, variables and scripts are added from the sidebar. There is no configuration file to edit.</p>
+            <p class:list={["mt-5", muted]}>Apps, variables and scripts are added from the sidebar. There is no configuration file.</p>
           </Platform>
 
           <Platform only="docker">
             <p class={copy}>
-              Kaja runs as one container and serves the UI on port 41520. The workspace is <code class={code}>/workspace</code>: mount your configuration file
-              and your protos into it, and a folder of scripts if you have one.
+              Kaja runs as one container and serves the UI on port 41520. Mount your configuration file, your protos and, if you have one, a folder of scripts
+              into <code class={code}>/workspace</code>.
             </p>
             <div class="mt-5">
               <Snippet file="shell" kind="shell" lang="shell" code={snippets.dockerRun} />
@@ -189,8 +190,7 @@ const description =
             </dl>
             <div class="mt-5">
               <Note variant="watch" lead="The workspace is read-only.">
-                The browser shows the apps, variables and scripts you mounted and never writes to them. Edit the files instead, so the workspace can be checked
-                in and deployed with the container.
+                The UI shows the apps, variables and scripts you mounted and never writes to them. Edit the files and keep them in git.
               </Note>
             </div>
           </Platform>
@@ -204,7 +204,7 @@ const description =
           <Platform only="desktop">
             <p class={copy}>
               An app is one API Kaja can call. Press <span class={key}>+</span> beside <strong class="font-medium text-foreground">Apps</strong> in the sidebar and
-              pick a type. Each one asks for one thing:
+              pick a type:
             </p>
             <dl class="mt-5 grid grid-cols-[6rem_1fr] gap-px overflow-hidden rounded-frame border border-border bg-border">
               {
@@ -220,8 +220,8 @@ const description =
               }
             </dl>
             <p class:list={["mt-5", muted]}>
-              Kaja reads the server before it saves anything, so a wrong address or a missing token is reported in the form. The credential and any header every
-              call should carry are on the same form. On save, every service and method the app exposes appears in the tree.
+              Kaja connects before it saves, so a wrong address or a missing token shows up in the form. Headers sent with every call go on the same form. On
+              save, every service and method appears in the tree.
             </p>
 
             <Figure {...figures.newApp} />
@@ -256,9 +256,10 @@ const description =
               }
             </dl>
             <p class:list={["mt-4", muted]}>
-              <code class={code}>proto_dir</code> is relative to <code class={code}>/workspace</code>, so it names a folder inside the one you mounted; a gRPC
-              app with <code class={code}>reflection</code> needs no protos at all. <code class={code}>headers</code> go out with every call. A service on the host
-              is reached as <code class={code}>host.docker.internal</code>.
+              <code class={code}>proto_dir</code> is relative to <code class={code}>/workspace</code>. A gRPC app with <code class={code}>reflection</code> needs
+              no protos. <code class={code}>headers</code> are sent with every call. A service on the host is reached as <code class={code}
+                >host.docker.internal</code
+              >.
             </p>
             <p class:list={["mt-4", muted]}>
               The name is what a script imports: <code class={code}>import {"{ Teams }"} from "teams"</code>.
@@ -272,8 +273,8 @@ const description =
           <h2 class={legend}>Scripts</h2>
           <p class={copy}>
             Click a method in the tree. Kaja drafts the call in a script, typed against that app, and <span class={key}>⌘⏎</span> runs it. The run appears below the
-            editor: <strong class="font-medium text-foreground">Calls</strong> is every call it made, with the request, the response and the headers;{" "}
-            <strong class="font-medium text-foreground">Canvas</strong> is what the script drew; <strong class="font-medium text-foreground">Stats</strong> is the
+            editor: <strong class="font-medium text-foreground">Calls</strong> is every call it made, with request, response and headers;{" "}
+            <strong class="font-medium text-foreground">Canvas</strong> is what the script drew; <strong class="font-medium text-foreground">Stats</strong> is timing
             percentiles.
           </p>
           <div class="mt-5">
@@ -282,26 +283,24 @@ const description =
           <p class:list={["mt-4", muted]}>
             A script is TypeScript with top-level <code class={code}>await</code> and an import per app. <code class={code}>kaja.table</code>, <code
               class={code}>kaja.text</code
-            > and <code class={code}>kaja.code</code> draw on the canvas; <code class={code}>kaja.askStr</code> stops the run to ask you something; <code
+            > and <code class={code}>kaja.code</code> draw on the canvas; <code class={code}>kaja.askStr</code> pauses the run to ask you something; <code
               class={code}>kaja.approve</code
-            > holds a call on the canvas until you press Approve, which is where writes belong. <code class={code}>⌘P</code> finds any method, file or draft by name.
+            > holds a call until you press Approve. Use it for writes. <code class={code}>⌘P</code> finds any method, file or draft by name.
           </p>
 
           <Platform only="desktop">
             <p class:list={["mt-5", muted]}>
-              A script you haven't named is a <strong class="font-medium text-foreground">draft</strong>, kept under Drafts until you discard it. <strong
-                class="font-medium text-foreground">Save as file</strong
-              > (<span class={key}>⌘S</span>) names it and moves it under Files, which is a folder on disk: <strong class="font-medium text-foreground"
-                >Reveal in Finder</strong
-              >, in the menu beside Run, opens it, and a file edited in your own editor is picked up on the next run.
+              An unsaved script is a <strong class="font-medium text-foreground">draft</strong>, kept under Drafts. <strong class="font-medium text-foreground"
+                >Save as file</strong
+              > (<span class={key}>⌘S</span>) moves it under Files, a folder on disk. <strong class="font-medium text-foreground">Reveal in Finder</strong>, in
+              the menu beside Run, opens that folder. Edits from your own editor are picked up on the next run.
             </p>
           </Platform>
 
           <Platform only="docker">
             <p class:list={["mt-5", muted]}>
-              Files are the <code class={code}>scripts</code> folder you mounted, one entry per <code class={code}>.ts</code> file, ready to run. The browser can't
-              write them, so they are edited on disk. A script you write in the browser is a <strong class="font-medium text-foreground">draft</strong>, kept in
-              this browser only: copy it into the folder to keep it.
+              Files is the <code class={code}>scripts</code> folder you mounted, one entry per <code class={code}>.ts</code> file. Edit them on disk. A script written
+              in the browser is a <strong class="font-medium text-foreground">draft</strong>, kept in this browser only. Copy it into the folder to keep it.
             </p>
           </Platform>
 
@@ -313,16 +312,16 @@ const description =
 
           <Platform only="desktop">
             <p class={copy}>
-              A variable is a named value. A script reads it as <code class={code}>kaja.variables.NAME</code>, and any field of an app's form takes <code
+              A variable is a named value. A script reads it as <code class={code}>kaja.variables.NAME</code>. Any field of an app's form accepts <code
                 class={code}>{"${NAME}"}</code
-              > in place of the value, inside a longer one too.
+              >, alone or inside a longer value.
             </p>
             <p class:list={["mt-5", muted]}>
-              Open them from <span class={key}>{"{ }"}</span> at the top of the sidebar. Each row picks where its value lives: <strong
-                class="font-medium text-foreground">Value</strong
-              >, typed in; <strong class="font-medium text-foreground">Keychain</strong>, held by macOS, which is where a token goes; <strong
+              Open them from <span class={key}>{"{ }"}</span> at the top of the sidebar. Each row picks a source: <strong class="font-medium text-foreground"
+                >Value</strong
+              >, typed in; <strong class="font-medium text-foreground">Keychain</strong>, stored by macOS, for tokens; <strong
                 class="font-medium text-foreground">Environment</strong
-              >, read from a variable of the machine. The table saves as you type, and the last column says which apps and files use each one.
+              >, read from an environment variable. The table saves as you type. The last column lists which apps and files use each one.
             </p>
 
             <Figure {...figures.variables} />
@@ -330,9 +329,9 @@ const description =
 
           <Platform only="docker">
             <p class={copy}>
-              A variable is a named value. A script reads it as <code class={code}>kaja.variables.NAME</code>, and the configuration expands <code class={code}
+              A variable is a named value. A script reads it as <code class={code}>kaja.variables.NAME</code>. The configuration expands <code class={code}
                 >{"${NAME}"}</code
-              > anywhere in a value, inside a longer one too.
+              > in any value, alone or inside a longer one.
             </p>
             <div class="mt-5">
               <Snippet file="kaja.json" kind="configuration" lang="json" code={snippets.variables} />
@@ -351,8 +350,8 @@ const description =
             </dl>
             <div class="mt-5">
               <Note variant="watch" lead="A secret never reaches the browser.">
-                <code class="text-foreground">{"${secret}"}</code> is resolved inside the container, which is what keeps the file safe to commit. The Variables page
-                shows each name and whether it resolved, and a script sees the file's own text.
+                <code class="text-foreground">{"${secret}"}</code> is resolved inside the container, so the file is safe to commit. The Variables page shows each
+                name and whether it resolved. A script gets the placeholder, not the secret.
               </Note>
             </div>
           </Platform>
@@ -361,8 +360,8 @@ const description =
         <section id="deeplinks" data-docs-section class={section}>
           <h2 class={legend}>Deeplinks</h2>
           <p class={copy}>
-            A saved script has a URL, so anything that opens one can run it. Right-click the file, or open the menu beside Run, and pick <strong
-              class="font-medium text-foreground">Copy deeplink…</strong
+            A saved script has a URL. Right-click the file, or open the menu beside Run, and pick <strong class="font-medium text-foreground"
+              >Copy deeplink…</strong
             > (<span class={key}>⌘⇧C</span>).
           </p>
           <div class="mt-5">
@@ -377,36 +376,36 @@ const description =
             <Platform only="docker">
               <Snippet file="deeplink" kind="shell" lang="shell" code={snippets.deeplinkDocker} />
               <p class:list={["mt-4", muted]}>
-                The page's own address, with the link after the <code class={code}>#</code>, so it works as a bookmark or a link in a document. The script opens
-                with the values filled in, and <span class={key}>⏎</span> runs it.
+                Kaja's address with the link after <code class={code}>#</code>. Works as a bookmark or a link in a document. The script opens with the values
+                filled in, and <span class={key}>⏎</span> runs it.
               </p>
             </Platform>
           </div>
           <p class:list={["mt-5", muted]}>
-            The query string is the script's input: every <code class={code}>key=value</code> arrives as text in <code class={code}>kaja.input</code>, and the
-            sheet lists the keys the script reads. A script run from the editor gets an empty input, so ask for what the link didn't pass:
+            The query string is the script's input: every <code class={code}>key=value</code> arrives as a string in <code class={code}>kaja.input</code>. A
+            script run from the editor gets an empty input, so ask for what the link didn't pass:
           </p>
           <div class="mt-4">
             <Snippet file="scripts/whats-on.ts" kind="script" lang="ts" code={snippets.deeplinkScript} />
           </div>
           <p class:list={["mt-4", muted]}>
-            <strong class="font-medium text-foreground">Run with parameters…</strong> (<span class={key}>⇧⌘⏎</span>) in the same menu runs it from the app with
-            the same sheet.
+            <strong class="font-medium text-foreground">Run with parameters…</strong> (<span class={key}>⇧⌘⏎</span>) in the same menu asks for the keys the
+            script reads, then runs it.
           </p>
         </section>
 
         <section id="agents" data-docs-section class={section}>
           <h2 class={legend}>Agents</h2>
           <p class={copy}>
-            Kaja is an <a href="https://modelcontextprotocol.io" class={link} target="_blank" rel="noopener">MCP</a> server, so an agent can read what your apps expose,
-            write a script against them and run it. Open the plug at the top of the sidebar: the page carries the endpoint and the token, the switch that turns the
-            server on, and a row per agent with the exact command or configuration it takes, ready to copy.
+            Kaja is an <a href="https://modelcontextprotocol.io" class={link} target="_blank" rel="noopener">MCP</a> server. An agent can read what your apps expose,
+            write a script and run it. Open the plug at the top of the sidebar: it has the endpoint, the token, the switch that turns the server on, and a row per
+            agent with the command or configuration to copy.
           </p>
 
           <Platform only="desktop">
             <p class:list={["mt-5", muted]}>
-              The server listens on <code class={code}>127.0.0.1:41521</code>, so only this Mac can reach it, and the token survives turning the server off.
-              Claude Code, Claude Desktop, Cursor, VS Code, Codex CLI, Windsurf, Zed, Cline, Goose and Gemini CLI are listed.
+              The server listens on <code class={code}>127.0.0.1:41521</code>, so only this Mac can reach it. Claude Code, Claude Desktop, Cursor, VS Code,
+              Codex CLI, Windsurf, Zed, Cline, Goose and Gemini CLI are listed.
             </p>
 
             <Figure {...figures.agent} />
@@ -414,8 +413,8 @@ const description =
 
           <Platform only="docker">
             <p class:list={["mt-5", muted]}>
-              The endpoint is the page's own address plus <code class={code}>/mcp</code>, and the token is this browser's. An agent can connect only while the
-              switch is on, and runs are carried out in this window, so keep it open while the agent works.
+              The endpoint is Kaja's address plus <code class={code}>/mcp</code>. The token belongs to this browser. Runs happen in this window, so keep it open
+              while the agent works.
             </p>
           </Platform>
 
@@ -430,8 +429,8 @@ const description =
             }
           </dl>
           <p class:list={["mt-5", muted]}>
-            Every step is visible. Its script is a draft pinned at the top of the sidebar under the agent's name, every call lands in the console beside your
-            own, and a call it puts behind <code class={code}>kaja.approve</code> waits for you.
+            Everything the agent does is visible. Its scripts are drafts under its name at the top of the sidebar, its calls land in the console beside your
+            own, and a call behind <code class={code}>kaja.approve</code> waits for you.
           </p>
         </section>
       </div>
