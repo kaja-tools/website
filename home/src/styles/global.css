@@ -89,6 +89,12 @@
   --text-hero: 4.125rem;
   --text-hero--line-height: 1.05;
 
+  /* The home page's section headings, one step under the hero and one over
+     the statements below them. They grow with the page rather than stepping
+     at a breakpoint, so the ladder holds at every width. */
+  --text-section: clamp(1.875rem, 3.2vw, 2.5rem);
+  --text-section--line-height: 1.1;
+
   /* The home page's statements, which are set against a crop of the app and so
      grow with the column rather than stepping at a breakpoint. */
   --text-poster: clamp(2.125rem, 4.2vw, 3.5rem);

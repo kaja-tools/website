@@ -1,4 +1,6 @@
-/* The docs' code, out of the markup so each block reads as the file it is.
+/* The code the site shows, out of the markup so each block reads as the file
+   it is — the docs' blocks, and the one script the home page has an agent
+   write.
    Every one of these is meant to be copied and run, so keep them runnable:
    no ellipses standing in for lines, and no placeholder that isn't obviously
    one. The scripts are written against the demo's own apps, so a reader can
@@ -77,4 +79,29 @@ kaja://run/whats-on?city=Chicago
 
 export const deeplinkDocker = `
 http://localhost:41520/#run/whats-on?city=Chicago
+`;
+
+/* The home page's agent example: the script an agent writes when somebody
+   asks it which endpoints are slow. It is the demo's own Theatre app, so a
+   reader can paste it into demo.kaja.tools and press Run. */
+export const agentScript = `
+import { kaja } from "kaja";
+import { Theatre } from "theatre";
+
+const calls = {
+  ListMovies: () => Theatre.ListMovies({}),
+  ListShows: () => Theatre.ListShows({}),
+  ListTheaters: () => Theatre.ListTheaters({}),
+};
+
+const slow: string[][] = [];
+
+for (const [name, send] of Object.entries(calls)) {
+  const started = Date.now();
+  await send();
+  const ms = Date.now() - started;
+  if (ms > 500) slow.push([name, \`\${ms} ms\`]);
+}
+
+kaja.table(["method", "duration"], slow);
 `;

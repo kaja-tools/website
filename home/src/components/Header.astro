@@ -1,6 +1,9 @@
 ---
 /* Sticks to the top of every page. The bar is the page background gone
-   translucent over a blur, so the app screenshot keeps moving underneath it. */
+   translucent over a blur, so the app screenshot keeps moving underneath it.
+
+   The button is the demo, not the download: nothing has to be installed to
+   see Kaja work, so that is the one thing the bar asks for. */
 import Button from "./Button.astro";
 import Icon from "./Icon.astro";
 import Logo from "./Logo.astro";
@@ -16,12 +19,14 @@ const onPrivacy = Astro.url.pathname.startsWith("/privacy");
   <Logo />
   <nav class="flex items-center gap-4 sm:gap-5">
     <a href="/docs" class:list={[link, onDocs && current]} aria-current={onDocs ? "page" : undefined}>Docs</a>
-    <a href="https://demo.kaja.tools/" class:list={[link, "hidden xs:block"]}>Demo</a>
+    <a href="https://apps.apple.com/us/app/kaja-for-grpc-and-twirp/id6761604205?mt=12" class:list={[link, "hidden xs:block"]} target="_blank" rel="noopener">
+      Download
+    </a>
     <a href="/privacy" class:list={[link, onPrivacy && current, "hidden sm:block"]} aria-current={onPrivacy ? "page" : undefined}>Privacy</a>
     <a href="https://github.com/wham/kaja" class:list={[link, "flex items-center gap-2"]} target="_blank" rel="noopener">
       <Icon name="github" />
       <span class="hidden sm:inline">GitHub</span>
     </a>
-    <Button href="https://apps.apple.com/us/app/kaja-for-grpc-and-twirp/id6761604205?mt=12" size="sm" target="_blank" rel="noopener">Download</Button>
+    <Button href="https://demo.kaja.tools/" size="sm">Try Kaja</Button>
   </nav>
 </header>

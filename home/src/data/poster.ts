@@ -1,11 +1,14 @@
-/* The twelve statements the home page makes below the hero, each beside the
-   piece of the app it is about.
+/* The statements the home page makes about the window, each beside the piece
+   of the app it is about. They come in groups, because each one belongs to
+   the section that makes its argument: what you do yourself, what stays on
+   the record, what an agent connects to, and what the window does beyond one
+   request.
 
    A crop is a region of one of the shots in `shots.ts`, drawn by `cropStyle`
    there, so a crop is four numbers rather than an image file of its own and a
    fresh screenshot at the same size costs nothing but the numbers.
-   `app-hero.png` is the one the page already shows whole under the drawing,
-   so the two crops taken from it add no weight.
+   `app-hero.png` is the one the page already shows whole under the hero, so
+   the crops taken from it add no weight.
 
    `highlight` is the red box drawn on the crop, in fractions of the crop
    rather than of the shot, because it is placed against what the crop shows.
@@ -34,17 +37,8 @@ export interface Item {
   drift: { crop: number; statement: number };
 }
 
-export const items: Item[] = [
-  {
-    caption: "An app is proto files, an OpenAPI document, or server reflection.",
-    shot: shots.newApp,
-    crop: { x: 0.33, y: 0.32, w: 0.34, h: 0.37 },
-    highlight: { x: 0.081, y: 0.406, w: 0.845, h: 0.123 },
-    cropCell: "md:col-start-1 md:col-end-6 md:row-start-1",
-    statementCell: "md:col-start-7 md:col-end-13 md:row-start-1",
-    align: "left",
-    drift: { crop: 0.35, statement: -0.3 },
-  },
+/* Exploring an API by hand: the tree, and the call Kaja writes for a method. */
+export const manual: Item[] = [
   {
     caption: "Every app, service and method in one tree.",
     shot: shots.apps,
@@ -65,16 +59,10 @@ export const items: Item[] = [
     align: "left",
     drift: { crop: 0.2, statement: -0.2 },
   },
-  {
-    caption: "A script you haven’t named is a draft. Saving it gives it a file.",
-    shot: shots.draft,
-    crop: { x: 0.005, y: 0.045, w: 0.163, h: 0.255 },
-    highlight: { x: 0.03, y: 0.112, w: 0.9, h: 0.188 },
-    cropCell: "md:col-start-1 md:col-end-6 md:row-start-1",
-    statementCell: "md:col-start-7 md:col-end-13 md:row-start-1",
-    align: "left",
-    drift: { crop: 0.3, statement: -0.3 },
-  },
+];
+
+/* What a call leaves behind, whoever made it. */
+export const record: Item[] = [
   {
     caption: "Status, duration and size on every call.",
     shot: shots.run,
@@ -94,6 +82,46 @@ export const items: Item[] = [
     statementCell: "md:col-start-1 md:col-end-6 md:row-start-1",
     align: "left",
     drift: { crop: -0.35, statement: 0.2 },
+  },
+];
+
+/* The plug at the top of the sidebar: what an agent needs, and which agents
+   are listed. */
+export const agents: Item[] = [
+  {
+    caption: "Your agent needs the endpoint and the token. The switch turns the server on.",
+    shot: shots.agent,
+    crop: { x: 0.175, y: 0.06, w: 0.82, h: 0.115 },
+    highlight: { x: 0.02, y: 0.57, w: 0.532, h: 0.237 },
+    cropCell: "md:col-start-1 md:col-end-13 md:row-start-1",
+    statementCell: "md:col-start-4 md:col-end-13 md:row-start-2",
+    align: "right",
+    drift: { crop: -0.2, statement: 0.25 },
+  },
+  {
+    caption: "Ten agents listed. Pick yours and copy the line it needs.",
+    shot: shots.agent,
+    crop: { x: 0.178, y: 0.18, w: 0.135, h: 0.33 },
+    highlight: { x: 0.037, y: 0.109, w: 0.881, h: 0.868 },
+    cropCell: "md:col-start-9 md:col-end-13 md:row-start-1",
+    statementCell: "md:col-start-1 md:col-end-8 md:row-start-1",
+    align: "left",
+    drift: { crop: -0.3, statement: 0.25 },
+  },
+];
+
+/* Everything a run is beyond one request: a file, a table, a load test, and
+   the values a script should not carry. */
+export const features: Item[] = [
+  {
+    caption: "A script you haven’t named is a draft. Saving it gives it a file.",
+    shot: shots.draft,
+    crop: { x: 0.005, y: 0.045, w: 0.163, h: 0.255 },
+    highlight: { x: 0.03, y: 0.112, w: 0.9, h: 0.188 },
+    cropCell: "md:col-start-1 md:col-end-6 md:row-start-1",
+    statementCell: "md:col-start-7 md:col-end-13 md:row-start-1",
+    align: "left",
+    drift: { crop: 0.3, statement: -0.3 },
   },
   {
     caption: "A script can draw a table instead. It pages the rows itself.",
@@ -126,7 +154,7 @@ export const items: Item[] = [
     drift: { crop: 0.2, statement: -0.3 },
   },
   {
-    caption: "A value sits in the file, the keychain or the environment.",
+    caption: "Keep secrets out of scripts. A value comes from the keychain, the environment or the file.",
     shot: shots.variables,
     crop: { x: 0.175, y: 0.06, w: 0.545, h: 0.24 },
     highlight: { x: 0.237, y: 0.143, w: 0.141, h: 0.78 },
@@ -134,25 +162,5 @@ export const items: Item[] = [
     statementCell: "md:col-start-8 md:col-end-13 md:row-start-1",
     align: "left",
     drift: { crop: 0.35, statement: -0.3 },
-  },
-  {
-    caption: "An endpoint and a token. The switch decides whether anything answers.",
-    shot: shots.agent,
-    crop: { x: 0.175, y: 0.06, w: 0.82, h: 0.115 },
-    highlight: { x: 0.221, y: 0.57, w: 0.331, h: 0.237 },
-    cropCell: "md:col-start-1 md:col-end-13 md:row-start-1",
-    statementCell: "md:col-start-4 md:col-end-13 md:row-start-2",
-    align: "right",
-    drift: { crop: -0.2, statement: 0.25 },
-  },
-  {
-    caption: "Ten agents, each with the line it takes.",
-    shot: shots.agent,
-    crop: { x: 0.178, y: 0.18, w: 0.135, h: 0.33 },
-    highlight: { x: 0.037, y: 0.109, w: 0.881, h: 0.868 },
-    cropCell: "md:col-start-9 md:col-end-13 md:row-start-1",
-    statementCell: "md:col-start-1 md:col-end-8 md:row-start-1",
-    align: "left",
-    drift: { crop: -0.3, statement: 0.25 },
   },
 ];

@@ -1,0 +1,31 @@
+---
+/* The one flow the page explains first: connect an API, run a call, read what
+   happened. Three steps down the page rather than across it, because each one
+   is a different piece of the window — a dialog is nearly square, a toolbar is
+   a strip — and a row would have to shrink them all to the shortest.
+
+   Stacked, the copy sits above its picture on a phone and beside it from `md`
+   up, so the order a visitor reads is the order the steps happen in. */
+import { steps } from "../data/home";
+import { cropStyle } from "../data/shots";
+---
+
+<div class="mt-12 flex flex-col gap-14 md:mt-16 md:gap-20">
+  {
+    steps.map((step, i) => (
+      <div class="grid gap-6 md:grid-cols-12 md:items-center md:gap-x-10">
+        <div class="md:col-span-4">
+          <p class="font-mono text-micro tracking-[0.16em] text-muted-foreground uppercase">
+            {String(i + 1).padStart(2, "0")} · {step.step}
+          </p>
+          <h3 class="mt-3 font-display text-pane font-semibold tracking-display text-balance">{step.title}</h3>
+          <p class="mt-3 text-prose/[1.7] text-pretty text-muted-foreground">{step.says}</p>
+        </div>
+
+        <div class="md:col-span-8">
+          <div class="rounded-frame border border-border bg-card bg-no-repeat shadow-frame" style={cropStyle(step.shot, step.crop)} />
+        </div>
+      </div>
+    ))
+  }
+</div>
