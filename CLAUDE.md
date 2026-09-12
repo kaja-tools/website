@@ -168,9 +168,10 @@ home/
   together — the hero diagram and the app types in the docs — which is what the
   hero's coloured dots used to do badly. Don't draw a
   fifth: a mark exists per protocol, not per idea.
-- **The hero is the app's own map** (`ui/src/McpMap.tsx`), ported stroke for
-  stroke: an agent, Kaja drawn as its own canvas, the four protocols. Three
-  weights and no colour — `wire` for the wires and the canvas blocks,
+- **The hero's drawing is the app's own map** (`ui/src/McpMap.tsx`), ported
+  stroke for stroke: an agent, Kaja drawn as its own canvas, the four
+  protocols. It is what says "you and your agents" before a word of the page is
+  read. Three weights and no colour — `wire` for the wires and the canvas blocks,
   `muted-foreground` for the node frames and arrows, `foreground` for names and
   marks. **There is no screenshot in it**: the app itself is the next thing on
   the page, and a picture of the window beside the drawing says the same thing
@@ -186,18 +187,38 @@ home/
   than an image file of its own, so a screen contributes as many close-ups as
   it has things to say and nothing under `public/assets/` is a cut-out to
   re-cut.
-- **The home page below the hero is twelve close-ups of those shots.** The app
-  is shown once and whole under the drawing, and every close-up after it
-  (`Poster.astro`, from `data/poster.ts`) is a crop; `app-hero.png` carries
-  two of them for nothing. Each close-up is a statement
-  beside its crop, with a red line from the statement to a box around the thing
-  it names; the line and the box are geometry `Motion.astro` measures, because
-  both halves drift as the page scrolls, so without script the page is the
-  statements and the crops and no ink. A new statement is an entry in
-  `data/poster.ts`, not markup. **A crop wider than about 8:1 is a band on a
-  phone**, 40px tall and legible only as texture, so spend those on strips that
-  read as one line — a call row, a tile strip — rather than on anything with
-  rows to read.
+- **The home page is a ladder, and every rung is a section** (`Section.astro`,
+  one heading and one line under it). The order is what a visitor needs and
+  not what the app is proud of: the hero, the flow through the window, what an
+  agent does inside it, what a call leaves behind, using it by hand, the way it
+  differs from a client built on saved collections, the protocols and the
+  agents, the rest of the window, the source, and the way in again. The hero
+  asks for the demo and offers the download second, because nothing has to be
+  installed to see Kaja work; the header's one button is the demo for the same
+  reason.
+- **The flow is explained once, as three steps** (`Flow.astro`, from `steps` in
+  `data/home.ts`): connect, run, inspect. Each step is the copy and the piece
+  of the window it happens in, stacked down the page rather than set in a row,
+  so the copy sits above its picture on a phone and the order a visitor reads
+  is the order the steps happen in.
+- **The agent section is one task end to end** (`AgentTask.astro`): a sentence
+  somebody typed, the script the agent wrote, and the calls landing in the
+  console. Three beats down one rail, because the claim is the order.
+- **The statements set against a crop are `Poster.astro`, and they come in
+  groups** — `manual`, `record`, `agents` and `features` in `data/poster.ts`,
+  each brought by the section that makes its argument rather than run together
+  at the foot of the page. `app-hero.png` is shown whole under the hero and
+  carries several of the crops for nothing. Each statement has a red line to a
+  box around the thing it names; the line and the box are geometry
+  `Motion.astro` measures, because both halves drift as the page scrolls, so
+  without script the page is the statements and the crops and no ink. A new
+  statement is an entry in one of those groups, not markup.
+- **A crop is read at about two thirds of the width it was taken at**, so a
+  region wider than about half the shot is a picture of text nobody can read.
+  Keep the flow's and the agent section's crops under that, and remember that
+  **a crop wider than about 8:1 is a band on a phone**, 40px tall and legible
+  only as texture — spend those on strips that read as one line, a call row or
+  a tile strip, rather than on anything with rows to read.
 - **The docs are one page, not one per platform** (`src/pages/docs.astro`),
   and they are the core flow and nothing else: install, connect an app, run a
   script, keep a secret, run a script from outside, point an agent at it.

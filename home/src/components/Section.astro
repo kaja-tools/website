@@ -1,0 +1,19 @@
+---
+/* A section of the home page: a heading, an optional line under it, and
+   whatever the section is made of. Every section below the hero is set this
+   way, so the page reads as one ladder — hero, then a heading a size down,
+   then the statements the section brings. */
+interface Props {
+  title: string;
+  lead?: string;
+  class?: string;
+}
+
+const { title, lead, class: className } = Astro.props;
+---
+
+<section class:list={["mx-auto w-full max-w-page px-6 pt-28 md:px-8 md:pt-40", className]}>
+  <h2 class="max-w-headline font-display text-section font-bold tracking-display text-balance">{title}</h2>
+  {lead && <p class="mt-4 max-w-tagline text-intro/[1.6] text-pretty text-muted-foreground">{lead}</p>}
+  <slot />
+</section>

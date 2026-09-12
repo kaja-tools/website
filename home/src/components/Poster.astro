@@ -1,7 +1,8 @@
 ---
-/* The page below the hero: twelve statements, each next to the piece of the app
-   it is about, with a red line drawn from the statement to a box around the
-   thing itself.
+/* A run of statements, each next to the piece of the app it is about, with a
+   red line drawn from the statement to a box around the thing itself. The
+   items are passed in, because each section of the home page makes its own
+   argument and brings the statements that belong to it.
 
    A crop is a frame with the item's screenshot as its background, scaled and
    positioned by `cropStyle` so the region is the part on show — arithmetic
@@ -13,13 +14,17 @@
    halves land, so it is measured rather than written down; without script the
    svg stays empty, which is what it should be — the crop and its statement
    already say the thing.  */
-import { items } from "../data/poster";
+import type { Item } from "../data/poster";
 import { cropStyle } from "../data/shots";
 
-const frame = "mx-auto w-full max-w-page px-6 md:px-8";
+interface Props {
+  items: Item[];
+}
+
+const { items } = Astro.props;
 ---
 
-<section class:list={[frame, "flex flex-col gap-24 pt-28 pb-24 md:gap-45 md:pt-50 md:pb-40"]}>
+<div class="flex flex-col gap-24 pt-16 md:gap-40 md:pt-24">
   {
     items.map((item) => {
       const { crop, highlight, shot } = item;
@@ -60,7 +65,7 @@ const frame = "mx-auto w-full max-w-page px-6 md:px-8";
       );
     })
   }
-</section>
+</div>
 
 <style>
   /* The line draws itself and the box lands after it, which is why the two

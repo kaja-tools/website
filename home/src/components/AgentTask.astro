@@ -1,0 +1,44 @@
+---
+/* One task, end to end: somebody types a sentence, the agent writes a typed
+   script, the script runs, and the calls land in the same console a call you
+   sent yourself lands in. Three beats down one rail, because the claim is the
+   order — the agent does the work, and none of it happens where you cannot
+   see it.
+
+   The script is `data/snippets.ts` like every other block on the site, and
+   the last beat is a strip of the call log rather than the whole console,
+   because what it has to show is the row. */
+import { agentCalls } from "../data/home";
+import { cropStyle, shots } from "../data/shots";
+import Snippet from "./Snippet.astro";
+import * as snippets from "../data/snippets";
+
+const label = "font-mono text-micro tracking-[0.16em] text-muted-foreground uppercase";
+const beat = "relative pb-10 pl-6 last:pb-0 md:pl-8";
+const dot = "absolute top-1.5 left-0 size-1.5 -translate-x-1/2 rounded-full bg-muted-foreground";
+---
+
+<ol class="mt-12 max-w-docs-main border-l border-wire md:mt-14">
+  <li class={beat}>
+    <span class={dot}></span>
+    <p class={label}>You ask</p>
+    <blockquote class="mt-3 rounded-frame border border-border bg-card px-5 py-4 text-intro/[1.6] text-pretty md:text-lede">
+      “Check every endpoint in this service and show me anything slower than 500 ms.”
+    </blockquote>
+  </li>
+
+  <li class={beat}>
+    <span class={dot}></span>
+    <p class={label}>The agent writes a typed script</p>
+    <div class="mt-3">
+      <Snippet file="slow-endpoints.ts" kind="script" lang="ts" code={snippets.agentScript} />
+    </div>
+  </li>
+
+  <li class={beat}>
+    <span class={dot}></span>
+    <p class={label}>It runs, and every call lands in Kaja</p>
+    <div class="mt-3 rounded-frame border border-border bg-card bg-no-repeat shadow-frame" style={cropStyle(shots.run, agentCalls)}></div>
+    <p class="mt-3 text-prose/[1.7] text-pretty text-muted-foreground">The run, the calls it made and what came back, in the console your own runs land in.</p>
+  </li>
+</ol>

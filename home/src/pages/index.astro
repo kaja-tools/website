@@ -1,25 +1,43 @@
 ---
+/* The home page, in the order a visitor needs it: what Kaja is, the one flow
+   through it, what an agent does inside it and what it leaves behind, then
+   the window's own features, and the way in again at the end.
+
+   The statements set against a crop of the app are `Poster`, and they come in
+   groups — each section brings the ones that make its argument rather than
+   the page ending in one long run of them. */
 import Layout from "../layouts/Layout.astro";
+import AgentTask from "../components/AgentTask.astro";
 import Button from "../components/Button.astro";
 import Canvas from "../components/Canvas.astro";
+import Flow from "../components/Flow.astro";
 import Icon from "../components/Icon.astro";
 import Motion from "../components/Motion.astro";
 import Poster from "../components/Poster.astro";
+import Section from "../components/Section.astro";
+import { modes, promises, protocols } from "../data/home";
+import * as poster from "../data/poster";
 
 const frame = "mx-auto w-full max-w-page px-6 md:px-8";
 
 const appStore = "https://apps.apple.com/us/app/kaja-for-grpc-and-twirp/id6761604205?mt=12";
-const tagline = "An API client like Postman or Bruno, except your agent writes the payloads. Kaja draws the flow, and you can inspect every call.";
+const demo = "https://demo.kaja.tools/";
+
+const tagline =
+  "Connect gRPC, OpenAPI, or MCP. Explore APIs yourself, or let an agent write and run typed scripts. Every request stays visible and inspectable.";
+
+const rule = "border-t border-border pt-4";
+const subhead = "font-display text-pane font-semibold tracking-display";
 ---
 
-<Layout title="Kaja - A canvas for your APIs" description={tagline}>
+<Layout title="Kaja - The API client for you and your agents" description={tagline}>
   <section class="pt-14 md:pt-16">
     <div class:list={[frame, "text-center"]}>
       <h1
         class="mx-auto mb-5 max-w-headline animate-rise font-display text-4xl/[1.05] font-bold tracking-hero text-balance opacity-0 md:text-hero"
         style={{ animationDelay: "0.12s" }}
       >
-        A canvas for your APIs
+        The API client built for you and your agents.
       </h1>
       <p
         class="mx-auto mb-8 max-w-tagline animate-rise text-intro/[1.55] text-pretty text-muted-foreground opacity-0 md:text-lede"
@@ -27,20 +45,27 @@ const tagline = "An API client like Postman or Bruno, except your agent writes t
       >
         {tagline}
       </p>
+      {
+        /* The demo is the way in: it is the primary button and the app store
+          is the alternative, because nothing has to be installed to see the
+          thing work. */
+      }
       <div class="flex animate-rise flex-wrap items-center justify-center gap-3 opacity-0" style={{ animationDelay: "0.28s" }}>
-        <Button href={appStore} size="lg" target="_blank" rel="noopener">
+        <Button href={demo} size="lg">Try Kaja &rarr;</Button>
+        <Button href={appStore} variant="outline" size="lg" target="_blank" rel="noopener">
           <Icon name="apple" />
-          Mac App Store
+          Download for Mac
         </Button>
-        <Button href="https://demo.kaja.tools/" variant="outline" size="lg">Try live demo</Button>
       </div>
+      <p class="mt-4 animate-rise text-fine text-muted-foreground opacity-0" style={{ animationDelay: "0.34s" }}>No setup &mdash; opens a demo API.</p>
     </div>
 
     <div class="mt-10 md:mt-12"><Canvas /></div>
 
     {
       /* The app itself, once and whole, under the drawing of what it does.
-         Two of the close-ups below are regions of this same picture. */
+         Every close-up further down the page is a region of one of the shots,
+         and several of them are regions of this one. */
     }
     <div class:list={[frame, "mt-16"]}>
       <div class="overflow-hidden rounded-xl border border-border bg-card shadow-hero">
@@ -49,7 +74,97 @@ const tagline = "An API client like Postman or Bruno, except your agent writes t
     </div>
   </section>
 
-  <Poster />
+  <Section title="Connect. Run. Inspect." lead="One window: your APIs on the left, the script in the middle, and every call it made underneath.">
+    <Flow />
+  </Section>
+
+  <Section
+    title="Agents can do the work without becoming a black box."
+    lead="Let an agent write and run TypeScript against your APIs. Every request it makes appears alongside your own."
+  >
+    <AgentTask />
+  </Section>
+
+  <Section
+    title="Every call is on the record."
+    lead="Whether a request came from you, a script, or an agent, Kaja keeps the request, response, headers, status, duration, and size available for inspection."
+  >
+    <div class="mt-10 grid gap-6 sm:grid-cols-3 md:mt-12">
+      {promises.map((line) => <p class:list={[rule, subhead]}>{line}</p>)}
+    </div>
+    <Poster items={poster.record} />
+  </Section>
+
+  <Section
+    title="Use it yourself, too."
+    lead="Browse methods, fill in parameters with autocomplete, send requests, inspect responses, and explore what came back without involving an agent. An agent's runs and your own share one window and one history."
+  >
+    <Poster items={poster.manual} />
+  </Section>
+
+  <Section
+    title="Built around scripts, not collections."
+    lead="Need one request? Open a method and send it. Need a multi-step job? Write a typed script, or have your agent write it. Both run against the same APIs and produce the same inspectable call history."
+  >
+    <div class="mt-10 grid gap-8 md:mt-12 md:grid-cols-2 md:gap-12">
+      {
+        modes.map((mode) => (
+          <div class={rule}>
+            <h3 class={subhead}>{mode.name}</h3>
+            <p class="mt-2 text-prose/[1.7] text-pretty text-muted-foreground">{mode.says}</p>
+          </div>
+        ))
+      }
+    </div>
+  </Section>
+
+  <Section title="Four protocols, ten agents." lead="Kaja speaks gRPC, OpenAPI, MCP and Twirp to your apps, and MCP to whichever agent you use.">
+    <div class="mt-10 grid gap-x-8 gap-y-6 sm:grid-cols-2 md:mt-12 lg:grid-cols-4">
+      {
+        protocols.map((protocol) => (
+          <div class={rule}>
+            <p class="flex items-center gap-2 font-display text-lg font-semibold tracking-display">
+              <Icon name={protocol.mark} />
+              {protocol.name}
+            </p>
+            <p class="mt-1.5 text-prose/[1.6] text-pretty text-muted-foreground">{protocol.from}</p>
+          </div>
+        ))
+      }
+    </div>
+    <Poster items={poster.agents} />
+  </Section>
+
+  <Section title="The rest of the window." lead="A run is a script, so it can do more than send one request and print it.">
+    <Poster items={poster.features} />
+  </Section>
+
+  <Section
+    title="Open source, and yours to run."
+    lead="Kaja is developed in the open on GitHub. Install the Mac app, or run the container beside your services and keep one configuration in git."
+  >
+    <div class="mt-8 flex flex-wrap gap-3">
+      <Button href="https://github.com/wham/kaja" variant="outline" target="_blank" rel="noopener">
+        <Icon name="github" />
+        GitHub
+      </Button>
+      <Button href="/docs" variant="outline">Read the docs</Button>
+    </div>
+  </Section>
+
+  <section class:list={[frame, "pt-28 pb-24 text-center md:pt-40 md:pb-32"]}>
+    <h2 class="mx-auto max-w-headline font-display text-3xl/[1.1] font-bold tracking-display text-balance md:text-cta">Try it on a live API.</h2>
+    <p class="mx-auto mt-4 max-w-tagline text-intro/[1.6] text-pretty text-muted-foreground">
+      The demo opens in the browser with three apps connected, one for each protocol. Nothing to install.
+    </p>
+    <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+      <Button href={demo} size="lg">Try Kaja &rarr;</Button>
+      <Button href={appStore} variant="outline" size="lg" target="_blank" rel="noopener">
+        <Icon name="apple" />
+        Download for Mac
+      </Button>
+    </div>
+  </section>
 
   <Motion />
 </Layout>
