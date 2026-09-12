@@ -1,24 +1,25 @@
 ---
-/* The docs: three columns — the sections, the copy, and a close-up of the
-   part being read. The page is the core flow and nothing else: install,
+/* The docs: two columns — the sections, and the page. The screenshots are in
+   the copy, under the paragraph each one is about. The page is the core flow
+   and nothing else: install,
    connect an app, run a script, keep a secret, run a script from outside,
    point an agent at it. Each section is written twice where the two builds
    differ — the desktop does everything in the UI and never shows you a file,
    the container is set up from the files you mount — and once where they
    don't, so there is one page and not two. The section list lives in
-   `data/docs.ts`, which the nav and the rail read; an `id` here has to match
-   one there. */
+   `data/docs.ts`, which the nav reads; an `id` here has to match one there. */
 import Layout from "../layouts/Layout.astro";
 import Button from "../components/Button.astro";
 import DocsAside from "../components/DocsAside.astro";
 import DocsMotion from "../components/DocsMotion.astro";
-import DocsRail from "../components/DocsRail.astro";
+import Figure from "../components/Figure.astro";
 import Icon from "../components/Icon.astro";
 import Note from "../components/Note.astro";
 import Platform from "../components/Platform.astro";
 import PlatformToggle from "../components/PlatformToggle.astro";
 import Snippet from "../components/Snippet.astro";
 import * as snippets from "../data/snippets";
+import { shots } from "../data/shots";
 
 const appStore = "https://apps.apple.com/us/app/kaja-for-grpc-and-twirp/id6761604205?mt=12";
 
@@ -78,6 +79,43 @@ const tools = [
   { name: "run_script", says: "Runs it. Every call's request and response come back in the report." },
 ];
 
+/* The screenshots the page shows, each written into the section it belongs to
+   and, where the two builds differ, into one platform's block. A crop is read
+   at the width of the column now, so it can hold a whole dialog; one taller
+   than it is wide is capped by `--size-figure` and stands beside the copy
+   instead of filling it. A section with nothing worth showing has none. */
+const figures = {
+  app: {
+    shot: shots.run,
+    caption: "Kaja, with a script open and the run it made below it.",
+  },
+  newApp: {
+    shot: shots.newApp,
+    crop: { x: 0.34, y: 0.325, w: 0.32, h: 0.35 },
+    caption: "The + beside Apps. Each type asks for one thing.",
+  },
+  tree: {
+    shot: shots.apps,
+    crop: { x: 0.0, y: 0.255, w: 0.168, h: 0.405 },
+    caption: "What the configuration file produces: every app, service and method.",
+  },
+  run: {
+    shot: shots.run,
+    crop: { x: 0.167, y: 0.04, w: 0.5, h: 0.352 },
+    caption: "The drafted call, and the run it made: status, duration, and the response as it came back.",
+  },
+  variables: {
+    shot: shots.variables,
+    crop: { x: 0.172, y: 0.05, w: 0.688, h: 0.27 },
+    caption: "Each row says where its value lives.",
+  },
+  agent: {
+    shot: shots.agent,
+    crop: { x: 0.178, y: 0.185, w: 0.6, h: 0.31 },
+    caption: "Pick the agent and copy what it takes.",
+  },
+};
+
 const description =
   "Set up Kaja on macOS or in Docker: connect gRPC, OpenAPI, Twirp and MCP apps, run scripts against them, keep secrets out of the file, and let your agent drive it over MCP.";
 ---
@@ -95,12 +133,10 @@ const description =
       } catch {}
     </script>
 
-    <div
-      class="mx-auto grid w-full max-w-doc grid-cols-1 items-start gap-10 px-6 md:px-8 lg:max-w-page lg:grid-cols-[12.25rem_minmax(0,1fr)] xl:max-w-docs xl:grid-cols-[12.25rem_minmax(32.5rem,1fr)_minmax(0,25rem)] xl:gap-14"
-    >
+    <div class="mx-auto grid w-full max-w-doc grid-cols-1 items-start gap-10 px-6 md:px-8 lg:max-w-docs lg:grid-cols-[12.25rem_minmax(0,1fr)] lg:gap-16">
       <DocsAside />
 
-      <div class="min-w-0 py-10 pb-40">
+      <div class="min-w-0 max-w-docs-main py-10 pb-40">
         <p class="animate-rise text-xs font-semibold tracking-[0.09em] text-muted-foreground uppercase opacity-0">Documentation</p>
         <h1 class="mt-2.5 animate-rise font-display text-title font-bold tracking-display opacity-0" style={{ animationDelay: "0.06s" }}>Set up Kaja</h1>
         <p class="mt-3.5 max-w-copy animate-rise text-intro/[1.6] text-pretty text-muted-foreground opacity-0" style={{ animationDelay: "0.12s" }}>
@@ -158,6 +194,8 @@ const description =
               </Note>
             </div>
           </Platform>
+
+          <Figure {...figures.app} />
         </section>
 
         <section id="apps" data-docs-section class={section}>
@@ -185,6 +223,8 @@ const description =
               Kaja reads the server before it saves anything, so a wrong address or a missing token is reported in the form. The credential and any header every
               call should carry are on the same form. On save, every service and method the app exposes appears in the tree.
             </p>
+
+            <Figure {...figures.newApp} />
           </Platform>
 
           <Platform only="docker">
@@ -223,6 +263,8 @@ const description =
             <p class:list={["mt-4", muted]}>
               The name is what a script imports: <code class={code}>import {"{ Teams }"} from "teams"</code>.
             </p>
+
+            <Figure {...figures.tree} />
           </Platform>
         </section>
 
@@ -262,6 +304,8 @@ const description =
               this browser only: copy it into the folder to keep it.
             </p>
           </Platform>
+
+          <Figure {...figures.run} />
         </section>
 
         <section id="variables" data-docs-section class={section}>
@@ -280,6 +324,8 @@ const description =
                 class="font-medium text-foreground">Environment</strong
               >, read from a variable of the machine. The table saves as you type, and the last column says which apps and files use each one.
             </p>
+
+            <Figure {...figures.variables} />
           </Platform>
 
           <Platform only="docker">
@@ -362,6 +408,8 @@ const description =
               The server listens on <code class={code}>127.0.0.1:41521</code>, so only this Mac can reach it, and the token survives turning the server off.
               Claude Code, Claude Desktop, Cursor, VS Code, Codex CLI, Windsurf, Zed, Cline, Goose and Gemini CLI are listed.
             </p>
+
+            <Figure {...figures.agent} />
           </Platform>
 
           <Platform only="docker">
@@ -387,8 +435,6 @@ const description =
           </p>
         </section>
       </div>
-
-      <DocsRail />
     </div>
   </div>
 

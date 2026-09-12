@@ -1,0 +1,27 @@
+---
+/* A screenshot in the run of the docs: a crop of one of the shots, framed,
+   with a line under it saying what it shows. It sits in the copy under the
+   paragraph it belongs to rather than in a column of its own, so a section
+   with nothing worth showing simply has none.
+
+   A crop is read at the width of the column here, so it can hold a whole
+   dialog. A crop taller than it is wide is capped by `--size-figure` instead,
+   which is why the width is arithmetic on the aspect `cropStyle` worked out
+   rather than a second number to keep in step. */
+import { cropStyle, type Crop, type Shot } from "../data/shots";
+
+interface Props {
+  shot: Shot;
+  /* The whole shot when absent. */
+  crop?: Crop;
+  caption: string;
+}
+
+const { shot, crop, caption } = Astro.props;
+const region = cropStyle(shot, crop);
+---
+
+<figure class="mt-8" style={`max-width: calc(var(--size-figure) * ${region.aspectRatio})`}>
+  <div class="overflow-hidden rounded-frame border border-border bg-card bg-no-repeat shadow-frame" style={region}></div>
+  <figcaption class="mt-2.5 text-fine/[1.5] text-muted-foreground">{caption}</figcaption>
+</figure>

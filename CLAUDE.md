@@ -209,14 +209,16 @@ home/
   blocks and the toggle picks between them clientside — **Desktop first, and
   the default**, with Docker as the variant. A reader with no JavaScript gets
   both blocks, labelled, by the `noscript` rule at the foot of the page.
-- `data/docs.ts` is the section list — the nav, the rail and the scroll spy
-  all read it, so a section is added there and its body written in the page
-  under the same `id`. A section's figures are crops of the shots, each for
-  one platform or both, and the rail shows the one for the section being read
-  on the platform picked; a section with none for it leaves the rail empty
-  rather than borrowing a picture of something else. Crop tight: the rail is
-  a seventh of the shot's width, so a region wider than about a thousand of
-  its pixels is a picture nobody can read the words in.
+- `data/docs.ts` is the section list — the nav and the scroll spy read it, so
+  a section is added there and its body written in the page under the same
+  `id`. **A screenshot sits in the copy, under the thing it shows**
+  (`Figure.astro`, from the `figures` table in `docs.astro`), and inside one
+  platform's block where the two builds differ; a section with nothing worth
+  showing has none rather than borrowing a picture of something else. A crop
+  is read at the width of the column, which is about a quarter of the shot's,
+  so a region wider than about two thirds of the shot is a picture nobody can
+  read the words in; one taller than it is wide is capped by `--size-figure`
+  and stands beside the copy instead of filling it.
 - Snippets are plain strings in `data/snippets.ts`, highlighted at build time
   by Shiki in `styles/codeTheme.ts` — which maps scopes onto the `code-*`
   custom properties rather than repeating them, so the palette stays in

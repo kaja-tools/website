@@ -116,11 +116,18 @@
   --container-headline: 820px;
   --container-tagline: 660px;
 
-  /* The docs are three columns — nav, copy, screenshots — so they run wider
-     than the rest of the site, and a paragraph inside them runs narrower than
-     a page of body copy, because the rail is reading alongside it. */
-  --container-docs: 1400px;
+  /* The docs are two columns — the nav and the page — so the frame runs wider
+     than the rest of the site, `docs-main` is the column the page is written
+     in, and a paragraph inside it runs narrower still, because a screenshot
+     is set at the column's width and a line of prose is not. */
+  --container-docs: 1080px;
+  --container-docs-main: 760px;
   --container-copy: 620px;
+
+  /* The tallest a screenshot in the docs gets. A crop taller than it is wide
+     is capped by this rather than by the column, so a strip of the sidebar
+     stands beside the copy at the size it was cropped at. */
+  --size-figure: 30rem;
 
   /* The window frame around a screenshot sits between Tailwind's `lg` and
      `xl` radii, and `frame` is the shadow under one in the page. */
