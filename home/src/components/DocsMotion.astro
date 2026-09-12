@@ -4,18 +4,16 @@
 
      data-docs-section   a section, read to work out which one is being read
      data-docs-link      its link in the sidebar, lit while it is
-     data-docs-shot      a figure in the rail, faded up while it is (and for the platform picked)
      data-platform-pick  the Desktop/Docker toggle
 
-   The rail's cross-fade is the only motion here, and the reduced-motion rule
-   in global.css already collapses it to a cut. */
+   Nothing here moves: the sidebar's link lights on the section being read,
+   and the screenshots are in the copy where they were written. */
 ---
 
 <script>
   const wrap = document.querySelector<HTMLElement>("[data-docs-platform]");
   const sections = [...document.querySelectorAll<HTMLElement>("[data-docs-section]")];
   const links = [...document.querySelectorAll<HTMLElement>("[data-docs-link]")];
-  const shots = [...document.querySelectorAll<HTMLElement>("[data-docs-shot]")];
   const picks = [...document.querySelectorAll<HTMLButtonElement>("[data-platform-pick]")];
 
   const STORE = "kaja-docs-platform";
@@ -30,8 +28,7 @@
       // A browser that refuses storage still gets the toggle, just not the memory of it.
     }
     // The blocks that appeared or went are above the fold as often as below
-    // it, so where you are in the page has just changed — and the rail's
-    // figure may belong to the other platform.
+    // it, so where you are in the page has just changed.
     live = -1;
     spy();
   }
@@ -57,17 +54,6 @@
     links.forEach((link, i) => {
       if (i === index) link.setAttribute("aria-current", "page");
       else link.removeAttribute("aria-current");
-    });
-
-    // A figure names the section it belongs to and the platform it is for,
-    // because a section may put nothing in the rail for one or both — so the
-    // rail simply empties on those.
-    const platform = wrap?.dataset.docsPlatform;
-    shots.forEach((shot) => {
-      const owner = Number(shot.dataset.docsShot);
-      const shown = owner === index && (!shot.dataset.docsShotPlatform || shot.dataset.docsShotPlatform === platform);
-      shot.style.opacity = shown ? "1" : "0";
-      shot.style.transform = shown ? "translateY(0)" : `translateY(${owner < index ? "-16px" : "16px"})`;
     });
   }
 

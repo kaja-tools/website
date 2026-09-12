@@ -8,7 +8,7 @@
    a background scaled to `100 / w` of the frame's width, which is what makes
    the region fill the frame — arithmetic rather than an image file of its own,
    so a screen contributes as many close-ups as it has things to say. The home
-   page's poster and the docs' rail both draw them this way. */
+   page's poster and the docs' figures both draw them this way. */
 export interface Shot {
   src: string;
   width: number;
