@@ -105,3 +105,21 @@ for (const [name, send] of Object.entries(calls)) {
 
 kaja.table(["method", "duration"], slow);
 `;
+
+/* The one kaja.table form the script above doesn't already show: rows handed
+   over as a source rather than pushed, which is what gets the table its pager
+   and its search box. Written against the demo's Theatre app, cursor and all,
+   so it is a whole loop rather than a sketch of one. */
+export const table = `
+import { kaja } from "kaja";
+import { Theatre } from "theatre";
+
+const shows = kaja.table(["show", "theater", "starts"], async function* (search) {
+  for (let cursor = ""; ; ) {
+    const page = await Theatre.ListShows({ city: search, cursor });
+    shows.total(page.total);
+    yield* page.shows.map((show) => [show.id, show.theaterId, show.startsAt]);
+    if (!(cursor = page.nextCursor)) return;
+  }
+});
+`;

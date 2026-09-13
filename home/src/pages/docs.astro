@@ -19,6 +19,7 @@ import Platform from "../components/Platform.astro";
 import PlatformToggle from "../components/PlatformToggle.astro";
 import Snippet from "../components/Snippet.astro";
 import * as snippets from "../data/snippets";
+import { declaration, verbs } from "../data/runtime";
 import { shots } from "../data/shots";
 
 const appStore = "https://apps.apple.com/us/app/kaja-for-grpc-and-twirp/id6761604205?mt=12";
@@ -67,13 +68,6 @@ const forms = [
   { name: "openapi", label: "OpenAPI", asks: "Spec URL, file, or pasted text." },
   { name: "twirp", label: "Twirp", asks: "Server address and a folder of .proto files." },
 ] as const;
-
-/* What a script calls on `kaja`. */
-const helpers = [
-  { name: "kaja.table, kaja.text, kaja.code", says: "Draw on the canvas." },
-  { name: "kaja.askStr", says: "Pause the run and ask for a value." },
-  { name: "kaja.approve", says: "Hold a call until you press Approve. Use it for writes." },
-];
 
 /* The desktop's variable sources, one row each. */
 const desktopSources = [
@@ -292,16 +286,25 @@ const description =
               >Calls</strong
             > is every request and response, <strong class={term}>Canvas</strong> is what the script drew, <strong class={term}>Stats</strong> is timing percentiles.
           </p>
-          <dl class="mt-5 flex max-w-copy flex-col gap-3">
+          <div class="mt-5 flex max-w-copy flex-col gap-5">
             {
-              helpers.map((helper) => (
-                <div class="flex flex-col gap-1 sm:flex-row sm:gap-3.5">
-                  <dt class="shrink-0 py-0.5 font-mono text-xs text-code-key sm:w-56" set:text={helper.name} />
-                  <dd class="text-prose/[1.6] text-muted-foreground">{helper.says}</dd>
+              verbs.map((verb) => (
+                <div class="flex flex-col gap-3">
+                  <div class="flex flex-col gap-1 sm:flex-row sm:gap-3.5">
+                    <span class="shrink-0 py-0.5 font-mono text-xs text-code-key sm:w-56">{verb.name}</span>
+                    <span class="text-prose/[1.6] text-muted-foreground">{verb.says}</span>
+                  </div>
+                  {verb.code && <Snippet file="scripts/whats-on.ts" kind="script" lang="ts" code={verb.code} />}
                 </div>
               ))
             }
-          </dl>
+          </div>
+          <p class:list={["mt-5", muted]}>
+            Each of these is documented where it is declared, which is also what the editor completes against and what an agent reads. The whole of it is in the{
+              " "
+            }
+            <a href={declaration} class={link} target="_blank" rel="noopener">kaja module declaration</a>.
+          </p>
           <p class:list={["mt-5", muted]}>
             <span class={key}>⌘P</span> finds a method, file or draft by name.
           </p>
