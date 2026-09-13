@@ -77,6 +77,14 @@ the title bar after the real one (`scripts/movies.ts`) so a reader can find it.
 
 ## The figure
 
+**A verb that draws on the canvas carries a figure**, because the sentence
+beside it says what the verb is for and only the picture says what it leaves on
+screen. That is `kaja.table`, `kaja.text`/`kaja.code`, the three asks,
+`kaja.approve`, `kaja.run` and `kaja.perfTest`; the rest of the list draws
+nothing and has nothing to show. When no shot photographs the verb, the figure
+is not the thing to improvise — **the beat goes into `scripts/demo` in
+wham/kaja first**, and the row gets its figure when the set is next taken.
+
 Every picture on the site is a **crop of one of the eight shots** in
 `home/src/data/shots.ts` — four fractions, drawn as a background. Nothing under
 `public/assets/` is a cut-out to re-cut, and you do not take new screenshots of

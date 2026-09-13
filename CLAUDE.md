@@ -265,8 +265,12 @@ home/
   `describe_type "kaja"`, which the compiler checks against the runtime. Never
   retell a verb's API here; that copy goes stale. A snippet is a real script
   out of kaja's `workspace/scripts/`, which is what lets the figure under it be
-  that snippet's own output. `.claude/skills/docs-figure` is the whole flow,
-  crop arithmetic included.
+  that snippet's own output, and **a verb that draws on the canvas carries a
+  figure** — a sentence says what a verb is for, and only the picture says what
+  it leaves on screen. A verb no shot photographs is a beat missing from
+  `scripts/demo` in [wham/kaja](https://github.com/wham/kaja) rather than a
+  crop to improvise here. `.claude/skills/docs-figure` is the whole flow, crop
+  arithmetic included.
 - Snippets are plain strings in `data/snippets.ts`, highlighted at build time
   by Shiki in `styles/codeTheme.ts` — which maps scopes onto the `code-*`
   custom properties rather than repeating them, so the palette stays in

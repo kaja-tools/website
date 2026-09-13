@@ -49,5 +49,15 @@ export const verbs: Verb[] = [
   },
   { name: "kaja.approve", says: "Hold a call until you press Approve. Use it for writes." },
   { name: "kaja.run", says: "A cell that runs another script when it is clicked." },
-  { name: "kaja.perfTest", says: "Run a body on a schedule, and open the run on its Stats page." },
+  {
+    name: "kaja.perfTest",
+    says: "Run a body on a schedule, and open the run on its Stats page.",
+    code: snippets.perfTest,
+    file: "scripts/how-fast.ts",
+    figure: {
+      shot: shots.stats,
+      crop: { x: 0.005, y: 0.056, w: 0.495, h: 0.264 },
+      caption: "Where that run opens. The bands behind the latency are the schedule it was given.",
+    },
+  },
 ];

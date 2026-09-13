@@ -141,3 +141,18 @@ const city = await kaja.askSelect(
 const mood = await kaja.askStr("And what do you feel like?");
 const party = await kaja.askInt("How many of you?");
 `;
+
+/* `workspace/scripts/how-fast.ts` from wham/kaja, trimmed to the schedule and
+   the one line it draws — it is the script `scripts/demo` photographs for
+   `poster-stats.png`, so the figure beside it is this snippet's own run. */
+export const perfTest = `
+import { kaja } from "kaja";
+import { Theatre } from "theatre";
+
+const report = await kaja.perfTest(
+  () => Theatre.ListMovies({ limit: 25 }),
+  { duration: "12s", concurrency: 6, warmup: "2s", rampUp: "4s" },
+);
+
+kaja.text(\`p99 \${Math.round(report.latency.p99 ?? 0)} ms\`);
+`;
