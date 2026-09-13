@@ -105,3 +105,21 @@ for (const [name, send] of Object.entries(calls)) {
 
 kaja.table(["method", "duration"], slow);
 `;
+
+/* `workspace/scripts/movies.ts` from wham/kaja, trimmed to the two columns
+   the figure beside it can show legibly. It is the script `scripts/demo`
+   photographs for `poster-canvas.png`, so the figure in the docs is this
+   snippet's own output — keep the two in step, or crop a different shot. */
+export const table = `
+import { kaja } from "kaja";
+import { Theatre } from "theatre";
+
+const catalog = kaja.table(["id", "title"], async function* () {
+  for (let cursor = ""; ; ) {
+    const page = await Theatre.ListMovies({ cursor });
+    catalog.total(page.total);
+    yield* page.movies.map((movie) => [movie.id, movie.title]);
+    if (!(cursor = page.nextCursor)) return;
+  }
+});
+`;

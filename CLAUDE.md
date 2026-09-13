@@ -257,6 +257,16 @@ home/
   so a region wider than about two thirds of the shot is a picture nobody can
   read the words in; one taller than it is wide is capped by `--size-figure`
   and stands beside the copy instead of filling it.
+- **The `kaja.*` verbs in the Scripts section are `data/runtime.ts`, and they
+  are an index, not a reference.** One sentence each, a snippet only where the
+  sentence cannot say the shape, and one link at the foot of the list to
+  `ui/src/kajaModule.ts` in [wham/kaja](https://github.com/wham/kaja) — the
+  declaration the editor completes against and an agent reads through
+  `describe_type "kaja"`, which the compiler checks against the runtime. Never
+  retell a verb's API here; that copy goes stale. A snippet is a real script
+  out of kaja's `workspace/scripts/`, which is what lets the figure under it be
+  that snippet's own output. `.claude/skills/docs-figure` is the whole flow,
+  crop arithmetic included.
 - Snippets are plain strings in `data/snippets.ts`, highlighted at build time
   by Shiki in `styles/codeTheme.ts` — which maps scopes onto the `code-*`
   custom properties rather than repeating them, so the palette stays in
