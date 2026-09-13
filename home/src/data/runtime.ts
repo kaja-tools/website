@@ -11,7 +11,7 @@
    Add a verb as a row. Add a `code` only where the sentence cannot say the
    shape, and keep it to the form the page hasn't already shown. */
 import * as snippets from "./snippets";
-import { shots, type Crop, type Shot } from "./shots";
+import { shots, snaps, type Crop, type Shot } from "./shots";
 
 export const declaration = "https://github.com/wham/kaja/blob/main/ui/src/kajaModule.ts";
 
@@ -41,8 +41,34 @@ export const verbs: Verb[] = [
     },
   },
   { name: "kaja.text, kaja.code", says: "Draw a line, or a block of code." },
-  { name: "kaja.askStr", says: "Pause the run and ask for a value." },
-  { name: "kaja.approve", says: "Hold a call until you press Approve. Use it for writes." },
+  {
+    name: "kaja.askStr, askInt, askSelect",
+    says: "Pause the run and ask for a value: text, a whole number, or one of a list. The question is drawn on the canvas and the run waits there, and the answer arrives as the kind that was asked for, so picking from a list of records hands the record back.",
+    code: snippets.ask,
+    file: "scripts/a-night-out.ts",
+    figure: {
+      shot: snaps.ask,
+      caption: "That script, two answers in. An answered question keeps its answer and the run waits on the next one.",
+    },
+  },
+  {
+    name: "kaja.approve",
+    says: "Hold a call until you press Approve. Use it for writes.",
+    figure: {
+      shot: snaps.approve,
+      caption: "The request the call would send, drawn where the run stopped. Nothing leaves until Approve is pressed.",
+    },
+  },
   { name: "kaja.run", says: "A cell that runs another script when it is clicked." },
-  { name: "kaja.perfTest", says: "Run a body on a schedule, and open the run on its Stats page." },
+  {
+    name: "kaja.perfTest",
+    says: "Run a body on a schedule, and open the run on its Stats page.",
+    code: snippets.perfTest,
+    file: "scripts/how-fast.ts",
+    figure: {
+      shot: shots.stats,
+      crop: { x: 0.005, y: 0.056, w: 0.495, h: 0.264 },
+      caption: "Where that run opens. The bands behind the latency are the schedule it was given.",
+    },
+  },
 ];

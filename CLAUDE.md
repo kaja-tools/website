@@ -179,8 +179,9 @@ home/
   verbatim is the width of the app cards, because the site's body face is wider
   than the app's. Below `md` the drawing is too small to read, so the same five
   things are a plain stack of cards.
-- **The eight screenshots are `data/shots.ts`, and every picture on the site
-  is a crop of one.** The shots are the window at 2880x1800, zoomed to 125%, which is what
+- **The eight screenshots are `data/shots.ts`, and every picture of the whole
+  window is a crop of one** — the home page's, and the docs figures taken
+  before the docs took their own (`snaps`, below). The shots are the window at 2880x1800, zoomed to 125%, which is what
   `scripts/demo` photographs in [wham/kaja](https://github.com/wham/kaja); a
   fresh set replaces the files under the same names and every crop still
   lands. The zoom is what makes a crop legible at the size it is read, so a
@@ -265,8 +266,15 @@ home/
   `describe_type "kaja"`, which the compiler checks against the runtime. Never
   retell a verb's API here; that copy goes stale. A snippet is a real script
   out of kaja's `workspace/scripts/`, which is what lets the figure under it be
-  that snippet's own output. `.claude/skills/docs-figure` is the whole flow,
-  crop arithmetic included.
+  that snippet's own output, and **a verb that draws on the canvas carries a
+  figure** — a sentence says what a verb is for, and only the picture says what
+  it leaves on screen. **The docs take their own**: a **shot** is the whole
+  macOS window and belongs to the home page, while a **snap** (`snaps` in
+  `data/shots.ts`) is one part of the canvas photographed from kaja's web build
+  at the width this column reads it at, so it is drawn whole and its type is
+  the size it was on screen. `.claude/skills/docs-figure` is the whole flow —
+  running the build, driving the run, and the crop arithmetic the shots still
+  need.
 - Snippets are plain strings in `data/snippets.ts`, highlighted at build time
   by Shiki in `styles/codeTheme.ts` — which maps scopes onto the `code-*`
   custom properties rather than repeating them, so the palette stays in
