@@ -10,8 +10,8 @@ interface Props {
 
 const { title, description } = Astro.props;
 
-/* The docs' `?platform=` is a view of one page rather than a page of its own,
-   so every page points at itself without its query string. */
+/* Every page points at itself, without whatever query string it was reached
+   with. The two docs pages are two pages and each is its own canonical. */
 const canonical = new URL(Astro.url.pathname, Astro.site);
 
 /* The body clips horizontally rather than hiding: `overflow-x: hidden` here

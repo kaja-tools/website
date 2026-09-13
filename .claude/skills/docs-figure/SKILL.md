@@ -44,7 +44,7 @@ verb makes the common task far more expensive. Do the arithmetic before you cut.
 
 ## The row
 
-`home/src/data/runtime.ts` is the list; `home/src/pages/docs.astro` renders it in
+`home/src/data/runtime.ts` is the list; `home/src/pages/docs/[platform].astro` renders it in
 the Scripts section. A verb is a row:
 
 ```ts
@@ -206,7 +206,7 @@ cd "$SCRATCHPAD" && npm init -y >/dev/null && npm i playwright >/dev/null
 import { chromium } from "playwright";
 const browser = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
 const page = await browser.newPage({ viewport: { width: 1440, height: 1400 }, deviceScaleFactor: 2 });
-await page.goto("http://localhost:4399/docs/", { waitUntil: "networkidle" });
+await page.goto("http://localhost:4399/docs/desktop/", { waitUntil: "networkidle" });
 await page.evaluate(() => document.querySelector("#scripts").scrollIntoView());
 await page.waitForTimeout(1500);
 await page.locator("#scripts figure").first().screenshot({ path: process.argv[2] });

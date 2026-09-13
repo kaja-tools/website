@@ -26,6 +26,13 @@
 	@legacy path_regexp legacy ^/(.+)\.html$
 	redir @legacy /{re.legacy.1}/ 301
 
+	# The docs are two pages, one per build, and `/docs` is whichever of them
+	# the reader wants — Desktop unless they say. Astro emits a redirecting
+	# page there too, for the dev server; this answers it properly. Anchored so
+	# it is the bare path and never `/docs/desktop/`, which would be a loop.
+	@docsRoot path_regexp docsRoot ^/docs/?$
+	redir @docsRoot /docs/desktop/ 301
+
 	# `astro build` writes each page as <name>/index.html, which file_server
 	# serves for the extensionless URL. This is what replaces the old Go
 	# server's hand-rolled extension guessing.

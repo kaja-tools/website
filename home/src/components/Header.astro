@@ -18,7 +18,7 @@ const onPrivacy = Astro.url.pathname.startsWith("/privacy");
 <header class="sticky top-0 z-50 flex h-14 items-center justify-between border-b border-border bg-background/80 px-6 backdrop-blur-md md:px-8">
   <Logo />
   <nav class="flex items-center gap-4 sm:gap-5">
-    <a href="/docs" class:list={[link, onDocs && current]} aria-current={onDocs ? "page" : undefined}>Docs</a>
+    <a href="/docs/desktop/" class:list={[link, onDocs && current]} aria-current={onDocs ? "page" : undefined}>Docs</a>
     <a href="https://apps.apple.com/us/app/kaja-for-grpc-and-twirp/id6761604205?mt=12" class:list={[link, "hidden xs:block"]} target="_blank" rel="noopener">
       Download
     </a>

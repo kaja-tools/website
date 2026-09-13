@@ -16,6 +16,14 @@ export default defineConfig({
     format: "directory",
   },
 
+  // `/docs` is not a page of its own: the docs are written per build, and
+  // Desktop is the one a reader gets if they have not said. Caddy answers it
+  // with a 301 in the runtime image (see `Caddyfile`); this is what makes the
+  // dev server and the preview build agree with it.
+  redirects: {
+    "/docs": "/docs/desktop/",
+  },
+
   vite: {
     plugins: [tailwindcss()],
   },
