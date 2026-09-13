@@ -180,10 +180,11 @@ home/
   than the app's. Below `md` the drawing is too small to read, so the same five
   things are a plain stack of cards.
 - **The eight screenshots are `data/shots.ts`, and every picture on the site
-  is a crop of one.** The shots are the window at 2880x1800, which is what
+  is a crop of one.** The shots are the window at 2880x1800, zoomed to 125%, which is what
   `scripts/demo` photographs in [wham/kaja](https://github.com/wham/kaja); a
   fresh set replaces the files under the same names and every crop still
-  lands. A crop is four fractions drawn as a background by `cropStyle` rather
+  lands. The zoom is what makes a crop legible at the size it is read, so a
+  set taken at 100% is a set every crop is a quarter smaller in. A crop is four fractions drawn as a background by `cropStyle` rather
   than an image file of its own, so a screen contributes as many close-ups as
   it has things to say and nothing under `public/assets/` is a cut-out to
   re-cut.
