@@ -6,6 +6,11 @@
      data-docs-link      its link in the sidebar, lit while it is
      data-platform-pick  the Desktop/Docker toggle
 
+   The platform the page opens on is resolved by the boot script in
+   `pages/docs.astro` — the `platform` query parameter, then what was picked
+   last, then Desktop — so this reads it off the wrapper rather than working
+   it out a second time.
+
    Nothing here moves: the sidebar's link lights on the section being read,
    and the screenshots are in the copy where they were written. */
 ---
@@ -18,7 +23,7 @@
 
   const STORE = "kaja-docs-platform";
 
-  function pick(platform: string) {
+  function pick(platform: string, chosen = false) {
     if (!wrap) return;
     wrap.dataset.docsPlatform = platform;
     for (const button of picks) button.setAttribute("aria-pressed", String(button.dataset.platformPick === platform));
@@ -27,13 +32,21 @@
     } catch {
       // A browser that refuses storage still gets the toggle, just not the memory of it.
     }
+    // A platform somebody picked belongs in the URL, so the link they copy
+    // is the page they are reading. Replaced rather than pushed: the toggle
+    // is not a navigation, and Back should leave the page.
+    if (chosen) {
+      const url = new URL(location.href);
+      url.searchParams.set("platform", platform);
+      history.replaceState(null, "", url);
+    }
     // The blocks that appeared or went are above the fold as often as below
     // it, so where you are in the page has just changed.
     live = -1;
     spy();
   }
 
-  for (const button of picks) button.addEventListener("click", () => pick(button.dataset.platformPick ?? "desktop"));
+  for (const button of picks) button.addEventListener("click", () => pick(button.dataset.platformPick ?? "desktop", true));
 
   let live = -1;
 

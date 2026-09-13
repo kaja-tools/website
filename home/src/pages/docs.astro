@@ -136,8 +136,13 @@ const description =
   <div data-docs-platform="desktop">
     <script is:inline>
       try {
-        const stored = localStorage.getItem("kaja-docs-platform");
-        if (stored === "docker") document.currentScript.parentElement.dataset.docsPlatform = stored;
+        /* The URL is the address of what you are reading, so a link that names
+           a platform beats whatever this browser picked last. Anything but
+           `docker` leaves the page on the Desktop it is rendered with, which
+           is also what a mistyped value gets. */
+        const asked = new URLSearchParams(location.search).get("platform");
+        const picked = asked ?? localStorage.getItem("kaja-docs-platform");
+        if (picked === "docker") document.currentScript.parentElement.dataset.docsPlatform = picked;
       } catch {}
     </script>
 
