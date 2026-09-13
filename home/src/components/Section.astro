@@ -2,18 +2,40 @@
 /* A section of the home page: a heading, an optional line under it, and
    whatever the section is made of. Every section below the hero is set this
    way, so the page reads as one ladder — hero, then a heading a size down,
-   then the statements the section brings. */
+   then the statements the section brings.
+
+   `level` is where the section sits in that ladder, and it sets the heading's
+   size and the air above it together. `lead` is the product story — the flow,
+   the agent, the record. `support` is what makes it different from another
+   client. `minor` is the capabilities around the request. A section is
+   quieter the further down the page it is, so the page stops reading as a
+   feature catalogue without any of it being cut. */
+type Level = "lead" | "support" | "minor";
+
 interface Props {
   title: string;
   lead?: string;
+  level?: Level;
   class?: string;
 }
 
-const { title, lead, class: className } = Astro.props;
+const { title, lead, level = "lead", class: className } = Astro.props;
+
+const pad: Record<Level, string> = {
+  lead: "pt-28 md:pt-40",
+  support: "pt-24 md:pt-32",
+  minor: "pt-20 md:pt-28",
+};
+
+const heading: Record<Level, string> = {
+  lead: "text-section",
+  support: "text-subsection",
+  minor: "text-minor",
+};
 ---
 
-<section class:list={["mx-auto w-full max-w-page px-6 pt-28 md:px-8 md:pt-40", className]}>
-  <h2 class="max-w-headline font-display text-section font-bold tracking-display text-balance">{title}</h2>
-  {lead && <p class="mt-4 max-w-tagline text-intro/[1.6] text-pretty text-muted-foreground">{lead}</p>}
+<section class:list={["mx-auto w-full max-w-page px-6 md:px-8", pad[level], className]}>
+  <h2 class:list={["max-w-headline font-display font-bold tracking-display text-balance", heading[level]]}>{title}</h2>
+  {lead && <p class:list={["mt-4 max-w-tagline text-pretty text-muted-foreground", level === "minor" ? "text-prose/[1.7]" : "text-intro/[1.6]"]}>{lead}</p>}
   <slot />
 </section>

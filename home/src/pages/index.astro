@@ -3,9 +3,19 @@
    through it, what an agent does inside it and what it leaves behind, then
    the window's own features, and the way in again at the end.
 
+   It is read at three levels, and a section's `level` is which one it is on.
+   The product story is the hero, the flow, the agent and the record, and it
+   is set at full size. What makes Kaja different from another client — using
+   it by hand, scripts rather than collections, the protocols and the agent —
+   is a size down. The capabilities around the request are a size down again,
+   because they are what the window also does and not another argument. The
+   page gets quieter as it goes, so a visitor who reads to the end has met one
+   story and not a catalogue.
+
    The statements set against a crop of the app are `Poster`, and they come in
    groups — each section brings the ones that make its argument rather than
-   the page ending in one long run of them. */
+   the page ending in one long run of them — at the tone of the section that
+   brings them. */
 import Layout from "../layouts/Layout.astro";
 import AgentTask from "../components/AgentTask.astro";
 import Button from "../components/Button.astro";
@@ -27,7 +37,11 @@ const tagline =
   "Connect gRPC, OpenAPI, or MCP. Explore APIs yourself, or let an agent write and run typed scripts. Every request stays visible and inspectable.";
 
 const rule = "border-t border-border pt-4";
+/* Two sizes, because the page's levels reach inside a section too: the record's
+   three lines are the argument that section is making, and the two ways of
+   working are the detail under a heading that is already a size down. */
 const subhead = "font-display text-pane font-semibold tracking-display";
+const label = "font-display text-lg font-semibold tracking-display";
 ---
 
 <Layout title="Kaja - The API client for you and your agents" description={tagline}>
@@ -97,33 +111,43 @@ const subhead = "font-display text-pane font-semibold tracking-display";
 
   <Section
     title="Use it yourself, too."
-    lead="Browse methods, fill in parameters with autocomplete, send requests, inspect responses, and explore what came back without involving an agent. An agent's runs and your own share one window and one history."
+    level="support"
+    lead="Browse methods, fill in parameters, send requests and inspect responses, just like a traditional API client. Your requests and your agent's requests live in the same history."
   >
-    <Poster items={poster.manual} />
+    <Poster items={poster.manual} tone="quiet" />
   </Section>
 
   <Section
     title="Built around scripts, not collections."
-    lead="Need one request? Open a method and send it. Need a multi-step job? Write a typed script, or have your agent write it. Both run against the same APIs and produce the same inspectable call history."
+    level="support"
+    lead="Need one request? Send it directly. Need a workflow? Write a typed script, or let your agent write it. Both produce the same inspectable history."
   >
-    <div class="mt-10 grid gap-8 md:mt-12 md:grid-cols-2 md:gap-12">
+    <div class="mt-8 grid gap-8 md:mt-10 md:grid-cols-2 md:gap-12">
       {
         modes.map((mode) => (
           <div class={rule}>
-            <h3 class={subhead}>{mode.name}</h3>
-            <p class="mt-2 text-prose/[1.7] text-pretty text-muted-foreground">{mode.says}</p>
+            <h3 class={label}>{mode.name}</h3>
+            <p class="mt-1.5 text-prose/[1.6] text-pretty text-muted-foreground">{mode.says}</p>
           </div>
         ))
       }
     </div>
   </Section>
 
-  <Section title="Four protocols, ten agents." lead="Kaja speaks gRPC, OpenAPI, MCP and Twirp to your apps, and MCP to whichever agent you use.">
-    <div class="mt-10 grid gap-x-8 gap-y-6 sm:grid-cols-2 md:mt-12 lg:grid-cols-4">
+  {
+    /* Named for what a visitor brings rather than for what Kaja counts, so
+       the heading survives an agent being added to the list. */
+  }
+  <Section
+    title="Your APIs. Your agent."
+    level="support"
+    lead="Connect through gRPC, OpenAPI, MCP or Twirp, then use Kaja with the coding agent you already work with."
+  >
+    <div class="mt-8 grid gap-x-8 gap-y-6 sm:grid-cols-2 md:mt-10 lg:grid-cols-4">
       {
         protocols.map((protocol) => (
           <div class={rule}>
-            <p class="flex items-center gap-2 font-display text-lg font-semibold tracking-display">
+            <p class:list={["flex items-center gap-2", label]}>
               <Icon name={protocol.mark} />
               {protocol.name}
             </p>
@@ -132,15 +156,16 @@ const subhead = "font-display text-pane font-semibold tracking-display";
         ))
       }
     </div>
-    <Poster items={poster.agents} />
+    <Poster items={poster.agents} tone="quiet" />
   </Section>
 
-  <Section title="The rest of the window." lead="A run is a script, so it can do more than send one request and print it.">
-    <Poster items={poster.features} />
+  <Section title="More than requests." level="minor" lead="A run is a script, so it can do more than send one request and print it.">
+    <Poster items={poster.features} tone="quiet" />
   </Section>
 
   <Section
     title="Open source, and yours to run."
+    level="minor"
     lead="Kaja is developed in the open on GitHub. Install the Mac app, or run the container beside your services and keep one configuration in git."
   >
     <div class="mt-8 flex flex-wrap gap-3">
@@ -152,11 +177,13 @@ const subhead = "font-display text-pane font-semibold tracking-display";
     </div>
   </Section>
 
-  <section class:list={[frame, "pt-28 pb-24 text-center md:pt-40 md:pb-32"]}>
-    <h2 class="mx-auto max-w-headline font-display text-3xl/[1.1] font-bold tracking-display text-balance md:text-cta">Try it on a live API.</h2>
-    <p class="mx-auto mt-4 max-w-tagline text-intro/[1.6] text-pretty text-muted-foreground">
-      The demo opens in the browser with three apps connected, one for each protocol. Nothing to install.
-    </p>
+  {
+    /* The way out is the way in: the same ask as the hero, in the same order,
+       and no new claim at the foot of the page. */
+  }
+  <section class:list={[frame, "pt-24 pb-24 text-center md:pt-36 md:pb-32"]}>
+    <h2 class="mx-auto max-w-headline font-display text-3xl/[1.1] font-bold tracking-display text-balance md:text-cta">Try Kaja.</h2>
+    <p class="mx-auto mt-4 max-w-tagline text-intro/[1.6] text-pretty text-muted-foreground">Explore an API in the live demo. No setup required.</p>
     <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
       <Button href={demo} size="lg">Try Kaja &rarr;</Button>
       <Button href={appStore} variant="outline" size="lg" target="_blank" rel="noopener">
