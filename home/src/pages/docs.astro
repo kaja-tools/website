@@ -286,15 +286,24 @@ const description =
               >Calls</strong
             > is every request and response, <strong class={term}>Canvas</strong> is what the script drew, <strong class={term}>Stats</strong> is timing percentiles.
           </p>
-          <div class="mt-5 flex max-w-copy flex-col gap-5">
+          <div class="mt-5 flex flex-col gap-5">
             {
               verbs.map((verb) => (
                 <div class="flex flex-col gap-3">
-                  <div class="flex flex-col gap-1 sm:flex-row sm:gap-3.5">
+                  {/* The sentence is copy and wraps at `copy`; the snippet under it is
+                      code and takes the whole column, like every other block on the page. */}
+                  <div class="flex max-w-copy flex-col gap-1 sm:flex-row sm:gap-3.5">
                     <span class="shrink-0 py-0.5 font-mono text-xs text-code-key sm:w-56">{verb.name}</span>
                     <span class="text-prose/[1.6] text-muted-foreground">{verb.says}</span>
                   </div>
-                  {verb.code && <Snippet file="scripts/whats-on.ts" kind="script" lang="ts" code={verb.code} />}
+                  {verb.code && <Snippet file={verb.file ?? "scripts/example.ts"} kind="script" lang="ts" code={verb.code} />}
+                  {/* Figure's own `mt-8` is for standing in prose; here it belongs to
+                      the snippet above it, so the block's gap is the whole spacing. */}
+                  {verb.figure && (
+                    <div class="[&>figure]:mt-0">
+                      <Figure {...verb.figure} />
+                    </div>
+                  )}
                 </div>
               ))
             }

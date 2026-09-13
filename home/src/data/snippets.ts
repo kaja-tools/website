@@ -106,19 +106,19 @@ for (const [name, send] of Object.entries(calls)) {
 kaja.table(["method", "duration"], slow);
 `;
 
-/* The one kaja.table form the script above doesn't already show: rows handed
-   over as a source rather than pushed, which is what gets the table its pager
-   and its search box. Written against the demo's Theatre app, cursor and all,
-   so it is a whole loop rather than a sketch of one. */
+/* `workspace/scripts/movies.ts` from wham/kaja, trimmed to the two columns
+   the figure beside it can show legibly. It is the script `scripts/demo`
+   photographs for `poster-canvas.png`, so the figure in the docs is this
+   snippet's own output — keep the two in step, or crop a different shot. */
 export const table = `
 import { kaja } from "kaja";
 import { Theatre } from "theatre";
 
-const shows = kaja.table(["show", "theater", "starts"], async function* (search) {
+const catalog = kaja.table(["id", "title"], async function* () {
   for (let cursor = ""; ; ) {
-    const page = await Theatre.ListShows({ city: search, cursor });
-    shows.total(page.total);
-    yield* page.shows.map((show) => [show.id, show.theaterId, show.startsAt]);
+    const page = await Theatre.ListMovies({ cursor });
+    catalog.total(page.total);
+    yield* page.movies.map((movie) => [movie.id, movie.title]);
     if (!(cursor = page.nextCursor)) return;
   }
 });
