@@ -179,8 +179,9 @@ home/
   verbatim is the width of the app cards, because the site's body face is wider
   than the app's. Below `md` the drawing is too small to read, so the same five
   things are a plain stack of cards.
-- **The eight screenshots are `data/shots.ts`, and every picture on the site
-  is a crop of one.** The shots are the window at 2880x1800, zoomed to 125%, which is what
+- **The eight screenshots are `data/shots.ts`, and every picture of the whole
+  window is a crop of one** — the home page's, and the docs figures taken
+  before the docs took their own (`snaps`, below). The shots are the window at 2880x1800, zoomed to 125%, which is what
   `scripts/demo` photographs in [wham/kaja](https://github.com/wham/kaja); a
   fresh set replaces the files under the same names and every crop still
   lands. The zoom is what makes a crop legible at the size it is read, so a
