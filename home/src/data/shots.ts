@@ -1,8 +1,10 @@
 /* The screenshots the site is built from, and how a region of one is drawn.
 
-   Every shot is the window at 2880x1800, which is what `scripts/demo`
-   photographs in kaja's own repository. A fresh set replaces the files under
-   the same names, and every crop taken from them still lands.
+   Every shot is the window at 2880x1800, zoomed to 125%, which is what
+   `scripts/demo` photographs in kaja's own repository. The zoom is what puts
+   the pixels into the words: a crop is read smaller than it was taken, so the
+   type has to be taken larger. A fresh set replaces the files under the same
+   names, and every crop taken from them still lands.
 
    A crop is a region of a shot in fractions of its width and height, drawn as
    a background scaled to `100 / w` of the frame's width, which is what makes

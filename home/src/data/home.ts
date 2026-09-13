@@ -31,21 +31,21 @@ export const steps: Step[] = [
     title: "Connect your API",
     says: "Browse services and methods from gRPC, OpenAPI, MCP, and Twirp.",
     shot: shots.newApp,
-    crop: { x: 0.346, y: 0.333, w: 0.308, h: 0.335 },
+    crop: { x: 0.304, y: 0.283, w: 0.392, h: 0.434 },
   },
   {
     step: "Run",
     title: "Run it yourself or ask an agent",
     says: "Send one request manually, or let an agent write a typed script for a larger task.",
     shot: shots.run,
-    crop: { x: 0.167, y: 0.0, w: 0.42, h: 0.222 },
+    crop: { x: 0.209, y: 0.0, w: 0.545, h: 0.278 },
   },
   {
     step: "Inspect",
     title: "See exactly what happened",
     says: "Requests, responses, headers, duration, and status stay visible for every run.",
     shot: shots.run,
-    crop: { x: 0.167, y: 0.222, w: 0.45, h: 0.3 },
+    crop: { x: 0.209, y: 0.278, w: 0.5625, h: 0.375 },
   },
 ];
 
@@ -53,7 +53,7 @@ export const steps: Step[] = [
    types a sentence, the agent writes a script, the calls land in the window.
    The third is a strip of the call log rather than the whole console, because
    the claim is about the row, not the response. */
-export const agentCalls: Crop = { x: 0.165, y: 0.19, w: 0.42, h: 0.095 };
+export const agentCalls: Crop = { x: 0.206, y: 0.238, w: 0.525, h: 0.119 };
 
 /* What the record section says in three lines, which is the whole argument
    over an agent that calls an API where you cannot see it. */

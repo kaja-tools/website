@@ -44,8 +44,8 @@ export const manual: Item[] = [
   {
     caption: "Every app, service and method in one tree.",
     shot: shots.apps,
-    crop: { x: 0.005, y: 0.28, w: 0.163, h: 0.368 },
-    highlight: { x: 0.006, y: 0.337, w: 0.745, h: 0.337 },
+    crop: { x: 0.006, y: 0.35, w: 0.2, h: 0.46 },
+    highlight: { x: 0.006, y: 0.352, w: 0.62, h: 0.33 },
     cropCell: "md:col-start-8 md:col-end-13 md:row-start-1",
     statementCell: "md:col-start-1 md:col-end-7 md:row-start-1",
     align: "left",
@@ -54,8 +54,8 @@ export const manual: Item[] = [
   {
     caption: "Pick a method and Kaja writes the call, typed.",
     shot: shots.draft,
-    crop: { x: 0.17, y: 0.05, w: 0.45, h: 0.1 },
-    highlight: { x: 0.083, y: 0.492, w: 0.739, h: 0.232 },
+    crop: { x: 0.212, y: 0.062, w: 0.56, h: 0.125 },
+    highlight: { x: 0.085, y: 0.49, w: 0.87, h: 0.235 },
     cropCell: "md:col-start-1 md:col-end-13 md:row-start-2",
     statementCell: "md:col-start-1 md:col-end-9 md:row-start-1",
     align: "left",
@@ -68,8 +68,8 @@ export const record: Item[] = [
   {
     caption: "Status, duration and size on every call.",
     shot: shots.run,
-    crop: { x: 0.17, y: 0.18, w: 0.82, h: 0.1 },
-    highlight: { x: 0.802, y: 0.688, w: 0.122, h: 0.224 },
+    crop: { x: 0.212, y: 0.225, w: 0.788, h: 0.145 },
+    highlight: { x: 0.725, y: 0.74, w: 0.175, h: 0.2 },
     cropCell: "md:col-start-1 md:col-end-13 md:row-start-1",
     statementCell: "md:col-start-4 md:col-end-13 md:row-start-2",
     align: "right",
@@ -78,8 +78,8 @@ export const record: Item[] = [
   {
     caption: "The response, as it came back.",
     shot: shots.run,
-    crop: { x: 0.17, y: 0.28, w: 0.34, h: 0.24 },
-    highlight: { x: 0.118, y: 0.273, w: 0.559, h: 0.68 },
+    crop: { x: 0.212, y: 0.35, w: 0.425, h: 0.32 },
+    highlight: { x: 0.11, y: 0.25, w: 0.66, h: 0.7 },
     cropCell: "md:col-start-7 md:col-end-13 md:row-start-1",
     statementCell: "md:col-start-1 md:col-end-6 md:row-start-1",
     align: "left",
@@ -93,7 +93,7 @@ export const agents: Item[] = [
   {
     caption: "Turn the server on, then give your agent the endpoint and the token.",
     shot: shots.agent,
-    crop: { x: 0.175, y: 0.06, w: 0.82, h: 0.115 },
+    crop: { x: 0.219, y: 0.075, w: 0.781, h: 0.144 },
     highlight: { x: 0.02, y: 0.57, w: 0.532, h: 0.237 },
     cropCell: "md:col-start-1 md:col-end-13 md:row-start-1",
     statementCell: "md:col-start-4 md:col-end-13 md:row-start-2",
@@ -103,7 +103,7 @@ export const agents: Item[] = [
   {
     caption: "Pick your agent and copy the line it needs.",
     shot: shots.agent,
-    crop: { x: 0.178, y: 0.18, w: 0.135, h: 0.33 },
+    crop: { x: 0.222, y: 0.225, w: 0.169, h: 0.412 },
     highlight: { x: 0.037, y: 0.109, w: 0.881, h: 0.868 },
     cropCell: "md:col-start-9 md:col-end-13 md:row-start-1",
     statementCell: "md:col-start-1 md:col-end-8 md:row-start-1",
@@ -118,7 +118,7 @@ export const features: Item[] = [
   {
     caption: "Try a script as a draft, then save it to a file when it works.",
     shot: shots.draft,
-    crop: { x: 0.005, y: 0.045, w: 0.163, h: 0.255 },
+    crop: { x: 0.006, y: 0.056, w: 0.2, h: 0.319 },
     highlight: { x: 0.03, y: 0.112, w: 0.9, h: 0.188 },
     cropCell: "md:col-start-1 md:col-end-6 md:row-start-1",
     statementCell: "md:col-start-7 md:col-end-13 md:row-start-1",
@@ -128,8 +128,8 @@ export const features: Item[] = [
   {
     caption: "Draw the results as a table, and the script pages the rows itself.",
     shot: shots.canvas,
-    crop: { x: 0.02, y: 0.06, w: 0.96, h: 0.16 },
-    highlight: { x: 0.859, y: 0.105, w: 0.135, h: 0.205 },
+    crop: { x: 0.02, y: 0.075, w: 0.96, h: 0.2 },
+    highlight: { x: 0.855, y: 0.06, w: 0.14, h: 0.18 },
     cropCell: "md:col-start-1 md:col-end-13 md:row-start-2",
     statementCell: "md:col-start-5 md:col-end-13 md:row-start-1",
     align: "right",
@@ -138,7 +138,7 @@ export const features: Item[] = [
   {
     caption: "Percentiles computed from the calls the run already made.",
     shot: shots.stats,
-    crop: { x: 0.0, y: 0.005, w: 0.52, h: 0.1 },
+    crop: { x: 0.0, y: 0.006, w: 0.65, h: 0.125 },
     highlight: { x: 0.385, y: 0.414, w: 0.385, h: 0.512 },
     cropCell: "md:col-start-1 md:col-end-13 md:row-start-1",
     statementCell: "md:col-start-5 md:col-end-13 md:row-start-2",
@@ -148,7 +148,7 @@ export const features: Item[] = [
   {
     caption: "Run a load schedule and see which phase every call landed in.",
     shot: shots.stats,
-    crop: { x: 0.005, y: 0.11, w: 0.99, h: 0.34 },
+    crop: { x: 0.006, y: 0.137, w: 0.99, h: 0.425 },
     highlight: { x: 0.173, y: 0.076, w: 0.33, h: 0.334 },
     cropCell: "md:col-start-1 md:col-end-13 md:row-start-2",
     statementCell: "md:col-start-1 md:col-end-9 md:row-start-1",
@@ -158,8 +158,8 @@ export const features: Item[] = [
   {
     caption: "Keep secrets out of scripts with values from the keychain, the environment or the file.",
     shot: shots.variables,
-    crop: { x: 0.175, y: 0.06, w: 0.545, h: 0.24 },
-    highlight: { x: 0.237, y: 0.143, w: 0.141, h: 0.78 },
+    crop: { x: 0.219, y: 0.075, w: 0.681, h: 0.3 },
+    highlight: { x: 0.295, y: 0.12, w: 0.135, h: 0.85 },
     cropCell: "md:col-start-1 md:col-end-7 md:row-start-1",
     statementCell: "md:col-start-8 md:col-end-13 md:row-start-1",
     align: "left",
