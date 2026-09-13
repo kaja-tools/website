@@ -61,6 +61,16 @@ export const verbs: Verb[] = [
   },
   { name: "kaja.run", says: "A cell that runs another script when it is clicked." },
   {
+    name: "kaja.rateLimit",
+    says: "Obey an API's own rate limit. Nothing is paced until you ask; after that the calls below are spread under the budget it publishes, and held rather than refused once that is spent.",
+    code: snippets.rateLimit,
+    file: "scripts/rate-limit.ts",
+    figure: {
+      shot: snaps.rateLimit,
+      caption: "What the limiter draws while that loop runs: the budget, and what obeying it has cost so far.",
+    },
+  },
+  {
     name: "kaja.perfTest",
     says: "Run a body on a schedule, and open the run on its Stats page.",
     code: snippets.perfTest,
@@ -70,5 +80,15 @@ export const verbs: Verb[] = [
       crop: { x: 0.005, y: 0.056, w: 0.495, h: 0.264 },
       caption: "Where that run opens. The bands behind the latency are the schedule it was given.",
     },
+  },
+  {
+    name: "kaja.input",
+    says: "What a deeplink, or a kaja.run cell, handed this run — kaja.input.city. Every value is text, and Run sends the last run's again.",
+  },
+  { name: "kaja.variables", says: "The workspace's variables. One whose value this machine holds rather than kaja.json reads the same way." },
+  { name: "kaja.uuidV4", says: "A random UUID, and what crypto.randomUUID() is inside a script." },
+  {
+    name: "kaja.value, struct, listValue",
+    says: "Build a google.protobuf.Value, Struct or ListValue from a plain JSON value, rather than writing its oneof out by hand.",
   },
 ];

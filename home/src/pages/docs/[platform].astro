@@ -308,6 +308,10 @@ const figures = {
           }
         </div>
         <p class:list={["mt-5", muted]}>
+          A script also gets <code class={code}>fetch</code> and <code class={code}>console</code> bound to the run, so a fetch is a row in the log like any other
+          call. Every method takes headers as a second argument, and <code class={code}>.withHeaders()</code> reads back the ones the API answered with.
+        </p>
+        <p class:list={["mt-5", muted]}>
           Each of these is documented where it is declared, which is also what the editor completes against and what an agent reads. The whole of it is in the{
             " "
           }

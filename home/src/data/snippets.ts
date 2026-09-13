@@ -156,3 +156,24 @@ const report = await kaja.perfTest(
 
 kaja.text(\`p99 \${Math.round(report.latency.p99 ?? 0)} ms\`);
 `;
+
+/* `workspace/scripts/rate-limit.ts` from wham/kaja, trimmed to one reader —
+   the real one runs eight at once, which is how it spends the budget faster
+   than the figure has room to say. The call is the demo's own seating
+   service, which publishes the headers the limiter reads. */
+export const rateLimit = `
+import { kaja } from "kaja";
+import { Theatre } from "theatre";
+import { Seating } from "seating";
+
+const { shows } = await Theatre.ListShows({ limit: 1 });
+kaja.rateLimit(Seating);
+
+const reads = kaja.table(["read", "remaining"]);
+for (let read = 1; read <= 150; read++) {
+  const { headers } = await Seating.GetSeatMap({
+    showId: shows[0].id,
+  }).withHeaders();
+  reads.row(read, headers["ratelimit-remaining"] ?? "—");
+}
+`;
