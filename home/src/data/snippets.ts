@@ -123,3 +123,21 @@ const catalog = kaja.table(["id", "title"], async function* () {
   }
 });
 `;
+
+/* The three asks, off the top of `workspace/scripts/a-night-out.ts` in
+   wham/kaja — one of each kind, in the order that script asks them, so the
+   shape askSelect takes is shown rather than described. */
+export const ask = `
+import { kaja } from "kaja";
+import { Theatre } from "theatre";
+
+const { theaters } = await Theatre.ListTheaters({ city: "" });
+const cities = [...new Set(theaters.map((theater) => theater.city))];
+
+const city = await kaja.askSelect(
+  "Where are you tonight?",
+  cities.sort().map((name) => ({ label: name, value: name })),
+);
+const mood = await kaja.askStr("And what do you feel like?");
+const party = await kaja.askInt("How many of you?");
+`;

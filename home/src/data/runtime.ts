@@ -41,7 +41,12 @@ export const verbs: Verb[] = [
     },
   },
   { name: "kaja.text, kaja.code", says: "Draw a line, or a block of code." },
-  { name: "kaja.askStr", says: "Pause the run and ask for a value." },
+  {
+    name: "kaja.askStr, askInt, askSelect",
+    says: "Pause the run and ask for a value: text, a whole number, or one of a list. The question is drawn on the canvas and the run waits there, and the answer arrives as the kind that was asked for, so picking from a list of records hands the record back.",
+    code: snippets.ask,
+    file: "scripts/a-night-out.ts",
+  },
   { name: "kaja.approve", says: "Hold a call until you press Approve. Use it for writes." },
   { name: "kaja.run", says: "A cell that runs another script when it is clicked." },
   { name: "kaja.perfTest", says: "Run a body on a schedule, and open the run on its Stats page." },
