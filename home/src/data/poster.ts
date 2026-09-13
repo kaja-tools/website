@@ -2,7 +2,9 @@
    of the app it is about. They come in groups, because each one belongs to
    the section that makes its argument: what you do yourself, what stays on
    the record, what an agent connects to, and what the window does beyond one
-   request.
+   request. A caption is the thing and what it is good for, in one sentence:
+   the crop already shows the control, so the words are the reason to care
+   about it.
 
    A crop is a region of one of the shots in `shots.ts`, drawn by `cropStyle`
    there, so a crop is four numbers rather than an image file of its own and a
@@ -89,7 +91,7 @@ export const record: Item[] = [
    are listed. */
 export const agents: Item[] = [
   {
-    caption: "Your agent needs the endpoint and the token. The switch turns the server on.",
+    caption: "Turn the server on, then give your agent the endpoint and the token.",
     shot: shots.agent,
     crop: { x: 0.175, y: 0.06, w: 0.82, h: 0.115 },
     highlight: { x: 0.02, y: 0.57, w: 0.532, h: 0.237 },
@@ -99,7 +101,7 @@ export const agents: Item[] = [
     drift: { crop: -0.2, statement: 0.25 },
   },
   {
-    caption: "Ten agents listed. Pick yours and copy the line it needs.",
+    caption: "Pick your agent and copy the line it needs.",
     shot: shots.agent,
     crop: { x: 0.178, y: 0.18, w: 0.135, h: 0.33 },
     highlight: { x: 0.037, y: 0.109, w: 0.881, h: 0.868 },
@@ -114,7 +116,7 @@ export const agents: Item[] = [
    the values a script should not carry. */
 export const features: Item[] = [
   {
-    caption: "A script you haven’t named is a draft. Saving it gives it a file.",
+    caption: "Try a script as a draft, then save it to a file when it works.",
     shot: shots.draft,
     crop: { x: 0.005, y: 0.045, w: 0.163, h: 0.255 },
     highlight: { x: 0.03, y: 0.112, w: 0.9, h: 0.188 },
@@ -124,7 +126,7 @@ export const features: Item[] = [
     drift: { crop: 0.3, statement: -0.3 },
   },
   {
-    caption: "A script can draw a table instead. It pages the rows itself.",
+    caption: "Draw the results as a table, and the script pages the rows itself.",
     shot: shots.canvas,
     crop: { x: 0.02, y: 0.06, w: 0.96, h: 0.16 },
     highlight: { x: 0.859, y: 0.105, w: 0.135, h: 0.205 },
@@ -134,7 +136,7 @@ export const features: Item[] = [
     drift: { crop: 0.25, statement: -0.25 },
   },
   {
-    caption: "Percentiles off the calls the run already made.",
+    caption: "Percentiles computed from the calls the run already made.",
     shot: shots.stats,
     crop: { x: 0.0, y: 0.005, w: 0.52, h: 0.1 },
     highlight: { x: 0.385, y: 0.414, w: 0.385, h: 0.512 },
@@ -144,7 +146,7 @@ export const features: Item[] = [
     drift: { crop: -0.25, statement: 0.2 },
   },
   {
-    caption: "A perf test runs a schedule, and the bands say which phase a call landed in.",
+    caption: "Run a load schedule and see which phase every call landed in.",
     shot: shots.stats,
     crop: { x: 0.005, y: 0.11, w: 0.99, h: 0.34 },
     highlight: { x: 0.173, y: 0.076, w: 0.33, h: 0.334 },
@@ -154,7 +156,7 @@ export const features: Item[] = [
     drift: { crop: 0.2, statement: -0.3 },
   },
   {
-    caption: "Keep secrets out of scripts. A value comes from the keychain, the environment or the file.",
+    caption: "Keep secrets out of scripts with values from the keychain, the environment or the file.",
     shot: shots.variables,
     crop: { x: 0.175, y: 0.06, w: 0.545, h: 0.24 },
     highlight: { x: 0.237, y: 0.143, w: 0.141, h: 0.78 },

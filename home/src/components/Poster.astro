@@ -2,7 +2,8 @@
 /* A run of statements, each next to the piece of the app it is about, with a
    red line drawn from the statement to a box around the thing itself. The
    items are passed in, because each section of the home page makes its own
-   argument and brings the statements that belong to it.
+   argument and brings the statements that belong to it, and `tone` is how
+   loudly that section is allowed to make it.
 
    A crop is a frame with the item's screenshot as its background, scaled and
    positioned by `cropStyle` so the region is the part on show — arithmetic
@@ -17,14 +18,40 @@
 import type { Item } from "../data/poster";
 import { cropStyle } from "../data/shots";
 
+/* `tone` is which level of the page the group belongs to. `lead` is the
+   statement the section is making — the record, which is the argument the
+   page turns on. `quiet` is everything supporting it: a size down and closer
+   together, so five of them read as capabilities rather than as five more
+   arguments. */
+type Tone = "lead" | "quiet";
+
 interface Props {
   items: Item[];
+  tone?: Tone;
 }
 
-const { items } = Astro.props;
+const { items, tone = "lead" } = Astro.props;
+
+const run: Record<Tone, string> = {
+  lead: "gap-24 pt-16 md:gap-40 md:pt-24",
+  quiet: "gap-16 pt-10 md:gap-24 md:pt-14",
+};
+
+const statement: Record<Tone, string> = {
+  lead: "text-poster",
+  quiet: "text-poster-quiet",
+};
+
+/* The air inside an item, between the statement and the crop it points at.
+   It closes up with the type, so a quiet item reads as one thing rather than
+   as two loosely related ones. */
+const gaps: Record<Tone, string> = {
+  lead: "gap-y-8 md:gap-y-14",
+  quiet: "gap-y-6 md:gap-y-9",
+};
 ---
 
-<div class="flex flex-col gap-24 pt-16 md:gap-40 md:pt-24">
+<div class:list={["flex flex-col", run[tone]]}>
   {
     items.map((item) => {
       const { crop, highlight, shot } = item;
@@ -33,12 +60,12 @@ const { items } = Astro.props;
           data-ink-item
           data-align={item.align}
           data-highlight={`${highlight.x},${highlight.y},${highlight.w},${highlight.h}`}
-          class="relative grid items-center gap-y-8 md:grid-cols-12 md:gap-x-6 md:gap-y-14"
+          class:list={["relative grid items-center md:grid-cols-12 md:gap-x-6", gaps[tone]]}
         >
           <div data-parallax={item.drift.statement} class:list={[item.statementCell, "will-change-transform"]}>
             <p
               data-statement
-              class:list={["font-display text-poster font-semibold tracking-display text-balance", item.align === "right" ? "md:text-right" : "text-left"]}
+              class:list={["font-display font-semibold tracking-display text-balance", statement[tone], item.align === "right" ? "md:text-right" : "text-left"]}
             >
               {item.caption}
             </p>

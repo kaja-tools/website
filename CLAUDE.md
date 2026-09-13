@@ -192,10 +192,26 @@ home/
   not what the app is proud of: the hero, the flow through the window, what an
   agent does inside it, what a call leaves behind, using it by hand, the way it
   differs from a client built on saved collections, the protocols and the
-  agents, the rest of the window, the source, and the way in again. The hero
-  asks for the demo and offers the download second, because nothing has to be
-  installed to see Kaja work; the header's one button is the demo for the same
-  reason.
+  agent, what the window does beyond a request, the source, and the way in
+  again. The hero asks for the demo and offers the download second, because
+  nothing has to be installed to see Kaja work; the header's one button is the
+  demo for the same reason. The page returns to that same ask at the foot,
+  unchanged — the last section is the hero's two buttons and no new claim.
+- **The ladder has three rungs, and `level` is which one a section is on.**
+  `lead` is the product story — the hero, the flow, the agent, the record —
+  and it is set at full size. `support` is what makes Kaja different from
+  another client, a size down. `minor` is the capabilities around the request,
+  a size down again. `Poster`'s `tone` is the same decision for the statements
+  a section brings: `lead` for the record, `quiet` for everything under it,
+  which is smaller type and less air between the items. The page gets quieter
+  as it goes, so a visitor who reads to the end has met one story rather than
+  a feature catalogue. Add a section at the level its argument belongs to
+  rather than at the size that would get it noticed.
+- **A heading counts nothing that can change.** "Your APIs. Your agent." rather
+  than the number of protocols and agents in the list, so the page does not go
+  stale the week an agent is added. The same goes for a statement in
+  `poster.ts`: it is the thing and what it is good for, in one sentence,
+  because the crop beside it already shows the control.
 - **The flow is explained once, as three steps** (`Flow.astro`, from `steps` in
   `data/home.ts`): connect, run, inspect. Each step is the copy and the piece
   of the window it happens in, stacked down the page rather than set in a row,
