@@ -28,6 +28,18 @@ export const shots = {
   agent: { src: "/assets/poster-agent.png", width: 2880, height: 1800 },
 } satisfies Record<string, Shot>;
 
+/* The docs' own pictures, which are a different thing to a shot. A shot is the
+   whole window on macOS, because the home page is selling the app and a window
+   is what somebody downloads; a snap is one part of the canvas, photographed
+   from the web build at the width the docs column reads it at, because a verb's
+   entry is about what the verb draws and nothing around it. So a snap arrives
+   cropped and is drawn whole — there are no fractions to pick, and the type is
+   the size it was on screen. `.claude/skills/docs-figure` is how one is taken. */
+export const snaps = {
+  ask: { src: "/assets/docs-ask.png", width: 1528, height: 404 },
+  approve: { src: "/assets/docs-approve.png", width: 1528, height: 532 },
+} satisfies Record<string, Shot>;
+
 /* Left, top, width, height, as fractions of the shot. */
 export interface Crop {
   x: number;

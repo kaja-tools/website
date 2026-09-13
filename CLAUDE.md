@@ -267,10 +267,13 @@ home/
   out of kaja's `workspace/scripts/`, which is what lets the figure under it be
   that snippet's own output, and **a verb that draws on the canvas carries a
   figure** — a sentence says what a verb is for, and only the picture says what
-  it leaves on screen. A verb no shot photographs is a beat missing from
-  `scripts/demo` in [wham/kaja](https://github.com/wham/kaja) rather than a
-  crop to improvise here. `.claude/skills/docs-figure` is the whole flow, crop
-  arithmetic included.
+  it leaves on screen. **The docs take their own**: a **shot** is the whole
+  macOS window and belongs to the home page, while a **snap** (`snaps` in
+  `data/shots.ts`) is one part of the canvas photographed from kaja's web build
+  at the width this column reads it at, so it is drawn whole and its type is
+  the size it was on screen. `.claude/skills/docs-figure` is the whole flow —
+  running the build, driving the run, and the crop arithmetic the shots still
+  need.
 - Snippets are plain strings in `data/snippets.ts`, highlighted at build time
   by Shiki in `styles/codeTheme.ts` — which maps scopes onto the `code-*`
   custom properties rather than repeating them, so the palette stays in
