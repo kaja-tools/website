@@ -12,10 +12,16 @@ description: Document a kaja runtime verb (kaja.table, kaja.approve, …) on the
 completes against and what an agent reads through `describe_type "kaja"`, and
 the compiler checks it against the runtime it declares — so it cannot drift.
 
-Everything else is an **index line into it**: this site's docs, and kaja's own
-`server/pkg/mcp/guide.md`. Each carries one sentence saying whether this is the
-verb you want, plus whatever is theirs alone. Never retell `.row`/`.update`/
-`total` here — that copy goes stale, and did.
+What is written elsewhere is spent on **teaching**, never on stating the
+surface. This site's docs are one sentence per verb. Kaja's own
+`server/pkg/mcp/guide.md` teaches — a worked example per shape worth writing,
+plus what is different about being an agent — and names `describe_type "kaja"`
+for the rest.
+
+**An example earns its place; a member list does not.** A run reports type
+errors checked against those same declarations, so a stale example is caught,
+where a retelling of what `.column` or a failed cell does is a second model of
+the surface and drifts unnoticed. That is the line to trim on.
 
 So: **the long explanation goes in the declaration, in the kaja repo.** If the
 verb is badly documented, fix it there first. This skill is only the index.
@@ -23,13 +29,17 @@ verb is badly documented, fix it there first. This skill is only the index.
 ## Order of work
 
 1. **Declaration first**, in wham/kaja. Examples, overloads, rules.
-2. **Trim the guide**, in wham/kaja `server/pkg/mcp/guide.md`. Keep only what is
-   different about being an agent ("nobody is paging your run"); point at
-   `describe_type "kaja"` for the rest.
+2. **Check the guide**, in wham/kaja `server/pkg/mcp/guide.md`. Keep its worked
+   examples and what is an agent's alone ("nobody is paging your run"); cut any
+   paragraph that restates the surface, naming it in one clause that points at
+   `describe_type "kaja"`.
 3. **Add the row here.** One sentence. A snippet only if the sentence cannot say
    the shape. A figure only if the verb draws something.
 
-Step 2 is the one people skip. It is where drift comes from.
+Step 2 is the one people skip. **Don't overcorrect it either**: the guide ships
+in `instructions` on every session and the declaration costs a call, so cutting
+a few hundred tokens of teaching to save them on sessions that never use the
+verb makes the common task far more expensive. Do the arithmetic before you cut.
 
 ## The row
 
@@ -146,5 +156,5 @@ three. Then check the PR's preview app, which is the real thing at a real width.
 
 Changes to the declaration or the guide are a **separate PR in wham/kaja**. Its
 `AGENTS.md` carries this same rule under "The `kaja` object is a declaration
-too". After trimming the guide, run `go test -tags development ./pkg/mcp/...`
+too". After editing the guide, run `go test -tags development ./pkg/mcp/...`
 from `server/`.
