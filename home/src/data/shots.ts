@@ -38,6 +38,7 @@ export const shots = {
 export const snaps = {
   ask: { src: "/assets/docs-ask.png", width: 1528, height: 404 },
   approve: { src: "/assets/docs-approve.png", width: 1528, height: 532 },
+  rateLimit: { src: "/assets/docs-rate-limit.png", width: 1600, height: 228 },
 } satisfies Record<string, Shot>;
 
 /* Left, top, width, height, as fractions of the shot. */
