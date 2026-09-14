@@ -7,8 +7,9 @@
    A crop is read at the width of the column here, so it can hold a whole
    dialog. A crop taller than it is wide is capped by `--size-figure` instead,
    which is why the width is arithmetic on the aspect `cropStyle` worked out
-   rather than a second number to keep in step. */
-import { cropStyle, type Crop, type Shot } from "../data/shots";
+   rather than a second number to keep in step. The other cap is the shot's
+   own resolution, `cropMaxWidth`, and the narrower of the two wins. */
+import { cropMaxWidth, cropStyle, type Crop, type Shot } from "../data/shots";
 
 interface Props {
   shot: Shot;
@@ -21,7 +22,7 @@ const { shot, crop, caption } = Astro.props;
 const region = cropStyle(shot, crop);
 ---
 
-<figure class="mt-8" style={`max-width: calc(var(--size-figure) * ${region.aspectRatio})`}>
+<figure class="mt-8" style={`max-width: min(calc(var(--size-figure) * ${region.aspectRatio}), ${cropMaxWidth(shot, crop)})`}>
   <div class="overflow-hidden rounded-frame border border-border bg-card bg-no-repeat shadow-frame" style={region}></div>
   {caption && <figcaption class="mt-2.5 text-fine/[1.5] text-muted-foreground">{caption}</figcaption>}
 </figure>

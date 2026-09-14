@@ -158,8 +158,8 @@ export const features: Item[] = [
   {
     caption: "Keep secrets out of scripts with values from the keychain, the environment or the file.",
     shot: shots.variables,
-    crop: { x: 0.219, y: 0.075, w: 0.681, h: 0.3 },
-    highlight: { x: 0.295, y: 0.12, w: 0.135, h: 0.85 },
+    crop: { x: 0.208, y: 0.075, w: 0.392, h: 0.3 },
+    highlight: { x: 0.552, y: 0.13, w: 0.218, h: 0.82 },
     cropCell: "md:col-start-1 md:col-end-7 md:row-start-1",
     statementCell: "md:col-start-8 md:col-end-13 md:row-start-1",
     align: "left",

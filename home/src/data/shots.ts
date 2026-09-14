@@ -51,6 +51,17 @@ export interface Crop {
 
 export const whole: Crop = { x: 0, y: 0, w: 1, h: 1 };
 
+/* A shot is a 2x capture of the window, so a crop has half its pixels to spend
+   on CSS pixels and no more. Drawn wider than that it is upscaled, and on a
+   retina screen it is the small close-ups that ask for it — the tree, the
+   drafts, the agent list are each a fifth of the shot in a frame twice that
+   wide, and soft where the type is what they are for. So a frame is capped
+   here and draws smaller in its cell rather than blurred; a crop already
+   narrower than its frame is untouched, since the cap is a ceiling. */
+export function cropMaxWidth(shot: Shot, crop: Crop = whole) {
+  return `${Math.round((crop.w * shot.width) / 2)}px`;
+}
+
 /* The inline style that draws `crop` of `shot` inside an element, which keeps
    the region's shape through `aspect-ratio`. A crop the width or height of the
    shot has nowhere to be positioned, which is what the guards are for. */
