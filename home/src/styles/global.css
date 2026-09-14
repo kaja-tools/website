@@ -136,15 +136,18 @@
   /* The docs are two columns — the nav and the page — so the frame runs wider
      than the rest of the site, `docs-main` is the column the page is written
      in, and a paragraph inside it runs narrower still, because a screenshot
-     is set at the column's width and a line of prose is not. */
-  --container-docs: 1080px;
-  --container-docs-main: 760px;
-  --container-copy: 620px;
+     is set at the column's width and a line of prose is not. The three are
+     the measure other documentation is set at: a line of copy lands near 85
+     characters, which is where Astro's, MDN's and Cloudflare's docs sit, and
+     the column a screenshot fills is the width theirs are. */
+  --container-docs: 1200px;
+  --container-docs-main: 840px;
+  --container-copy: 720px;
 
   /* The tallest a screenshot in the docs gets. A crop taller than it is wide
      is capped by this rather than by the column, so a strip of the sidebar
      stands beside the copy at the size it was cropped at. */
-  --size-figure: 30rem;
+  --size-figure: 33rem;
 
   /* The window frame around a screenshot sits between Tailwind's `lg` and
      `xl` radii, and `frame` is the shadow under one in the page. */

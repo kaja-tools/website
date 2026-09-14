@@ -220,7 +220,7 @@ constrained to `max-w-copy` when it should take the column.
 
 ## Widths, once
 
-Copy wraps at `max-w-copy` (620px). **Code and figures take the whole column**
+Copy wraps at `max-w-copy` (720px). **Code and figures take the whole column**
 (`max-w-docs-main`), like every other block on the page. Putting `max-w-copy` on
 a wrapper that holds a snippet is what makes it render narrower than the snippet
 above it.
