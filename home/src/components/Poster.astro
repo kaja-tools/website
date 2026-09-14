@@ -16,7 +16,7 @@
    svg stays empty, which is what it should be — the crop and its statement
    already say the thing.  */
 import type { Item } from "../data/poster";
-import { cropStyle } from "../data/shots";
+import { cropMaxWidth, cropStyle } from "../data/shots";
 
 /* `tone` is which level of the page the group belongs to. `lead` is the
    statement the section is making — the record, which is the argument the
@@ -72,7 +72,11 @@ const gaps: Record<Tone, string> = {
           </div>
 
           <div data-parallax={item.drift.crop} class:list={[item.cropCell, "will-change-transform"]}>
-            <div data-crop class="rounded-xl border border-border bg-card bg-no-repeat shadow-crop" style={cropStyle(shot, crop)} />
+            <div
+              data-crop
+              class="mx-auto rounded-xl border border-border bg-card bg-no-repeat shadow-crop"
+              style={{ ...cropStyle(shot, crop), maxWidth: cropMaxWidth(shot, crop) }}
+            />
           </div>
 
           <svg

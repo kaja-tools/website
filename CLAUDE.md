@@ -195,7 +195,12 @@ home/
   set taken at 100% is a set every crop is a quarter smaller in. A crop is four fractions drawn as a background by `cropStyle` rather
   than an image file of its own, so a screen contributes as many close-ups as
   it has things to say and nothing under `public/assets/` is a cut-out to
-  re-cut.
+  re-cut. **A shot is a 2x capture, so a crop has half its pixels to spend and
+  a frame wider than that is upscaled** — which is what the small close-ups
+  ask for, being a fifth of the shot in a frame twice as wide. `cropMaxWidth`
+  is the ceiling, applied wherever a crop is drawn, so a frame gets smaller in
+  its cell rather than soft; a crop that still reads too small at that width
+  is one to take a narrower region of, not to widen the frame for.
 - **The home page is a ladder, and every rung is a section** (`Section.astro`,
   one heading and one line under it). The order is what a visitor needs and
   not what the app is proud of: the hero, the flow through the window, what an

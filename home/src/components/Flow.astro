@@ -7,7 +7,7 @@
    Stacked, the copy sits above its picture on a phone and beside it from `md`
    up, so the order a visitor reads is the order the steps happen in. */
 import { steps } from "../data/home";
-import { cropStyle } from "../data/shots";
+import { cropMaxWidth, cropStyle } from "../data/shots";
 ---
 
 <div class="mt-12 flex flex-col gap-14 md:mt-16 md:gap-20">
@@ -23,7 +23,10 @@ import { cropStyle } from "../data/shots";
         </div>
 
         <div class="md:col-span-8">
-          <div class="rounded-frame border border-border bg-card bg-no-repeat shadow-frame" style={cropStyle(step.shot, step.crop)} />
+          <div
+            class="mx-auto rounded-frame border border-border bg-card bg-no-repeat shadow-frame"
+            style={{ ...cropStyle(step.shot, step.crop), maxWidth: cropMaxWidth(step.shot, step.crop) }}
+          />
         </div>
       </div>
     ))

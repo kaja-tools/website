@@ -9,7 +9,7 @@
    the last beat is a strip of the call log rather than the whole console,
    because what it has to show is the row. */
 import { agentCalls } from "../data/home";
-import { cropStyle, shots } from "../data/shots";
+import { cropMaxWidth, cropStyle, shots } from "../data/shots";
 import Snippet from "./Snippet.astro";
 import * as snippets from "../data/snippets";
 
@@ -38,7 +38,11 @@ const dot = "absolute top-1.5 left-0 size-1.5 -translate-x-1/2 rounded-full bg-m
   <li class={beat}>
     <span class={dot}></span>
     <p class={label}>It runs, and every call lands in Kaja</p>
-    <div class="mt-3 rounded-frame border border-border bg-card bg-no-repeat shadow-frame" style={cropStyle(shots.run, agentCalls)}></div>
+    <div
+      class="mt-3 rounded-frame border border-border bg-card bg-no-repeat shadow-frame"
+      style={{ ...cropStyle(shots.run, agentCalls), maxWidth: cropMaxWidth(shots.run, agentCalls) }}
+    >
+    </div>
     <p class="mt-3 text-prose/[1.7] text-pretty text-muted-foreground">The run, the calls it made and what came back, in the console your own runs land in.</p>
   </li>
 </ol>
