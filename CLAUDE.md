@@ -133,7 +133,7 @@ back.
 
 ```
 home/
-  src/pages/       one file per route (index, docs, privacy, 404)
+  src/pages/       one file per route (index, docs/[platform], privacy, 404)
   src/layouts/     the page shell — <head>, header, footer
   src/components/  everything reused across pages
   src/data/        the lists a page is built from, out of its markup
@@ -237,21 +237,31 @@ home/
   **a crop wider than about 8:1 is a band on a phone**, 40px tall and legible
   only as texture — spend those on strips that read as one line, a call row or
   a tile strip, rather than on anything with rows to read.
-- **The docs are one page, not one per platform** (`src/pages/docs.astro`),
+- **The docs are one source file and two pages** (`src/pages/docs/[platform].astro`),
   and they are the core flow and nothing else: install, connect an app, run a
   script, keep a secret, run a script from outside, point an agent at it.
   **The two builds have two audiences**, and a section is written for each
   where they differ: the desktop does everything in the window and never
   shows you `kaja.json`, so its blocks name the buttons; the container is set
   up from the files you mount, so its blocks show the file. What is true of
-  both is written once. `<Platform only="desktop">` / `only="docker"` are the
-  blocks and the toggle picks between them clientside — **Desktop first, and
-  the default**, with Docker as the variant. A reader with no JavaScript gets
-  both blocks, labelled, by the `noscript` rule at the foot of the page.
-- `data/docs.ts` is the section list — the nav and the scroll spy read it, so
+  both is written once, in the one file both pages are built from, because a
+  second file would fork every paragraph to keep two copies of four
+  differences.
+- **Which build you are reading for is the URL** — `/docs/desktop/` and
+  `/docs/docker/`, with `/docs` redirecting to Desktop, which is the one a
+  reader gets if they have not said. So a docs link says which build it was
+  written for and lands a reader on it, and the two pages are indexed apart,
+  each with its own title and description from `builds` in `data/docs.ts`.
+  `<Platform only="desktop">` / `only="docker"` are the blocks, and a block
+  that is not this page's build is never rendered rather than hidden — there
+  is nothing clientside to pick, and no `noscript` rule to need. Switching
+  build is a navigation, so `DocsMotion` puts the section being read on the
+  other page's link: you come out where you went in.
+- `data/docs.ts` is the section list and the two builds — the nav and the
+  scroll spy read the sections, so
   a section is added there and its body written in the page under the same
   `id`. **A screenshot sits in the copy, under the thing it shows**
-  (`Figure.astro`, from the `figures` table in `docs.astro`), and inside one
+  (`Figure.astro`, from the `figures` table in `docs/[platform].astro`), and inside one
   platform's block where the two builds differ; a section with nothing worth
   showing has none rather than borrowing a picture of something else. A crop
   is read at the width of the column, which is about a quarter of the shot's,

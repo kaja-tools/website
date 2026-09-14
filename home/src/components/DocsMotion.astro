@@ -1,41 +1,30 @@
 ---
-/* The docs page's one scroll listener, and its one click handler — the same
-   arrangement `Motion.astro` makes for the home page:
+/* The docs page's one scroll listener — the same arrangement `Motion.astro`
+   makes for the home page:
 
      data-docs-section   a section, read to work out which one is being read
      data-docs-link      its link in the sidebar, lit while it is
-     data-platform-pick  the Desktop/Docker toggle
+     data-platform-pick  the Desktop/Docker links
 
    Nothing here moves: the sidebar's link lights on the section being read,
-   and the screenshots are in the copy where they were written. */
+   and the screenshots are in the copy where they were written.
+
+   Which build the page is for is the URL now, so there is nothing to pick.
+   What is left is that switching build is a navigation: the links carry the
+   section being read, so the other build's page opens where this one was
+   rather than at the top. */
 ---
 
 <script>
-  const wrap = document.querySelector<HTMLElement>("[data-docs-platform]");
   const sections = [...document.querySelectorAll<HTMLElement>("[data-docs-section]")];
   const links = [...document.querySelectorAll<HTMLElement>("[data-docs-link]")];
-  const picks = [...document.querySelectorAll<HTMLButtonElement>("[data-platform-pick]")];
+  const picks = [...document.querySelectorAll<HTMLAnchorElement>("[data-platform-pick]")];
 
-  const STORE = "kaja-docs-platform";
+  // The page each build link points at, kept apart from the section spy
+  // appends, so the hash is replaced rather than piled onto.
+  const pages = new Map(picks.map((pick) => [pick, pick.getAttribute("href") ?? ""]));
 
-  function pick(platform: string) {
-    if (!wrap) return;
-    wrap.dataset.docsPlatform = platform;
-    for (const button of picks) button.setAttribute("aria-pressed", String(button.dataset.platformPick === platform));
-    try {
-      localStorage.setItem(STORE, platform);
-    } catch {
-      // A browser that refuses storage still gets the toggle, just not the memory of it.
-    }
-    // The blocks that appeared or went are above the fold as often as below
-    // it, so where you are in the page has just changed.
-    live = -1;
-    spy();
-  }
-
-  for (const button of picks) button.addEventListener("click", () => pick(button.dataset.platformPick ?? "desktop"));
-
-  let live = -1;
+  let live = -2;
 
   function spy() {
     if (!sections.length) return;
@@ -43,21 +32,27 @@
     // The section being read is the last one whose top has passed the upper
     // third of the window — near enough to where the eye sits, and it never
     // leaves the first section highlighted while its heading is off-screen.
+    // Above the first of them nothing has been reached, which is what -1 is.
     const mark = window.innerHeight * 0.42;
-    let index = 0;
+    let reached = -1;
     sections.forEach((section, i) => {
-      if (section.getBoundingClientRect().top <= mark) index = i;
+      if (section.getBoundingClientRect().top <= mark) reached = i;
     });
-    if (index === live) return;
-    live = index;
+    if (reached === live) return;
+    live = reached;
 
+    const index = Math.max(reached, 0);
     links.forEach((link, i) => {
       if (i === index) link.setAttribute("aria-current", "page");
       else link.removeAttribute("aria-current");
     });
+
+    // Still in the intro means there is no section to carry, and the other
+    // build's page should open at its top.
+    const id = reached < 0 ? "" : sections[reached].id;
+    for (const pick of picks) pick.setAttribute("href", id ? `${pages.get(pick)}#${id}` : (pages.get(pick) ?? ""));
   }
 
-  pick(wrap?.dataset.docsPlatform ?? "desktop");
   window.addEventListener("scroll", spy, { passive: true });
   window.addEventListener("resize", spy);
   spy();
