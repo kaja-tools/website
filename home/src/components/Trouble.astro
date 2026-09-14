@@ -1,0 +1,21 @@
+---
+/* One thing that goes wrong, in the order a reader meets it: what they see,
+   why it happens, and the one thing to do about it. The symptom is the lead —
+   usually the message the app itself shows, word for word — and the slot is
+   the cause and the fix, two sentences.
+
+   It looks like `Note` because both are asides, and it is a component of its
+   own because a troubleshooting item is a fixed shape: a `Note` says one
+   thing, this says three. Only cases confirmed in the app belong here. */
+interface Props {
+  /* What the reader sees. The app's own words where the app has some. */
+  symptom: string;
+}
+
+const { symptom } = Astro.props;
+---
+
+<div class="rounded-lg border border-border bg-card px-4 py-3.5">
+  <p class="text-sm/[1.6] font-medium text-foreground">{symptom}</p>
+  <p class="mt-1 text-sm/[1.6] text-muted-foreground"><slot /></p>
+</div>
