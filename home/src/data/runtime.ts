@@ -49,7 +49,7 @@ export const verbs: Verb[] = [
     use: "Show tabular results, including paged data.",
     says: [
       "Draw a table on the canvas. You can add rows and update them while the script runs. A cell can also be a promise or a function, and Kaja fills it in when the work finishes.",
-      "For a large result set, pass a row source instead of an array — an async generator that yields a page at a time. Kaja pages through it and searches it.",
+      "For a large result set, pass a row source instead of an array: an async generator that yields a page at a time. Kaja pages through it and searches it.",
     ],
     code: snippets.table,
     file: "scripts/movies.ts",

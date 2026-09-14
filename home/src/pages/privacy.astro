@@ -5,21 +5,38 @@ const heading = "mb-2 text-base font-semibold";
 const body = "mb-8 text-prose/[1.7] text-muted-foreground last:mb-0";
 ---
 
-<Layout title="Privacy Policy - Kaja" description="Kaja privacy policy. Kaja does not collect, store, or transmit any personal data.">
+<Layout
+  title="Privacy Policy - Kaja"
+  description="Kaja privacy policy. Kaja runs on your own machine or your own server, and sends no data to the Kaja maintainers."
+>
   <section class="mx-auto w-full max-w-doc px-6 pt-16 pb-20 md:px-8 md:pt-20 md:pb-24">
     <h1 class="mb-2 font-display text-title font-semibold tracking-display">Privacy Policy</h1>
-    <p class="mb-12 text-sm text-muted-foreground">Last updated: April 5, 2026</p>
+    <p class="mb-12 text-sm text-muted-foreground">Last updated: September 14, 2026</p>
 
     <h2 class={heading}>No data collection</h2>
     <p class={body}>
-      Kaja is a local-first desktop application. It does not collect, store, or transmit any personal data to Kaja or any third party. All data stays on your
-      machine.
+      Kaja does not collect, store, or transmit any personal data to the Kaja maintainers or to any third party. There is no account and nothing to sign up for.
+    </p>
+
+    <h2 class={heading}>Where Kaja runs</h2>
+    <p class={body}>
+      Kaja is a desktop app you install on your own machine, or a container you run on your own server. Either way it is your installation: the configuration,
+      your scripts and your credentials stay where you put them, and no server operated by the Kaja maintainers is involved.
     </p>
 
     <h2 class={heading}>Service connections</h2>
     <p class={body}>
-      When you configure connections to your own gRPC, OpenAPI, MCP or Twirp services, the request data you enter is sent directly to those user-specified
-      servers. Kaja does not intermediate, log, or store this traffic.
+      Calls to the gRPC, OpenAPI, MCP and Twirp services you configure go to those services. Kaja carries the call: from your machine on the desktop, from your
+      own server in the container. The traffic passes through your installation and nowhere else. Nothing is logged or stored beyond the run history the app
+      keeps locally so you can read a response again.
+    </p>
+
+    <h2 class={heading}>The hosted demo</h2>
+    <p class={body}>
+      The demo at{" "}
+      <a href="https://demo.kaja.tools" class="text-foreground underline underline-offset-3" target="_blank" rel="noopener">demo.kaja.tools</a> is the one Kaja the
+      maintainers run, and calls you make there pass through it. It is there to try Kaja against the demo services; use your own installation for anything of your
+      own.
     </p>
 
     <h2 class={heading}>Analytics and tracking</h2>

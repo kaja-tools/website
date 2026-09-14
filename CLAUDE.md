@@ -157,6 +157,13 @@ home/
 - Tailwind's preset `text-*` sizes carry their own `line-height`, and the
   design's body copy runs looser than the presets do, so pin it with the slash
   modifier (`text-lg/[1.6]`) wherever the design gives a line height.
+- **No em dash in the copy.** Anything a visitor reads is copy: a heading, a
+  paragraph, a caption, a figure's line, a troubleshooting case, a `use` line
+  in `data/runtime.ts`. It breaks at a full stop, a colon or a comma instead.
+  An em dash reads as generated copy, and the sentence it joins is usually two
+  sentences that are clearer apart. The prose in this file and in the source
+  comments is not copy and keeps them, and a `—` standing alone in a snippet
+  as an empty cell is a glyph rather than a sentence.
 - The brand mark's gradient is `Mark.astro` and the two favicons; the docs'
   snippet tags borrow its stops. The only other non-neutral colour is the amber
   of the docs' watch note (`Note.astro`) and the red `ink` the home page marks
