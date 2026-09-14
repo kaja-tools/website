@@ -138,8 +138,8 @@ export const features: Item[] = [
   {
     caption: "Percentiles computed from the calls the run already made.",
     shot: shots.stats,
-    crop: { x: 0.0, y: 0.006, w: 0.65, h: 0.125 },
-    highlight: { x: 0.385, y: 0.414, w: 0.385, h: 0.512 },
+    crop: { x: 0.0, y: 0.053, w: 0.65, h: 0.073 },
+    highlight: { x: 0.385, y: 0.02, w: 0.385, h: 0.95 },
     cropCell: "md:col-start-1 md:col-end-13 md:row-start-1",
     statementCell: "md:col-start-5 md:col-end-13 md:row-start-2",
     align: "right",
