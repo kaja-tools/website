@@ -6,10 +6,13 @@
    `describe_type "kaja"`, which is what `declaration` links to. That file is
    checked by the compiler against the runtime it declares, so it cannot drift
    from the code the way a second telling here would; keep this list to the
-   sentence that says whether the verb is the one you want.
+   sentences that say whether the verb is the one you want.
 
-   Add a verb as a row. Add a `code` only where the sentence cannot say the
-   shape, and keep it to the form the page hasn't already shown. */
+   Add a verb as a row. `use` is the line it gets in the summary table above
+   the list, so it is what you reach for the verb to do and nothing else. Add
+   a `code` only where the sentences cannot say the shape, and keep it to the
+   form the page hasn't already shown. */
+import type { Platform } from "./docs";
 import * as snippets from "./snippets";
 import { shots, snaps, type Crop, type Shot } from "./shots";
 
@@ -17,7 +20,14 @@ export const declaration = "https://github.com/wham/kaja/blob/main/ui/src/kajaMo
 
 export interface Verb {
   name: string;
-  says: string;
+  /* The right-hand column of the summary table: what you use it to do. */
+  use: string;
+  /* The entry itself, one paragraph per element. */
+  says: string[];
+  /* Where the two builds differ, what replaces `says` on that build's page.
+     Only the desktop holds variable values itself, so only kaja.variables
+     needs this. */
+  saysOn?: Partial<Record<Platform, string[]>>;
   /* A snippet from `data/snippets.ts`, shown under the row. */
   code?: string;
   /* The file name on the snippet's title bar. The real script's, where the
@@ -28,10 +38,19 @@ export interface Verb {
   figure?: { shot: Shot; crop?: Crop; caption?: string };
 }
 
+/* The paragraphs this build reads for a verb. */
+export function saysFor(verb: Verb, platform: Platform): string[] {
+  return verb.saysOn?.[platform] ?? verb.says;
+}
+
 export const verbs: Verb[] = [
   {
     name: "kaja.table",
-    says: "Draw a table. Rows appear as they are added and can be rewritten once the work behind them finishes, and a cell can be a promise the table waits for. Hand the rows over as a source instead and the table pages and searches itself.",
+    use: "Show tabular results, including paged data.",
+    says: [
+      "Draw a table on the canvas. You can add rows and update them while the script runs. A cell can also be a promise or a function, and Kaja fills it in when the work finishes.",
+      "For a large result set, pass a row source instead of an array — an async generator that yields a page at a time. Kaja pages through it and searches it.",
+    ],
     code: snippets.table,
     file: "scripts/movies.ts",
     figure: {
@@ -40,10 +59,18 @@ export const verbs: Verb[] = [
       caption: "What that script draws. The rows are one page of a thousand; the box searches them.",
     },
   },
-  { name: "kaja.text, kaja.code", says: "Draw a line, or a block of code." },
+  {
+    name: "kaja.text, kaja.code",
+    use: "Add text or code to the canvas.",
+    says: ["Add a line of text or a block of code to the canvas."],
+  },
   {
     name: "kaja.askStr, askInt, askSelect",
-    says: "Pause the run and ask for a value: text, a whole number, or one of a list. The question is drawn on the canvas and the run waits there, and the answer arrives as the kind that was asked for, so picking from a list of records hands the record back.",
+    use: "Ask the user for input while a script runs.",
+    says: [
+      "Pause the script and ask the user for text, a whole number, or a choice from a list. The question appears on the canvas, and the script continues after the user answers.",
+      "askSelect returns the value attached to the option that was picked, including an object if you provided one.",
+    ],
     code: snippets.ask,
     file: "scripts/a-night-out.ts",
     figure: {
@@ -53,16 +80,25 @@ export const verbs: Verb[] = [
   },
   {
     name: "kaja.approve",
-    says: "Hold a call until you press Approve. Use it for writes.",
+    use: "Require approval before sending a call.",
+    says: ["Require approval before sending a call. Use this for operations that create, update, or delete data."],
     figure: {
       shot: snaps.approve,
       caption: "The request the call would send, drawn where the run stopped. Nothing leaves until Approve is pressed.",
     },
   },
-  { name: "kaja.run", says: "A cell that runs another script when it is clicked." },
+  {
+    name: "kaja.run",
+    use: "Run another script from a table cell.",
+    says: ["Put a cell in a table that runs another script when you click it."],
+  },
   {
     name: "kaja.rateLimit",
-    says: "Obey an API's own rate limit. Nothing is paced until you ask; after that the calls below are spread under the budget it publishes, and held rather than refused once that is spent.",
+    use: "Keep calls within an API's rate limit.",
+    says: [
+      "Keep calls within the rate limit an API publishes. Nothing is paced until you call this. After that Kaja spreads the calls out, and waits when the remaining budget is spent.",
+      "Kaja reads the budget from the response headers: RateLimit-Limit, RateLimit-Remaining and RateLimit-Reset, the X-RateLimit- and X-Rate-Limit- spellings of the same three, and Retry-After. For an API that publishes none of them, set a ceiling yourself with the perSecond option.",
+    ],
     code: snippets.rateLimit,
     file: "scripts/rate-limit.ts",
     figure: {
@@ -72,7 +108,10 @@ export const verbs: Verb[] = [
   },
   {
     name: "kaja.perfTest",
-    says: "Run a body on a schedule, and open the run on its Stats page.",
+    use: "Run a timed performance test.",
+    says: [
+      "Run a function over and over on a schedule: a duration or a number of iterations, plus concurrency, warmup and ramp-up. Kaja opens the run on its Stats page.",
+    ],
     code: snippets.perfTest,
     file: "scripts/how-fast.ts",
     figure: {
@@ -83,12 +122,33 @@ export const verbs: Verb[] = [
   },
   {
     name: "kaja.input",
-    says: "What a deeplink, or a kaja.run cell, handed this run — kaja.input.city. Every value is text, and Run sends the last run's again.",
+    use: "Read input passed to the script.",
+    says: [
+      "Read the values a deeplink or a kaja.run cell passed to this run, by name: kaja.input.city.",
+      "Every value arrives as a string. Run repeats the values the script last ran with, so a script keeps what it was last given. Run with parameters opens those values for editing first.",
+    ],
   },
-  { name: "kaja.variables", says: "The workspace's variables. One whose value this machine holds rather than kaja.json reads the same way." },
-  { name: "kaja.uuidV4", says: "A random UUID, and what crypto.randomUUID() is inside a script." },
+  {
+    name: "kaja.variables",
+    use: "Read workspace variables.",
+    says: ["Read the workspace's variables."],
+    saysOn: {
+      desktop: [
+        "Read the workspace's variables. A variable stored in the Keychain, or read from an environment variable, works the same way as one typed into the workspace.",
+      ],
+      docker: [
+        "Read the variables defined in kaja.json. A secret is resolved inside the container, so a script reads the ${NAME} placeholder rather than the value.",
+      ],
+    },
+  },
+  {
+    name: "kaja.uuidV4",
+    use: "Generate a UUID.",
+    says: ["Generate a random UUID. Inside a script, crypto.randomUUID() is this same function."],
+  },
   {
     name: "kaja.value, struct, listValue",
-    says: "Build a google.protobuf.Value, Struct or ListValue from a plain JSON value, rather than writing its oneof out by hand.",
+    use: "Build protobuf values from JavaScript values.",
+    says: ["Convert a plain JavaScript value to a google.protobuf.Value, Struct or ListValue. Kaja builds the oneof fields for you."],
   },
 ];

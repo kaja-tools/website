@@ -238,8 +238,12 @@ home/
   only as texture — spend those on strips that read as one line, a call row or
   a tile strip, rather than on anything with rows to read.
 - **The docs are one source file and two pages** (`src/pages/docs/[platform].astro`),
-  and they are the core flow and nothing else: install, connect an app, run a
-  script, keep a secret, run a script from outside, point an agent at it.
+  and they are the core flow and nothing else: install, connect an app, make
+  the first call, write a script, reach for a helper, keep files, keep a
+  secret, run a script from outside, point an agent at it. **The voice is a
+  person explaining Kaja to another developer** — what a thing does first,
+  then how to do it, in short sentences that name the button. No claim goes in
+  that the app, the server or `ui/src/kajaModule.ts` does not confirm.
   **The two builds have two audiences**, and a section is written for each
   where they differ: the desktop does everything in the window and never
   shows you `kaja.json`, so its blocks name the buttons; the container is set
@@ -268,9 +272,18 @@ home/
   so a region wider than about two thirds of the shot is a picture nobody can
   read the words in; one taller than it is wide is capped by `--size-figure`
   and stands beside the copy instead of filling it.
-- **The `kaja.*` verbs in the Scripts section are `data/runtime.ts`, and they
-  are an index, not a reference.** One sentence each, a snippet only where the
-  sentence cannot say the shape, and one link at the foot of the list to
+- **Troubleshooting is `Trouble.astro`, and it lives in the section it belongs
+  to** rather than collected at the foot of the page: the symptom in the app's
+  own words, then the cause and the one thing to try. A case that cannot be
+  reproduced in the current product is left out rather than guessed at.
+- **Keyboard shortcuts are the desktop's to spell in `⌘` symbols.** The
+  container is read in a browser on Windows and Linux too, so its blocks name
+  the control (**Run**, **Files**) and give a key only in the form the window
+  itself draws off a Mac (`Ctrl+⏎`).
+- **The `kaja.*` verbs in the Kaja helpers section are `data/runtime.ts`, and
+  they are an index, not a reference.** A `use` line for the summary table at
+  the top of the section and a sentence or two for the entry under it, a
+  snippet only where the sentences cannot say the shape, and one link at the foot of the list to
   `ui/src/kajaModule.ts` in [wham/kaja](https://github.com/wham/kaja) — the
   declaration the editor completes against and an agent reads through
   `describe_type "kaja"`, which the compiler checks against the runtime. Never

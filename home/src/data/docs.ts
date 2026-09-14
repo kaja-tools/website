@@ -15,7 +15,10 @@ export interface Section {
 export const sections: Section[] = [
   { id: "installation", label: "Installation" },
   { id: "apps", label: "Apps" },
-  { id: "scripts", label: "Scripts" },
+  { id: "first-call", label: "Run your first call" },
+  { id: "scripts", label: "Writing scripts" },
+  { id: "helpers", label: "Kaja helpers" },
+  { id: "files", label: "Files and drafts" },
   { id: "variables", label: "Variables" },
   { id: "deeplinks", label: "Deeplinks" },
   { id: "agents", label: "Agents" },
