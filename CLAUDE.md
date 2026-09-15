@@ -167,6 +167,13 @@ home/
 - The brand mark's gradient is `Mark.astro` and the two favicons; the docs'
   snippet tags borrow its stops. The only other non-neutral colour is the amber
   of the docs' watch note (`Note.astro`).
+- **The favicon is kaja's own** (`server/static/favicon.*` in
+  [wham/kaja](https://github.com/wham/kaja)), copied byte for byte, so a tab of
+  the site and a tab of the app wear one mark. It is the bare mark on a
+  transparent square: the dark plate it used to sit on was a tile the browser
+  drew a light backing ring around in a dark tab strip, and the same tile is
+  what showed as a ring inside the white circle a search result draws a favicon
+  in. Nothing about it is the site's to restyle.
 - **The four protocol marks are kaja's own** (`ui/src/protocolMarks.ts` in
   [wham/kaja](https://github.com/wham/kaja)), copied into `Icon.astro` the way
   the lucide glyphs are, so the site and the app draw the same thing. They are

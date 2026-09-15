@@ -1,16 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" role="img" aria-label="Kaja">
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="1.25 1.25 45.5 45.5" fill="none" role="img" aria-label="Kaja">
   <defs>
-    <linearGradient id="kajaIcon" x1="4" y1="4" x2="44" y2="44" gradientUnits="userSpaceOnUse">
+    <linearGradient id="kajaFav" x1="4" y1="4" x2="44" y2="44" gradientUnits="userSpaceOnUse">
       <stop stop-color="#B0503F"/>
       <stop offset="1" stop-color="#8A35D8"/>
     </linearGradient>
   </defs>
 
-  <rect width="1024" height="1024" rx="224" fill="#0A0A0A"/>
-
-  <g transform="translate(73 73) scale(18.29)">
-    <path d="M4 29 H13 L19 13 L28 35 L33 24 H44"
-          stroke="url(#kajaIcon)" stroke-width="5.5"
-          stroke-linecap="round" stroke-linejoin="round"/>
-  </g>
+  <path d="M4 29 H13 L19 13 L28 35 L33 24 H44"
+        stroke="url(#kajaFav)" stroke-width="5.5"
+        stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
