@@ -166,8 +166,7 @@ home/
   as an empty cell is a glyph rather than a sentence.
 - The brand mark's gradient is `Mark.astro` and the two favicons; the docs'
   snippet tags borrow its stops. The only other non-neutral colour is the amber
-  of the docs' watch note (`Note.astro`) and the red `ink` the home page marks
-  the screenshot up in.
+  of the docs' watch note (`Note.astro`).
 - **The four protocol marks are kaja's own** (`ui/src/protocolMarks.ts` in
   [wham/kaja](https://github.com/wham/kaja)), copied into `Icon.astro` the way
   the lucide glyphs are, so the site and the app draw the same thing. They are
@@ -175,7 +174,7 @@ home/
   together — the hero diagram and the app types in the docs — which is what the
   hero's coloured dots used to do badly. Don't draw a
   fifth: a mark exists per protocol, not per idea.
-- **The hero's drawing is the app's own map** (`ui/src/McpMap.tsx`), ported
+- **The hero's drawing is the app's own map** (`ui/src/KajaMap.tsx`), ported
   stroke for stroke: an agent, Kaja drawn as its own canvas, the four
   protocols. It is what says "you and your agents" before a word of the page is
   read. Three weights and no colour — `wire` for the wires and the canvas blocks,
@@ -185,7 +184,10 @@ home/
   twice. The site's own layer is the entrance, and the one thing not ported
   verbatim is the width of the app cards, because the site's body face is wider
   than the app's. Below `md` the drawing is too small to read, so the same five
-  things are a plain stack of cards.
+  things are a plain stack of cards. **The line under it is the tagline's own
+  last sentence**, so the drawing and the copy above it make one claim rather
+  than two wordings of one; changing it here is changing it in kaja's
+  `KajaMap.tsx` and `docs/how-it-works.svg` too.
 - **The eight screenshots are `data/shots.ts`, and every picture of the whole
   window is a crop of one** — the home page's, and the docs figures taken
   before the docs took their own (`snaps`, below). The shots are the window at 2880x1800, zoomed to 125%, which is what
@@ -206,26 +208,26 @@ home/
   not what the app is proud of: the hero, the flow through the window, what an
   agent does inside it, what a call leaves behind, using it by hand, the way it
   differs from a client built on saved collections, the protocols and the
-  agent, what the window does beyond a request, the source, and the way in
-  again. The hero asks for the demo and offers the download second, because
+  agent, and the way in again. **A rung says its thing once.** The page was a
+  run of statements set against annotated close-ups of the window, and each
+  one turned out to be a section's own heading said a second time with a red
+  line drawn to it, so the whole apparatus is gone rather than reworded. A
+  section that cannot make its argument without a picture of the control is a
+  section the page does not need. The hero asks for the demo and offers the download second, because
   nothing has to be installed to see Kaja work; the header's one button is the
   demo for the same reason. The page returns to that same ask at the foot,
   unchanged — the last section is the hero's two buttons and no new claim.
-- **The ladder has three rungs, and `level` is which one a section is on.**
-  `lead` is the product story — the hero, the flow, the agent, the record —
-  and it is set at full size. `support` is what makes Kaja different from
-  another client, a size down. `minor` is the capabilities around the request,
-  a size down again. `Poster`'s `tone` is the same decision for the statements
-  a section brings: `lead` for the record, `quiet` for everything under it,
-  which is smaller type and less air between the items. The page gets quieter
-  as it goes, so a visitor who reads to the end has met one story rather than
-  a feature catalogue. Add a section at the level its argument belongs to
-  rather than at the size that would get it noticed.
+- **`level` is which rung of the ladder a section is on.** `lead` is the
+  product story — the hero, the flow, the agent, the record — and it is set at
+  full size. `support` is what makes Kaja different from another client, a
+  size down. `minor` is a size down again and nothing is set at it today; it
+  stays because the scale is the page's, not one section's. The page gets
+  quieter as it goes, so a visitor who reads to the end has met one story
+  rather than a feature catalogue. Add a section at the level its argument
+  belongs to rather than at the size that would get it noticed.
 - **A heading counts nothing that can change.** "Your APIs. Your agent." rather
   than the number of protocols and agents in the list, so the page does not go
-  stale the week an agent is added. The same goes for a statement in
-  `poster.ts`: it is the thing and what it is good for, in one sentence,
-  because the crop beside it already shows the control.
+  stale the week an agent is added.
 - **The flow is explained once, as three steps** (`Flow.astro`, from `steps` in
   `data/home.ts`): connect, run, inspect. Each step is the copy and the piece
   of the window it happens in, stacked down the page rather than set in a row,
@@ -234,15 +236,6 @@ home/
 - **The agent section is one task end to end** (`AgentTask.astro`): a sentence
   somebody typed, the script the agent wrote, and the calls landing in the
   console. Three beats down one rail, because the claim is the order.
-- **The statements set against a crop are `Poster.astro`, and they come in
-  groups** — `manual`, `record`, `agents` and `features` in `data/poster.ts`,
-  each brought by the section that makes its argument rather than run together
-  at the foot of the page. `app-hero.png` is shown whole under the hero and
-  carries several of the crops for nothing. Each statement has a red line to a
-  box around the thing it names; the line and the box are geometry
-  `Motion.astro` measures, because both halves drift as the page scrolls, so
-  without script the page is the statements and the crops and no ink. A new
-  statement is an entry in one of those groups, not markup.
 - **A crop is read at about two thirds of the width it was taken at**, so a
   region wider than about half the shot is a picture of text nobody can read.
   Keep the flow's and the agent section's crops under that, and remember that
@@ -315,13 +308,11 @@ home/
   custom properties rather than repeating them, so the palette stays in
   `global.css`. Keep a snippet narrow enough to fit the column; one you have
   to scroll sideways is one nobody finishes.
-- **Everything scroll-driven is a data attribute `Motion.astro` reads** —
-  `data-parallax` and `data-ink-item`. There is one scroll listener on the site
-  and it lives there; a section stays plain markup. The drift is decorative and
-  drops out under `prefers-reduced-motion`; the ink runs either way, because
-  the line and the box are how a statement points at the thing it is about, and
-  the reduced-motion rule already collapsed the drawing to an instant. The docs
-  page has its own one listener, `DocsMotion.astro`, on the same rule.
+- **Nothing on the home page is scroll-driven, and it has no script at all.**
+  The parallax and the annotation ink went with the statements they served, so
+  the page is markup and the entrance animation CSS owns. The docs page has the
+  site's one listener, `DocsMotion.astro`, and a scroll effect that comes back
+  belongs there or in a file of its own rather than inline in a section.
 
 Commands, all from `home/`:
 

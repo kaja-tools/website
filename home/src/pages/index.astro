@@ -1,32 +1,22 @@
 ---
 /* The home page, in the order a visitor needs it: what Kaja is, the one flow
-   through it, what an agent does inside it and what it leaves behind, then
-   the window's own features, and the way in again at the end.
+   through it, what an agent does inside it and what it leaves behind, and the
+   way in again at the end.
 
-   It is read at three levels, and a section's `level` is which one it is on.
+   It is read at two levels, and a section's `level` is which one it is on.
    The product story is the hero, the flow, the agent and the record, and it
    is set at full size. What makes Kaja different from another client — using
    it by hand, scripts rather than collections, the protocols and the agent —
-   is a size down. The capabilities around the request are a size down again,
-   because they are what the window also does and not another argument. The
-   page gets quieter as it goes, so a visitor who reads to the end has met one
-   story and not a catalogue.
-
-   The statements set against a crop of the app are `Poster`, and they come in
-   groups — each section brings the ones that make its argument rather than
-   the page ending in one long run of them — at the tone of the section that
-   brings them. */
+   is a size down. The page gets quieter as it goes, so a visitor who reads to
+   the end has met one story and not a catalogue. */
 import Layout from "../layouts/Layout.astro";
 import AgentTask from "../components/AgentTask.astro";
 import Button from "../components/Button.astro";
 import Canvas from "../components/Canvas.astro";
 import Flow from "../components/Flow.astro";
 import Icon from "../components/Icon.astro";
-import Motion from "../components/Motion.astro";
-import Poster from "../components/Poster.astro";
 import Section from "../components/Section.astro";
 import { modes, promises, protocols } from "../data/home";
-import * as poster from "../data/poster";
 
 const frame = "mx-auto w-full max-w-page px-6 md:px-8";
 
@@ -71,7 +61,7 @@ const label = "font-display text-lg font-semibold tracking-display";
           Download for Mac
         </Button>
       </div>
-      <p class="mt-4 animate-rise text-fine text-muted-foreground opacity-0" style={{ animationDelay: "0.34s" }}>No setup &mdash; opens a demo API.</p>
+      <p class="mt-4 animate-rise text-fine text-muted-foreground opacity-0" style={{ animationDelay: "0.34s" }}>No setup. Opens a demo API.</p>
     </div>
 
     <div class="mt-10 md:mt-12"><Canvas /></div>
@@ -106,16 +96,13 @@ const label = "font-display text-lg font-semibold tracking-display";
     <div class="mt-10 grid gap-6 sm:grid-cols-3 md:mt-12">
       {promises.map((line) => <p class:list={[rule, subhead]}>{line}</p>)}
     </div>
-    <Poster items={poster.record} />
   </Section>
 
   <Section
     title="Use it yourself, too."
     level="support"
     lead="Browse methods, fill in parameters, send requests and inspect responses, just like a traditional API client. Your requests and your agent's requests live in the same history."
-  >
-    <Poster items={poster.manual} tone="quiet" />
-  </Section>
+  />
 
   <Section
     title="Built around scripts, not collections."
@@ -156,25 +143,6 @@ const label = "font-display text-lg font-semibold tracking-display";
         ))
       }
     </div>
-    <Poster items={poster.agents} tone="quiet" />
-  </Section>
-
-  <Section title="More than requests." level="minor" lead="A run is a script, so it can do more than send one request and print it.">
-    <Poster items={poster.features} tone="quiet" />
-  </Section>
-
-  <Section
-    title="Open source, and yours to run."
-    level="minor"
-    lead="Kaja is developed in the open on GitHub. Install the Mac app, or run the container beside your services and keep one configuration in git."
-  >
-    <div class="mt-8 flex flex-wrap gap-3">
-      <Button href="https://github.com/wham/kaja" variant="outline" target="_blank" rel="noopener">
-        <Icon name="github" />
-        GitHub
-      </Button>
-      <Button href="/docs/desktop/" variant="outline">Read the docs</Button>
-    </div>
   </Section>
 
   {
@@ -192,6 +160,4 @@ const label = "font-display text-lg font-semibold tracking-display";
       </Button>
     </div>
   </section>
-
-  <Motion />
 </Layout>
