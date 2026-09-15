@@ -44,12 +44,6 @@
   --color-approve: #f59e0b;
   --color-approve-foreground: #fbbf24;
 
-  /* The red the home page marks the screenshot up in: the line from a
-     statement to the box around the thing it names. It is the only colour on
-     that page, which is what makes it read as an annotation over the app
-     rather than as part of it. */
-  --color-ink: #ef4444;
-
   /* The docs' code blocks. Three hues and two greys: a key or a keyword takes
      the cool stop, a string the warm one, a number or a literal the sky — the
      same three the mark and the snippet tags are drawn in, lightened until
@@ -101,15 +95,6 @@
   --text-subsection--line-height: 1.12;
   --text-minor: clamp(1.375rem, 2vw, 1.625rem);
   --text-minor--line-height: 1.15;
-
-  /* The home page's statements, which are set against a crop of the app and so
-     grow with the column rather than stepping at a breakpoint. The quiet size
-     is the one the supporting groups are set at, for the same reason the
-     headings step down. */
-  --text-poster: clamp(2.125rem, 4.2vw, 3.5rem);
-  --text-poster--line-height: 1.06;
-  --text-poster-quiet: clamp(1.5rem, 2.8vw, 2.25rem);
-  --text-poster-quiet--line-height: 1.12;
 
   /* Headings tighten as they grow: `display` is every heading and the
      wordmark, `hero` is the one size above them. */
@@ -192,7 +177,7 @@
 
   /* Every animation on the site is decorative and fill-mode `forwards`, so
      collapsing the duration lands on the finished state rather than removing
-     it. Motion.astro drops the scroll-driven effects on the same signal. */
+     it. */
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,

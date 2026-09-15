@@ -1,32 +1,15 @@
 ---
-/* The home page, in the order a visitor needs it: what Kaja is, the one flow
-   through it, what an agent does inside it and what it leaves behind, then
-   the window's own features, and the way in again at the end.
-
-   It is read at three levels, and a section's `level` is which one it is on.
-   The product story is the hero, the flow, the agent and the record, and it
-   is set at full size. What makes Kaja different from another client — using
-   it by hand, scripts rather than collections, the protocols and the agent —
-   is a size down. The capabilities around the request are a size down again,
-   because they are what the window also does and not another argument. The
-   page gets quieter as it goes, so a visitor who reads to the end has met one
-   story and not a catalogue.
-
-   The statements set against a crop of the app are `Poster`, and they come in
-   groups — each section brings the ones that make its argument rather than
-   the page ending in one long run of them — at the tone of the section that
-   brings them. */
+/* The home page: what Kaja is, the one flow through it, what an agent does
+   inside it, and the way in again at the end. Four things, and the agent is
+   the last of them — everything that used to follow was the same claims a
+   second time, so the page stops where its argument does. */
 import Layout from "../layouts/Layout.astro";
 import AgentTask from "../components/AgentTask.astro";
 import Button from "../components/Button.astro";
 import Canvas from "../components/Canvas.astro";
 import Flow from "../components/Flow.astro";
 import Icon from "../components/Icon.astro";
-import Motion from "../components/Motion.astro";
-import Poster from "../components/Poster.astro";
 import Section from "../components/Section.astro";
-import { modes, promises, protocols } from "../data/home";
-import * as poster from "../data/poster";
 
 const frame = "mx-auto w-full max-w-page px-6 md:px-8";
 
@@ -35,13 +18,6 @@ const demo = "https://demo.kaja.tools/";
 
 const tagline =
   "Connect gRPC, OpenAPI, or MCP. Explore APIs yourself, or let an agent write and run typed scripts. Every request stays visible and inspectable.";
-
-const rule = "border-t border-border pt-4";
-/* Two sizes, because the page's levels reach inside a section too: the record's
-   three lines are the argument that section is making, and the two ways of
-   working are the detail under a heading that is already a size down. */
-const subhead = "font-display text-pane font-semibold tracking-display";
-const label = "font-display text-lg font-semibold tracking-display";
 ---
 
 <Layout title="Kaja - The API client for you and your agents" description={tagline}>
@@ -68,10 +44,10 @@ const label = "font-display text-lg font-semibold tracking-display";
         <Button href={demo} size="lg">Try Kaja &rarr;</Button>
         <Button href={appStore} variant="outline" size="lg" target="_blank" rel="noopener">
           <Icon name="apple" />
-          Download for Mac
+          Download on the Mac App Store
         </Button>
       </div>
-      <p class="mt-4 animate-rise text-fine text-muted-foreground opacity-0" style={{ animationDelay: "0.34s" }}>No setup &mdash; opens a demo API.</p>
+      <p class="mt-4 animate-rise text-fine text-muted-foreground opacity-0" style={{ animationDelay: "0.34s" }}>No setup. Opens a demo API.</p>
     </div>
 
     <div class="mt-10 md:mt-12"><Canvas /></div>
@@ -99,84 +75,6 @@ const label = "font-display text-lg font-semibold tracking-display";
     <AgentTask />
   </Section>
 
-  <Section
-    title="Every call is on the record."
-    lead="Whether a request came from you, a script, or an agent, Kaja keeps the request, response, headers, status, duration, and size available for inspection."
-  >
-    <div class="mt-10 grid gap-6 sm:grid-cols-3 md:mt-12">
-      {promises.map((line) => <p class:list={[rule, subhead]}>{line}</p>)}
-    </div>
-    <Poster items={poster.record} />
-  </Section>
-
-  <Section
-    title="Use it yourself, too."
-    level="support"
-    lead="Browse methods, fill in parameters, send requests and inspect responses, just like a traditional API client. Your requests and your agent's requests live in the same history."
-  >
-    <Poster items={poster.manual} tone="quiet" />
-  </Section>
-
-  <Section
-    title="Built around scripts, not collections."
-    level="support"
-    lead="Need one request? Send it directly. Need a workflow? Write a typed script, or let your agent write it. Both produce the same inspectable history."
-  >
-    <div class="mt-8 grid gap-8 md:mt-10 md:grid-cols-2 md:gap-12">
-      {
-        modes.map((mode) => (
-          <div class={rule}>
-            <h3 class={label}>{mode.name}</h3>
-            <p class="mt-1.5 text-prose/[1.6] text-pretty text-muted-foreground">{mode.says}</p>
-          </div>
-        ))
-      }
-    </div>
-  </Section>
-
-  {
-    /* Named for what a visitor brings rather than for what Kaja counts, so
-       the heading survives an agent being added to the list. */
-  }
-  <Section
-    title="Your APIs. Your agent."
-    level="support"
-    lead="Connect through gRPC, OpenAPI, MCP or Twirp, then use Kaja with the coding agent you already work with."
-  >
-    <div class="mt-8 grid gap-x-8 gap-y-6 sm:grid-cols-2 md:mt-10 lg:grid-cols-4">
-      {
-        protocols.map((protocol) => (
-          <div class={rule}>
-            <p class:list={["flex items-center gap-2", label]}>
-              <Icon name={protocol.mark} />
-              {protocol.name}
-            </p>
-            <p class="mt-1.5 text-prose/[1.6] text-pretty text-muted-foreground">{protocol.from}</p>
-          </div>
-        ))
-      }
-    </div>
-    <Poster items={poster.agents} tone="quiet" />
-  </Section>
-
-  <Section title="More than requests." level="minor" lead="A run is a script, so it can do more than send one request and print it.">
-    <Poster items={poster.features} tone="quiet" />
-  </Section>
-
-  <Section
-    title="Open source, and yours to run."
-    level="minor"
-    lead="Kaja is developed in the open on GitHub. Install the Mac app, or run the container beside your services and keep one configuration in git."
-  >
-    <div class="mt-8 flex flex-wrap gap-3">
-      <Button href="https://github.com/wham/kaja" variant="outline" target="_blank" rel="noopener">
-        <Icon name="github" />
-        GitHub
-      </Button>
-      <Button href="/docs/desktop/" variant="outline">Read the docs</Button>
-    </div>
-  </Section>
-
   {
     /* The way out is the way in: the same ask as the hero, in the same order,
        and no new claim at the foot of the page. */
@@ -188,10 +86,8 @@ const label = "font-display text-lg font-semibold tracking-display";
       <Button href={demo} size="lg">Try Kaja &rarr;</Button>
       <Button href={appStore} variant="outline" size="lg" target="_blank" rel="noopener">
         <Icon name="apple" />
-        Download for Mac
+        Download on the Mac App Store
       </Button>
     </div>
   </section>
-
-  <Motion />
 </Layout>

@@ -54,23 +54,3 @@ export const steps: Step[] = [
    The third is a strip of the call log rather than the whole console, because
    the claim is about the row, not the response. */
 export const agentCalls: Crop = { x: 0.206, y: 0.238, w: 0.525, h: 0.119 };
-
-/* What the record section says in three lines, which is the whole argument
-   over an agent that calls an API where you cannot see it. */
-export const promises = ["Agents can act.", "You can inspect.", "Nothing is hidden."];
-
-/* One request against a script, which is the difference from a client built
-   around saved collections. */
-export const modes = [
-  { name: "One request", says: "Pick the method. Kaja writes the call, typed. Press Run." },
-  { name: "A multi-step job", says: "One script: a loop, a join across two apps, a table, an approval before anything is written." },
-];
-
-/* The four protocols and what each one is read from. The marks are kaja's
-   own, so a protocol is recognised here and in the app's tree. */
-export const protocols = [
-  { name: "gRPC", mark: "grpc", from: "Proto files, or server reflection." },
-  { name: "OpenAPI", mark: "openapi", from: "An OpenAPI 3.x document." },
-  { name: "MCP", mark: "mcp", from: "The tools a server lists." },
-  { name: "Twirp", mark: "twirp", from: "Proto files." },
-] as const;
