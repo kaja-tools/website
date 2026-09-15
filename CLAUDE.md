@@ -205,29 +205,30 @@ home/
   is one to take a narrower region of, not to widen the frame for.
 - **The home page is a ladder, and every rung is a section** (`Section.astro`,
   one heading and one line under it). The order is what a visitor needs and
-  not what the app is proud of: the hero, the flow through the window, what an
-  agent does inside it, what a call leaves behind, using it by hand, the way it
-  differs from a client built on saved collections, the protocols and the
-  agent, and the way in again. **A rung says its thing once.** The page was a
-  run of statements set against annotated close-ups of the window, and each
-  one turned out to be a section's own heading said a second time with a red
-  line drawn to it, so the whole apparatus is gone rather than reworded. A
-  section that cannot make its argument without a picture of the control is a
-  section the page does not need. The hero asks for the demo and offers the download second, because
+  not what the app is proud of, and there are three rungs: the flow through
+  the window, what an agent does inside it, and the way in again. **The page
+  stops where its argument does.** Everything that used to follow the agent —
+  what a call leaves behind, using it by hand, scripts against collections,
+  the protocols — was the hero and the flow said a second time, once as a
+  statement set against a red-marked close-up and once as a heading with a
+  grid under it, so both went. A rung earns its place by saying something the
+  three above it have not; a feature the window has is not one. The hero asks
+  for the demo and offers the download second, because
   nothing has to be installed to see Kaja work; the header's one button is the
   demo for the same reason. The page returns to that same ask at the foot,
   unchanged — the last section is the hero's two buttons and no new claim.
-- **`level` is which rung of the ladder a section is on.** `lead` is the
-  product story — the hero, the flow, the agent, the record — and it is set at
-  full size. `support` is what makes Kaja different from another client, a
-  size down. `minor` is a size down again and nothing is set at it today; it
-  stays because the scale is the page's, not one section's. The page gets
-  quieter as it goes, so a visitor who reads to the end has met one story
-  rather than a feature catalogue. Add a section at the level its argument
-  belongs to rather than at the size that would get it noticed.
-- **A heading counts nothing that can change.** "Your APIs. Your agent." rather
-  than the number of protocols and agents in the list, so the page does not go
-  stale the week an agent is added.
+  **The download button is Apple's own wording**, "Download on the Mac App
+  Store", and the header's link is "Mac App Store": the app ships through the
+  store and nowhere else, and "Download for Mac" read as a disk image. kaja's
+  README says it with Apple's badge artwork, which is the same sentence.
+- **`level` is which rung of the ladder a section is on**, and every section
+  is at `lead` today, the page being short enough that nothing has to be set
+  quieter to stop reading as a catalogue. `support` and `minor` are a size
+  down and a size down again, and they stay because the scale is the page's
+  rather than one section's. Add a section at the level its argument belongs
+  to rather than at the size that would get it noticed.
+- **A heading counts nothing that can change**, so it does not name the number
+  of protocols or agents in a list and go stale the week one is added.
 - **The flow is explained once, as three steps** (`Flow.astro`, from `steps` in
   `data/home.ts`): connect, run, inspect. Each step is the copy and the piece
   of the window it happens in, stacked down the page rather than set in a row,
