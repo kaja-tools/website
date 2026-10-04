@@ -5,10 +5,10 @@
    second time, so the page stops where its argument does. */
 import Layout from "../layouts/Layout.astro";
 import AgentTask from "../components/AgentTask.astro";
+import AppStoreBadge from "../components/AppStoreBadge.astro";
 import Button from "../components/Button.astro";
 import Canvas from "../components/Canvas.astro";
 import Flow from "../components/Flow.astro";
-import Icon from "../components/Icon.astro";
 import Section from "../components/Section.astro";
 
 const frame = "mx-auto w-full max-w-page px-6 md:px-8";
@@ -36,18 +36,14 @@ const tagline =
         {tagline}
       </p>
       {
-        /* The demo is the way in: it is the primary button and the app store
-          is the alternative, because nothing has to be installed to see the
-          thing work. */
+        /* The app is the way in: Apple's own badge is the primary ask, and the
+          demo is the alternative for a look before installing. The demo runs
+          in a browser and is not the whole app. */
       }
       <div class="flex animate-rise flex-wrap items-center justify-center gap-3 opacity-0" style={{ animationDelay: "0.28s" }}>
-        <Button href={demo} size="lg">Try Kaja &rarr;</Button>
-        <Button href={appStore} variant="outline" size="lg" target="_blank" rel="noopener">
-          <Icon name="apple" />
-          Download on the Mac App Store
-        </Button>
+        <AppStoreBadge href={appStore} />
+        <Button href={demo} variant="outline" size="lg">Try the live demo &rarr;</Button>
       </div>
-      <p class="mt-4 animate-rise text-fine text-muted-foreground opacity-0" style={{ animationDelay: "0.34s" }}>No setup. Opens a demo API.</p>
     </div>
 
     <div class="mt-10 md:mt-12"><Canvas /></div>
@@ -80,14 +76,13 @@ const tagline =
        and no new claim at the foot of the page. */
   }
   <section class:list={[frame, "pt-24 pb-24 text-center md:pt-36 md:pb-32"]}>
-    <h2 class="mx-auto max-w-headline font-display text-3xl/[1.1] font-bold tracking-display text-balance md:text-cta">Try Kaja.</h2>
-    <p class="mx-auto mt-4 max-w-tagline text-intro/[1.6] text-pretty text-muted-foreground">Explore an API in the live demo. No setup required.</p>
+    <h2 class="mx-auto max-w-headline font-display text-3xl/[1.1] font-bold tracking-display text-balance md:text-cta">Get Kaja.</h2>
+    <p class="mx-auto mt-4 max-w-tagline text-intro/[1.6] text-pretty text-muted-foreground">
+      Download it for your Mac, or explore an API in the live demo first.
+    </p>
     <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
-      <Button href={demo} size="lg">Try Kaja &rarr;</Button>
-      <Button href={appStore} variant="outline" size="lg" target="_blank" rel="noopener">
-        <Icon name="apple" />
-        Download on the Mac App Store
-      </Button>
+      <AppStoreBadge href={appStore} />
+      <Button href={demo} variant="outline" size="lg">Try the live demo &rarr;</Button>
     </div>
   </section>
 </Layout>

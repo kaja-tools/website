@@ -220,14 +220,14 @@ home/
   statement set against a red-marked close-up and once as a heading with a
   grid under it, so both went. A rung earns its place by saying something the
   three above it have not; a feature the window has is not one. The hero asks
-  for the demo and offers the download second, because
-  nothing has to be installed to see Kaja work; the header's one button is the
-  demo for the same reason. The page returns to that same ask at the foot,
-  unchanged — the last section is the hero's two buttons and no new claim.
-  **The download button is Apple's own wording**, "Download on the Mac App
-  Store", and the header's link is "Mac App Store": the app ships through the
-  store and nowhere else, and "Download for Mac" read as a disk image. kaja's
-  README says it with Apple's badge artwork, which is the same sentence.
+  for the download and offers the demo second, because the app is the whole
+  of Kaja and the demo, running in a browser, is not; the header's one button
+  is the download for the same reason. The page returns to that same ask at
+  the foot, unchanged — the last section is the hero's two buttons and no new
+  claim. **The download is Apple's own badge** (`AppStoreBadge.astro`, the
+  artwork in `public/mac-app-store.svg`), as in kaja's README, and the
+  header's button is "Mac App Store": the app ships through the store and
+  nowhere else, and "Download for Mac" read as a disk image.
 - **`level` is which rung of the ladder a section is on**, and every section
   is at `lead` today, the page being short enough that nothing has to be set
   quieter to stop reading as a catalogue. `support` and `minor` are a size
