@@ -1,0 +1,15 @@
+---
+/* Apple's "Download on the Mac App Store" badge, as Apple draws it
+   (`public/mac-app-store.svg`, from Apple's marketing tools), at the height of
+   a large Button so the two sit on one line. Nothing about it is the site's
+   to restyle. */
+interface Props {
+  href: string;
+}
+
+const { href } = Astro.props;
+---
+
+<a {href} target="_blank" rel="noopener" class="inline-flex rounded-md focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none">
+  <img src="/mac-app-store.svg" width="156" height="40" alt="Download on the Mac App Store" class="block h-10 w-auto" />
+</a>
