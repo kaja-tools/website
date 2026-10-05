@@ -43,7 +43,7 @@ export const steps: Step[] = [
   {
     step: "Inspect",
     title: "See exactly what happened",
-    says: "Requests, responses, headers, duration, and status stay visible for every run.",
+    says: "Requests, responses, headers, duration, and status for every call in the run.",
     shot: shots.run,
     crop: { x: 0.209, y: 0.278, w: 0.5625, h: 0.375 },
   },
