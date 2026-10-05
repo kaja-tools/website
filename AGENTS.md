@@ -191,10 +191,10 @@ home/
   twice. The site's own layer is the entrance, and the one thing not ported
   verbatim is the width of the app cards, because the site's body face is wider
   than the app's. Below `md` the drawing is too small to read, so the same five
-  things are a plain stack of cards. **The line under it is the tagline's own
-  last sentence**, so the drawing and the copy above it make one claim rather
-  than two wordings of one; changing it here is changing it in kaja's
-  `KajaMap.tsx` and `docs/how-it-works.svg` too.
+  things are a plain stack of cards. **The line under it is the one place the
+  hero says every request stays visible**, so the tagline above it does not
+  say it again; changing it here is changing it in kaja's `KajaMap.tsx` and
+  `docs/how-it-works.svg` too.
 - **The eight screenshots are `data/shots.ts`, and every picture of the whole
   window is a crop of one** — the home page's, and the docs figures taken
   before the docs took their own (`snaps`, below). The shots are the window at 2880x1800, zoomed to 125%, which is what
