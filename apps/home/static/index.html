@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kaja - Code-based UI for gRPC and Twirp APIs</title>
-    <meta name="description" content="Kaja is a code-based UI for exploring and calling gRPC and Twirp APIs.">
+    <title>Kaja: API client for people and agents</title>
+    <meta name="description" content="Kaja is the API client for people and agents. Connect OpenAPI, MCP, or gRPC. Explore APIs yourself, or let an agent write and run typed scripts. Every request stays visible and inspectable.">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="stylesheet" href="/styles.css">
@@ -26,8 +26,8 @@
 
     <main>
         <section class="hero">
-            <h1>Explore and call your APIs with code</h1>
-            <p class="tagline">Kaja is a code-based UI for exploring and calling gRPC and Twirp APIs.</p>
+            <h1>The API client for people and agents</h1>
+            <p class="tagline">Connect OpenAPI, MCP, or gRPC. Explore APIs yourself, or let an agent write and run typed scripts. Every request stays visible and inspectable.</p>
             <div class="cta-buttons">
                 <a href="https://apps.apple.com/us/app/kaja-for-grpc-and-twirp/id6761604205?mt=12" class="btn btn-app-store" target="_blank" rel="noopener">
                     <svg class="apple-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -46,21 +46,42 @@
 
         <section class="slideshow-container">
             <div class="slideshow">
-                <div class="slide active">
-                    <img src="/assets/screenshot-1.png" alt="Kaja application screenshot">
-                </div>
-                <div class="slide">
-                    <img src="/assets/screenshot-2.png" alt="Kaja application screenshot">
-                </div>
-                <div class="slide">
-                    <img src="/assets/screenshot-3.png" alt="Kaja application screenshot">
-                </div>
-                <div class="slide">
-                    <img src="/assets/screenshot-4.png" alt="Kaja application screenshot">
-                </div>
-                <div class="slide">
-                    <img src="/assets/screenshot-5.png" alt="Kaja application screenshot">
-                </div>
+                <figure class="slide active">
+                    <img src="/assets/screenshot-1.png" alt="A script's results shown as a table of this week's most-starred repositories" width="2880" height="1800">
+                    <figcaption>Tables, not JSON</figcaption>
+                </figure>
+                <figure class="slide">
+                    <img src="/assets/screenshot-2.png" alt="A drafted call, run, with its response under the editor" width="2880" height="1800" loading="lazy">
+                    <figcaption>See exactly what happened</figcaption>
+                </figure>
+                <figure class="slide">
+                    <img src="/assets/screenshot-3.png" alt="GitHub and gRPC apps in the sidebar, and the workspace's scripts on Start" width="2880" height="1800" loading="lazy">
+                    <figcaption>Connect. Run. Inspect.</figcaption>
+                </figure>
+                <figure class="slide">
+                    <img src="/assets/screenshot-4.png" alt="The New app form asking for the type: OpenAPI, MCP, gRPC or Twirp" width="2880" height="1800" loading="lazy">
+                    <figcaption>Connect your API</figcaption>
+                </figure>
+                <figure class="slide">
+                    <img src="/assets/screenshot-5.png" alt="The TypeScript draft Kaja wrote after a click on a method" width="2880" height="1800" loading="lazy">
+                    <figcaption>Click a method, get a typed script</figcaption>
+                </figure>
+                <figure class="slide">
+                    <img src="/assets/screenshot-6.png" alt="Latency, throughput and errors from a load test" width="2880" height="1800" loading="lazy">
+                    <figcaption>Load test with one call</figcaption>
+                </figure>
+                <figure class="slide">
+                    <img src="/assets/screenshot-7.png" alt="The Variables table with a Keychain value beside plain values" width="2880" height="1800" loading="lazy">
+                    <figcaption>Secrets stay out of your files</figcaption>
+                </figure>
+                <figure class="slide">
+                    <img src="/assets/screenshot-8.png" alt="The MCP server page listing the agents Kaja can be added to" width="2880" height="1800" loading="lazy">
+                    <figcaption>Works with the agent you already use</figcaption>
+                </figure>
+                <figure class="slide">
+                    <img src="/assets/screenshot-9.png" alt="Start in an empty workspace, with the two ways in" width="2880" height="1800" loading="lazy">
+                    <figcaption>Start with an app or an agent</figcaption>
+                </figure>
             </div>
             <div class="slideshow-nav">
                 <button class="nav-dot active" data-slide="0" aria-label="Go to slide 1"></button>
@@ -68,38 +89,49 @@
                 <button class="nav-dot" data-slide="2" aria-label="Go to slide 3"></button>
                 <button class="nav-dot" data-slide="3" aria-label="Go to slide 4"></button>
                 <button class="nav-dot" data-slide="4" aria-label="Go to slide 5"></button>
+                <button class="nav-dot" data-slide="5" aria-label="Go to slide 6"></button>
+                <button class="nav-dot" data-slide="6" aria-label="Go to slide 7"></button>
+                <button class="nav-dot" data-slide="7" aria-label="Go to slide 8"></button>
+                <button class="nav-dot" data-slide="8" aria-label="Go to slide 9"></button>
             </div>
         </section>
 
         <section class="features">
             <div class="feature">
                 <div class="feature-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 2v6M15 2v6M6 8h12v3a6 6 0 0 1-12 0zM12 17v5"/>
+                    </svg>
+                </div>
+                <h3>Connect your API</h3>
+                <p>OpenAPI from a URL or a file, MCP servers, and gRPC or Twirp through server reflection or your .proto files. Sign in with your browser instead of pasting a token.</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/>
                     </svg>
                 </div>
-                <h3>Code-based UI</h3>
-                <p>Write code to explore and call your APIs with full autocomplete support.</p>
+                <h3>Run it yourself or ask an agent</h3>
+                <p>Click a method and Kaja drafts the call as a TypeScript script, with autocomplete for every field. Or point Claude Code, Codex, Cursor or any other MCP-capable agent at Kaja.</p>
             </div>
             <div class="feature">
                 <div class="feature-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="10"/>
-                        <path d="M12 6v6l4 2"/>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>
                     </svg>
                 </div>
-                <h3>gRPC & Twirp</h3>
-                <p>Native support for both gRPC and Twirp protocols out of the box.</p>
+                <h3>See exactly what happened</h3>
+                <p>Every request, response, header, status and duration stays visible, whether you made the call or an agent did.</p>
             </div>
             <div class="feature">
                 <div class="feature-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="2" y="3" width="20" height="14" rx="2"/>
-                        <path d="M8 21h8M12 17v4"/>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>
                     </svg>
                 </div>
-                <h3>macOS & Docker</h3>
-                <p>Install from the Mac App Store in one click, or run as a Docker container anywhere.</p>
+                <h3>Your files, your secrets</h3>
+                <p>A workspace is a folder: one kaja.json and your scripts, ready to commit next to your code. Tokens stay in the macOS Keychain, never in the file.</p>
             </div>
         </section>
     </main>
