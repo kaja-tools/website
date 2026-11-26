@@ -183,7 +183,7 @@ home/
   fifth: a mark exists per protocol, not per idea.
 - **The hero's drawing is the app's own map** (`ui/src/KajaMap.tsx`), ported
   stroke for stroke: an agent, Kaja drawn as its own canvas, the four
-  protocols. It is what says "you and your agents" before a word of the page is
+  protocols. It is what says "people and agents" before a word of the page is
   read. Three weights and no colour — `wire` for the wires and the canvas blocks,
   `muted-foreground` for the node frames and arrows, `foreground` for names and
   marks. **There is no screenshot in it**: the app itself is the next thing on

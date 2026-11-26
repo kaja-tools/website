@@ -107,9 +107,9 @@ kaja.table(["method", "duration"], slow);
 `;
 
 /* `workspace/scripts/movies.ts` from wham/kaja, trimmed to the two columns
-   the figure beside it can show legibly. It is the script `scripts/demo`
-   photographs for `poster-canvas.png`, so the figure in the docs is this
-   snippet's own output — keep the two in step, or crop a different shot. */
+   a column can show legibly. The figure beside it is no longer this snippet's
+   own output: `scripts/demo` photographs `trending.ts` for `poster-canvas.png`,
+   and the figure's caption says so. */
 export const table = `
 import { kaja } from "kaja";
 import { Theatre } from "theatre";

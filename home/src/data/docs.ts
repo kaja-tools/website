@@ -49,14 +49,14 @@ export const builds: Build[] = [
     label: "Desktop",
     title: "Desktop docs - Kaja",
     description:
-      "Set up Kaja on macOS: connect gRPC, OpenAPI, Twirp and MCP apps from the sidebar, run scripts against them, keep secrets in the Keychain, and point an agent at it over MCP.",
+      "Set up Kaja on macOS: connect OpenAPI, MCP, gRPC and Twirp apps from the sidebar, run scripts against them, keep secrets in the Keychain, and point an agent at it over MCP.",
   },
   {
     id: "docker",
     label: "Docker",
     title: "Docker docs - Kaja",
     description:
-      "Set up Kaja in Docker: connect gRPC, OpenAPI, Twirp and MCP apps from kaja.json, run scripts against them, keep secrets out of the file, and point an agent at it over MCP.",
+      "Set up Kaja in Docker: connect OpenAPI, MCP, gRPC and Twirp apps from kaja.json, run scripts against them, keep secrets out of the file, and point an agent at it over MCP.",
   },
 ];
 
