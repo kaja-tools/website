@@ -55,8 +55,8 @@ export const verbs: Verb[] = [
     file: "scripts/movies.ts",
     figure: {
       shot: shots.canvas,
-      crop: { x: 0.027, y: 0.084, w: 0.495, h: 0.282 },
-      caption: "What that script draws. The rows are one page of a thousand; the box searches them.",
+      crop: { x: 0.02, y: 0.075, w: 0.53, h: 0.283 },
+      caption: "A table on the canvas: a week's most-starred repositories, from a script against GitHub's API.",
     },
   },
   {

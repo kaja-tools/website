@@ -17,17 +17,17 @@ const appStore = "https://apps.apple.com/us/app/kaja-for-grpc-and-twirp/id676160
 const demo = "https://demo.kaja.tools/";
 
 const tagline =
-  "Connect gRPC, OpenAPI, or MCP. Explore APIs yourself, or let an agent write and run typed scripts. Every request stays visible and inspectable.";
+  "Connect OpenAPI, MCP, or gRPC. Explore APIs yourself, or let an agent write and run typed scripts. Every request stays visible and inspectable.";
 ---
 
-<Layout title="Kaja - The API client for you and your agents" description={tagline}>
+<Layout title="Kaja - The API client for people and agents" description={tagline}>
   <section class="pt-14 md:pt-16">
     <div class:list={[frame, "text-center"]}>
       <h1
         class="mx-auto mb-5 max-w-headline animate-rise font-display text-4xl/[1.05] font-bold tracking-hero text-balance opacity-0 md:text-hero"
         style={{ animationDelay: "0.12s" }}
       >
-        The API client built for you and your agents.
+        The API client for people and agents.
       </h1>
       <p
         class="mx-auto mb-8 max-w-tagline animate-rise text-intro/[1.55] text-pretty text-muted-foreground opacity-0 md:text-lede"
@@ -55,7 +55,13 @@ const tagline =
     }
     <div class:list={[frame, "mt-16"]}>
       <div class="overflow-hidden rounded-xl border border-border bg-card shadow-hero">
-        <img src="/assets/app-hero.png" width="2880" height="1800" alt="Kaja running a script against gRPC, OpenAPI and MCP apps" class="block h-auto w-full" />
+        <img
+          src="/assets/app-hero.png"
+          width="2880"
+          height="1800"
+          alt="Kaja with a drafted GitHub call run, and its response under the editor"
+          class="block h-auto w-full"
+        />
       </div>
     </div>
   </section>

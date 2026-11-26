@@ -29,23 +29,23 @@ export const steps: Step[] = [
   {
     step: "Connect",
     title: "Connect your API",
-    says: "Browse services and methods from gRPC, OpenAPI, MCP, and Twirp.",
+    says: "Add OpenAPI, MCP, gRPC, or Twirp, and sign in with your browser instead of pasting a token.",
     shot: shots.newApp,
-    crop: { x: 0.304, y: 0.283, w: 0.392, h: 0.434 },
+    crop: { x: 0.215, y: 0.07, w: 0.54, h: 0.32 },
   },
   {
     step: "Run",
     title: "Run it yourself or ask an agent",
-    says: "Send one request manually, or let an agent write a typed script for a larger task.",
+    says: "Click a method and Kaja drafts the call as a typed script, or let an agent write one for a larger task.",
     shot: shots.run,
-    crop: { x: 0.209, y: 0.0, w: 0.545, h: 0.278 },
+    crop: { x: 0.209, y: 0.0, w: 0.545, h: 0.222 },
   },
   {
     step: "Inspect",
     title: "See exactly what happened",
-    says: "Requests, responses, headers, duration, and status for every call in the run.",
+    says: "Every request, response, header, status and duration stays visible, whether you made the call or an agent did.",
     shot: shots.run,
-    crop: { x: 0.209, y: 0.278, w: 0.5625, h: 0.375 },
+    crop: { x: 0.209, y: 0.222, w: 0.5625, h: 0.349 },
   },
 ];
 
@@ -53,4 +53,4 @@ export const steps: Step[] = [
    types a sentence, the agent writes a script, the calls land in the window.
    The third is a strip of the call log rather than the whole console, because
    the claim is about the row, not the response. */
-export const agentCalls: Crop = { x: 0.206, y: 0.238, w: 0.525, h: 0.119 };
+export const agentCalls: Crop = { x: 0.209, y: 0.222, w: 0.525, h: 0.108 };
