@@ -1,0 +1,117 @@
+name: deploy
+# Deploys the Fly.io apps. Two entry points, one matrix:
+#   - called by the "main" workflow after a push to main compiles cleanly
+#   - run by hand from the Actions tab ("Run workflow"), for one app or all
+#
+# There is no longer a daily run: it existed so a newly published
+# kajatools/kaja image reached the demo IDE without a commit here, and the demo
+# is deployed from wham/kaja now. Every app left is built from this repository,
+# so a deploy has something to deploy only when something here changed.
+#
+# Requires a repository secret named FLY_API_TOKEN. It is an org token
+# (`fly tokens create org <org>`) rather than an app-scoped deploy token,
+# because the preview workflow shares it and has to create and destroy apps.
+on:
+  workflow_call:
+    inputs:
+      app:
+        description: "App to deploy, or 'all'"
+        type: string
+        default: all
+    secrets:
+      FLY_API_TOKEN:
+        required: true
+  workflow_dispatch:
+    inputs:
+      app:
+        description: "App to deploy"
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - home
+          - theatre
+          - seating
+          - concierge
+          - quirks
+
+permissions:
+  contents: read
+
+jobs:
+  # Turns the "app" input into the deploy matrix, so the app list lives in
+  # exactly one place and a manual run spawns only the jobs it needs.
+  plan:
+    name: Plan
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+    steps:
+      - name: Select apps
+        id: plan
+        env:
+          # Every app is self-contained in its own directory, so flyctl finds
+          # each one's fly.toml in "dir" and no --config is needed.
+          APPS: |
+            [
+              { "name": "home",    "app": "kaja-home",    "dir": "home"         },
+              { "name": "theatre", "app": "kaja-theatre", "dir": "apps/theatre" },
+              { "name": "seating", "app": "kaja-seating", "dir": "apps/seating" },
+              { "name": "concierge", "app": "kaja-concierge", "dir": "apps/concierge" },
+              { "name": "quirks",  "app": "kaja-quirks",  "dir": "apps/quirks"  }
+            ]
+          # Both triggers supply this; the fallback is only so a trigger added
+          # later can't silently deploy nothing.
+          SELECTED: ${{ inputs.app || 'all' }}
+        run: |
+          set -euo pipefail
+          if [ "$SELECTED" = all ]; then
+            include=$(jq -c . <<<"$APPS")
+          else
+            include=$(jq -c --arg name "$SELECTED" '[.[] | select(.name == $name)]' <<<"$APPS")
+          fi
+          if [ "$include" = "[]" ]; then
+            echo "::error::Unknown app '$SELECTED'"
+            exit 1
+          fi
+          names=$(jq -r '[.[].name] | join(", ")' <<<"$include")
+          echo "Deploying $names from ${{ github.ref_name }}"
+          echo "Deploying **$names** from \`${{ github.ref_name }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "matrix={\"include\":$include}" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    name: Deploy ${{ matrix.name }}
+    needs: plan
+    runs-on: ubuntu-latest
+    # Fly deploys of the same app must not overlap.
+    concurrency: deploy-${{ matrix.name }}
+    strategy:
+      # Deploy every app, even if one fails, so a single flaky deploy doesn't
+      # block the rest.
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Set up flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+      - name: Deploy
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${FLY_API_TOKEN:-}" ]; then
+            echo "::error::FLY_API_TOKEN secret is not set — create one with 'fly tokens create org <org>'"
+            exit 1
+          fi
+          status=0
+          flyctl deploy ${{ matrix.dir }} --remote-only || status=$?
+          if [ "$status" -ne 0 ]; then
+            # flyctl only reports "app not found", which reads like a bad config
+            # rather than a Fly app nobody has created yet. Say which one.
+            if ! flyctl status --app "${{ matrix.app }}" >/dev/null 2>&1; then
+              echo "::error::Fly app '${{ matrix.app }}' does not exist — run scripts/fly-setup to create it and attach its hostname"
+            fi
+            exit "$status"
+          fi

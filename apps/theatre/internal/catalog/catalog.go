@@ -1,368 +1,213 @@
-// Package catalog holds The Kaja Theatre's repertoire. The venue has a
-// single stage, so the weekly grid below is conflict-free, and the rolling
-// 7-day schedule is derived deterministically from the current date —
-// no storage needed, and the demo can never run out of shows.
+// Package catalog holds everything the Theatre publishes, which is three
+// lists: the movies, the theaters that screen them, and the week's schedule
+// relating the two.
+//
+// Only the third is a relationship, and it is deliberately nothing but one. A
+// Show is a movie id, a theater id, a time and a price — no title, no
+// address — so anybody reading a programme has to join it against the other
+// two lists. That join is what the demo is here to show.
+//
+// Nothing is stored. The movies are films.json, embedded at build time; the
+// theaters are the dozen houses in theaters.go; and every screening is
+// derived from a movie and a house — which of them play it, when, and for how
+// much — so there is no schedule to keep in step and the week never runs out.
+//
+// The films are real. Every fact about one — director, year, running time,
+// language, and the sentence of synopsis — is taken from Wikidata (CC0) and
+// English Wikipedia (CC BY-SA 4.0) by scripts/catalog. The chain is invented,
+// and so is everything it decides: which house plays what, at what time, and
+// for what money.
 package catalog
 
 import (
+	_ "embed"
+	"encoding/json"
 	"fmt"
-	"strconv"
-	"strings"
+	"hash/fnv"
+	"sort"
 	"time"
 )
 
-const WindowDays = 7
+//go:embed films.json
+var filmsJSON []byte
 
-const (
-	StatusOnSale = "onSale"
-	StatusPast   = "past"
-)
-
-type CastMember struct {
-	Actor string `json:"actor"`
-	Role  string `json:"role"`
+// Movie is one film in the catalog. It says nothing about when or where it is
+// playing: a movie is in the catalog whether or not it is on this week.
+type Movie struct {
+	ID             string `json:"id"`
+	Title          string `json:"title"`
+	Director       string `json:"director"`
+	Year           int    `json:"year"`
+	RuntimeMinutes int    `json:"runtimeMinutes"`
+	Genre          string `json:"genre"`
+	Language       string `json:"language"`
+	Synopsis       string `json:"synopsis"`
 }
 
-// Details is the genre-specific part of an event. Exactly one group of
-// fields is populated, matching the oneOf in openapi.yaml.
-type Details struct {
-	Type string `json:"type"`
-	// concert
-	Headliner       string   `json:"headliner,omitempty"`
-	SupportActs     []string `json:"supportActs,omitempty"`
-	DurationMinutes int      `json:"durationMinutes,omitempty"`
-	// play
-	Playwright string       `json:"playwright,omitempty"`
-	Director   string       `json:"director,omitempty"`
-	Cast       []CastMember `json:"cast,omitempty"`
-	// comedy
-	Comedian string   `json:"comedian,omitempty"`
-	Openers  []string `json:"openers,omitempty"`
-	// opera
-	Composer  string `json:"composer,omitempty"`
-	Language  string `json:"language,omitempty"`
-	Surtitles *bool  `json:"surtitles,omitempty"`
-}
+// Show is one weekly screening: a movie, at a theater, at a time, for a
+// price. Its id is what the seating service takes, and it is the two ids it
+// relates written out — `dune-part-two@the-lantern` — so a screening says
+// what it is without anything having to be looked up to read it.
+type Show struct {
+	ID         string
+	MovieID    string
+	TheaterID  string
+	PriceCents int
 
-type Showtime struct {
+	// The weekly slot, in the theater's own local time.
 	Weekday time.Weekday
 	Hour    int
 	Minute  int
+
+	loc *time.Location
 }
 
-type Event struct {
-	ID             string
-	Title          string
-	Genre          string
-	Tagline        string
-	Description    string
-	Details        Details
-	BasePriceCents int
-	Showtimes      []Showtime
+var (
+	movies       []Movie
+	moviesByID   map[string]Movie
+	shows        []Show
+	showsByID    map[string]Show
+	showsByMovie map[string][]Show
+)
+
+func init() {
+	loadTheaters()
+	loadMovies()
+	loadShows()
 }
 
-type Performance struct {
-	ID             string    `json:"id"`
-	EventID        string    `json:"eventId"`
-	EventTitle     string    `json:"eventTitle"`
-	StartsAt       time.Time `json:"startsAt"`
-	DoorsOpenAt    time.Time `json:"doorsOpenAt"`
-	BasePriceCents int       `json:"basePriceCents"`
-	Status         string    `json:"status"`
-}
-
-type VenueRow struct {
-	Letter string `json:"letter"`
-	Seats  int    `json:"seats"`
-}
-
-type VenueSection struct {
-	Name            string     `json:"name"`
-	PriceMultiplier float64    `json:"priceMultiplier"`
-	Rows            []VenueRow `json:"rows"`
-}
-
-type Venue struct {
-	Name     string         `json:"name"`
-	Address  string         `json:"address"`
-	Capacity int            `json:"capacity"`
-	Sections []VenueSection `json:"sections"`
-}
-
-func TheVenue() Venue {
-	orchestra := VenueSection{Name: "ORCHESTRA", PriceMultiplier: 1.0}
-	for _, letter := range strings.Split("A B C D E F G H", " ") {
-		orchestra.Rows = append(orchestra.Rows, VenueRow{Letter: letter, Seats: 14})
+func loadMovies() {
+	if err := json.Unmarshal(filmsJSON, &movies); err != nil {
+		panic(fmt.Sprintf("catalog: films.json: %v", err))
 	}
-	balcony := VenueSection{Name: "BALCONY", PriceMultiplier: 0.75}
-	for _, letter := range strings.Split("J K L M", " ") {
-		balcony.Rows = append(balcony.Rows, VenueRow{Letter: letter, Seats: 12})
-	}
-	return Venue{
-		Name:     "The Kaja Theatre",
-		Address:  "12 Meridian Lane",
-		Capacity: 8*14 + 4*12,
-		Sections: []VenueSection{orchestra, balcony},
-	}
-}
-
-func boolPtr(b bool) *bool { return &b }
-
-var events = []Event{
-	{
-		ID:      "neon-meridian",
-		Title:   "Neon Meridian: World Tour",
-		Genre:   "concert",
-		Tagline: "Synthwave for the end of the night.",
-		Description: "After two sold-out continents, **Neon Meridian** brings the World Tour home.\n\n" +
-			"Expect walls of analog synth, a light rig that needed its own truck, and the " +
-			"encore everyone films instead of watching.",
-		Details: Details{
-			Type:            "concert",
-			Headliner:       "Neon Meridian",
-			SupportActs:     []string{"Glass Harbor", "MOTH"},
-			DurationMinutes: 110,
-		},
-		BasePriceCents: 8500,
-		Showtimes: []Showtime{
-			{time.Friday, 19, 30},
-			{time.Saturday, 21, 0},
-		},
-	},
-	{
-		ID:      "vera-lune",
-		Title:   "An Evening with Vera Lune",
-		Genre:   "concert",
-		Tagline: "One voice, one piano, no microphone.",
-		Description: "Jazz's quietest superstar performs entirely unamplified — the room was " +
-			"built for it, and **Vera Lune** knows exactly what to do with it.",
-		Details: Details{
-			Type:            "concert",
-			Headliner:       "Vera Lune",
-			DurationMinutes: 95,
-		},
-		BasePriceCents: 6500,
-		Showtimes: []Showtime{
-			{time.Wednesday, 20, 0},
-		},
-	},
-	{
-		ID:      "cartographers-daughter",
-		Title:   "The Cartographer's Daughter",
-		Genre:   "play",
-		Tagline: "A map of everywhere she never went.",
-		Description: "Elena Brook's award-winning play about a daughter who inherits ten " +
-			"thousand hand-drawn maps and a father she never understood. Bring tissues; " +
-			"the Saturday matinee crowd will tell you why.",
-		Details: Details{
-			Type:       "play",
-			Playwright: "Elena Brook",
-			Director:   "Sam Okafor",
-			Cast: []CastMember{
-				{Actor: "Mirren Vale", Role: "Ada"},
-				{Actor: "Theo Brandt", Role: "The Cartographer"},
-				{Actor: "June Park", Role: "Iris"},
-			},
-		},
-		BasePriceCents: 5500,
-		Showtimes: []Showtime{
-			{time.Tuesday, 19, 0},
-			{time.Thursday, 19, 0},
-			{time.Saturday, 14, 0},
-		},
-	},
-	{
-		ID:      "twelve-clocks",
-		Title:   "Twelve Clocks",
-		Genre:   "play",
-		Tagline: "Every hour, somebody lies.",
-		Description: "A locked-room mystery told backwards: twelve scenes, twelve clocks, one " +
-			"of them telling the truth. Monday's audience gets home arguing about it.",
-		Details: Details{
-			Type:       "play",
-			Playwright: "Horace Fenn",
-			Director:   "Lena Adeyemi",
-			Cast: []CastMember{
-				{Actor: "Casper Roan", Role: "The Horologist"},
-				{Actor: "Bibi Santos", Role: "Inspector Vane"},
-			},
-		},
-		BasePriceCents: 4800,
-		Showtimes: []Showtime{
-			{time.Monday, 19, 30},
-		},
-	},
-	{
-		ID:      "milo-frey",
-		Title:   "Milo Frey: Grand Opening",
-		Genre:   "comedy",
-		Tagline: "New hour. Old grudges.",
-		Description: "Milo Frey road-tested this hour in forty basements so he could ruin it " +
-			"here, in front of people who paid. The Friday late show gets the unlisted bits.",
-		Details: Details{
-			Type:     "comedy",
-			Comedian: "Milo Frey",
-			Openers:  []string{"Rosa Quinn"},
-		},
-		BasePriceCents: 4200,
-		Showtimes: []Showtime{
-			{time.Friday, 22, 0},
-			{time.Saturday, 18, 0},
-		},
-	},
-	{
-		ID:      "kaja-players",
-		Title:   "Improv Night with The Kaja Players",
-		Genre:   "comedy",
-		Tagline: "Nothing is planned. Everything is your fault.",
-		Description: "The house troupe builds an entire show out of audience suggestions. " +
-			"Yes, they will use yours. No, you cannot take it back.",
-		Details: Details{
-			Type:     "comedy",
-			Comedian: "The Kaja Players",
-		},
-		BasePriceCents: 2500,
-		Showtimes: []Showtime{
-			{time.Sunday, 19, 30},
-		},
-	},
-	{
-		ID:      "glass-mountain",
-		Title:   "The Glass Mountain",
-		Genre:   "opera",
-		Tagline: "Climb it, or become part of the view.",
-		Description: "Ilona Vasseur's modern fable, staged with a mirrored set that puts the " +
-			"audience inside the mountain. Sung in Czech with English surtitles.",
-		Details: Details{
-			Type:      "opera",
-			Composer:  "Ilona Vasseur",
-			Language:  "Czech",
-			Surtitles: boolPtr(true),
-		},
-		BasePriceCents: 9500,
-		Showtimes: []Showtime{
-			{time.Sunday, 15, 0},
-		},
-	},
-}
-
-func Events() []Event { return events }
-
-func EventByID(id string) (Event, bool) {
-	for _, e := range events {
-		if e.ID == id {
-			return e, true
+	sort.Slice(movies, func(i, j int) bool { return movies[i].ID < movies[j].ID })
+	moviesByID = make(map[string]Movie, len(movies))
+	for _, m := range movies {
+		if _, clash := moviesByID[m.ID]; clash {
+			panic(fmt.Sprintf("catalog: two films called %q", m.ID))
 		}
-	}
-	return Event{}, false
-}
-
-func performanceID(eventID string, t time.Time) string {
-	return fmt.Sprintf("%s-%s-%02d%02d", eventID, t.Format("20060102"), t.Hour(), t.Minute())
-}
-
-func makePerformance(e Event, startsAt, now time.Time) Performance {
-	status := StatusOnSale
-	if startsAt.Before(now) {
-		status = StatusPast
-	}
-	return Performance{
-		ID:             performanceID(e.ID, startsAt),
-		EventID:        e.ID,
-		EventTitle:     e.Title,
-		StartsAt:       startsAt,
-		DoorsOpenAt:    startsAt.Add(-45 * time.Minute),
-		BasePriceCents: e.BasePriceCents,
-		Status:         status,
+		moviesByID[m.ID] = m
 	}
 }
 
-// PerformancesFor lists an event's performances in the rolling window
-// [today, today+6], including today's already-played shows (status "past").
-func PerformancesFor(e Event, now time.Time) []Performance {
-	now = now.UTC()
-	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
-	var out []Performance
-	for day := 0; day < WindowDays; day++ {
-		date := today.AddDate(0, 0, day)
-		for _, s := range e.Showtimes {
-			if date.Weekday() != s.Weekday {
-				continue
+func loadShows() {
+	showsByID = make(map[string]Show)
+	showsByMovie = make(map[string][]Show)
+	for _, m := range movies {
+		for _, t := range housesFor(m.ID) {
+			s := Show{
+				ID:         m.ID + "@" + t.ID,
+				MovieID:    m.ID,
+				TheaterID:  t.ID,
+				PriceCents: price(m, t),
+				loc:        t.loc,
 			}
-			startsAt := date.Add(time.Duration(s.Hour)*time.Hour + time.Duration(s.Minute)*time.Minute)
-			out = append(out, makePerformance(e, startsAt, now))
+			s.Weekday, s.Hour, s.Minute = slot(s.ID)
+			shows = append(shows, s)
+			showsByID[s.ID] = s
+			showsByMovie[m.ID] = append(showsByMovie[m.ID], s)
 		}
+	}
+}
+
+// Which houses play a film, and how many of them. A film runs at one, two or
+// three of the twelve, read off its own id, so the schedule is the same every
+// week and is written down nowhere.
+func housesFor(movieID string) []Theater {
+	n := hash(movieID)
+	count := 1 + int(n%3)
+	index := int(n/3) % len(theaters)
+	stride := 1 + int(n/9)%(len(theaters)-1)
+
+	out := make([]Theater, 0, count)
+	taken := map[int]bool{}
+	for len(out) < count {
+		for taken[index] {
+			index = (index + 1) % len(theaters)
+		}
+		taken[index] = true
+		out = append(out, theaters[index])
+		index = (index + stride) % len(theaters)
 	}
 	return out
 }
 
-// NextPerformanceID returns the soonest upcoming performance's id, or nil.
-func NextPerformanceID(e Event, now time.Time) *string {
-	for _, p := range PerformancesFor(e, now) {
-		if p.Status == StatusOnSale {
-			id := p.ID
-			return &id
-		}
-	}
-	return nil
-}
-
-// Sentinel results for PerformanceByID.
-type LookupResult int
-
+// A house runs from late morning to the last late show, on the quarter hour.
+// A screening's slot is its id hashed into that grid: stable week to week,
+// spread across the week, and different for the same film two towns over.
 const (
-	LookupFound LookupResult = iota
-	LookupNotFound
-	// LookupGone means the id is a real showtime that has already happened.
-	LookupGone
+	firstHour  = 11
+	hoursOpen  = 12
+	quarters   = 4
+	daysOfWeek = 7
 )
 
-// PerformanceByID reconstructs a performance from its id, which encodes the
-// event and the start time ("neon-meridian-20260710-1930"). The id must
-// match the event's weekly grid; future dates beyond the window are not on
-// sale yet and report as not found.
-func PerformanceByID(id string, now time.Time) (Performance, LookupResult) {
-	now = now.UTC()
-	parts := strings.Split(id, "-")
-	if len(parts) < 3 {
-		return Performance{}, LookupNotFound
-	}
-	datePart := parts[len(parts)-2]
-	timePart := parts[len(parts)-1]
-	eventID := strings.Join(parts[:len(parts)-2], "-")
+func slot(showID string) (time.Weekday, int, int) {
+	n := hash(showID)
+	hour := firstHour + int(n%hoursOpen)
+	minute := 15 * int((n/hoursOpen)%quarters)
+	weekday := time.Weekday((n / (hoursOpen * quarters)) % daysOfWeek)
+	return weekday, hour, minute
+}
 
-	e, ok := EventByID(eventID)
-	if !ok {
-		return Performance{}, LookupNotFound
+// What a seat costs. A new print costs more than an old one and a long
+// evening costs more than a short one; then the house takes its own view of
+// what it can charge, which is the only thing about a price that is the
+// theater's rather than the film's. Rounded to the quarter, because nobody
+// prints a ticket at $16.38.
+func price(m Movie, t Theater) int {
+	cents := 1200
+	switch {
+	case m.Year >= 2015:
+		cents = 1800
+	case m.Year >= 2000:
+		cents = 1600
+	case m.Year >= 1980:
+		cents = 1400
 	}
-	date, err := time.ParseInLocation("20060102", datePart, time.UTC)
-	if err != nil || len(timePart) != 4 {
-		return Performance{}, LookupNotFound
+	if m.RuntimeMinutes >= 150 {
+		cents += 100
 	}
-	hour, err1 := strconv.Atoi(timePart[:2])
-	minute, err2 := strconv.Atoi(timePart[2:])
-	if err1 != nil || err2 != nil {
-		return Performance{}, LookupNotFound
-	}
+	cents = cents * t.priceIndex / 100
+	return (cents + 12) / 25 * 25
+}
 
-	matches := false
-	for _, s := range e.Showtimes {
-		if date.Weekday() == s.Weekday && hour == s.Hour && minute == s.Minute {
-			matches = true
-			break
-		}
-	}
-	if !matches {
-		return Performance{}, LookupNotFound
-	}
+func hash(s string) uint64 {
+	h := fnv.New64a()
+	h.Write([]byte(s))
+	return h.Sum64()
+}
 
-	startsAt := date.Add(time.Duration(hour)*time.Hour + time.Duration(minute)*time.Minute)
-	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
-	if startsAt.Before(now) {
-		return Performance{}, LookupGone
+func Movies() []Movie { return movies }
+
+func MovieByID(id string) (Movie, bool) {
+	m, ok := moviesByID[id]
+	return m, ok
+}
+
+func Shows() []Show { return shows }
+
+func ShowByID(id string) (Show, bool) {
+	s, ok := showsByID[id]
+	return s, ok
+}
+
+// ShowsOf is every screening of one film, across the chain.
+func ShowsOf(movieID string) []Show { return showsByMovie[movieID] }
+
+// NextStart is the screening's next start after now, in the theater's own
+// local time. A weekly slot always has one, so every screening in the
+// schedule is always on sale.
+func (s Show) NextStart(now time.Time) time.Time {
+	local := now.In(s.loc)
+	midnight := time.Date(local.Year(), local.Month(), local.Day(), 0, 0, 0, 0, s.loc)
+	daysAhead := (int(s.Weekday) - int(midnight.Weekday()) + 7) % 7
+
+	day := midnight.AddDate(0, 0, daysAhead)
+	start := time.Date(day.Year(), day.Month(), day.Day(), s.Hour, s.Minute, 0, 0, s.loc)
+	if !start.After(now) {
+		day = day.AddDate(0, 0, 7)
+		start = time.Date(day.Year(), day.Month(), day.Day(), s.Hour, s.Minute, 0, 0, s.loc)
 	}
-	if !startsAt.Before(today.AddDate(0, 0, WindowDays)) {
-		return Performance{}, LookupNotFound
-	}
-	return makePerformance(e, startsAt, now), LookupFound
+	return start
 }

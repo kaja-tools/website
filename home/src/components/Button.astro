@@ -1,0 +1,26 @@
+---
+/* kaja-ui's Button, as a link — every button on the site goes somewhere. The
+   class lists are the app component's, variant for variant. */
+interface Props extends astroHTML.JSX.AnchorHTMLAttributes {
+  variant?: keyof typeof variants;
+  size?: keyof typeof sizes;
+}
+
+const variants = {
+  default: "bg-primary text-primary-foreground hover:bg-primary/90",
+  outline: "border border-border bg-background hover:bg-accent hover:text-accent-foreground",
+};
+
+const sizes = {
+  default: "h-8 px-3 py-1",
+  sm: "h-7 px-2 text-xs",
+  lg: "h-10 px-6",
+};
+
+const base =
+  "inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none [&_svg]:pointer-events-none [&_svg]:shrink-0";
+
+const { variant = "default", size = "default", class: className, ...rest } = Astro.props;
+---
+
+<a class:list={[base, variants[variant], sizes[size], className]} {...rest}><slot /></a>

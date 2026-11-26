@@ -1,0 +1,88 @@
+---
+/* The home page: what Kaja is, the one flow through it, what an agent does
+   inside it, and the way in again at the end. Four things, and the agent is
+   the last of them — everything that used to follow was the same claims a
+   second time, so the page stops where its argument does. */
+import Layout from "../layouts/Layout.astro";
+import AgentTask from "../components/AgentTask.astro";
+import AppStoreBadge from "../components/AppStoreBadge.astro";
+import Button from "../components/Button.astro";
+import Canvas from "../components/Canvas.astro";
+import Flow from "../components/Flow.astro";
+import Section from "../components/Section.astro";
+
+const frame = "mx-auto w-full max-w-page px-6 md:px-8";
+
+const appStore = "https://apps.apple.com/us/app/kaja-for-grpc-and-twirp/id6761604205?mt=12";
+const demo = "https://demo.kaja.tools/";
+
+const tagline =
+  "Connect gRPC, OpenAPI, or MCP. Explore APIs yourself, or let an agent write and run typed scripts. Every request stays visible and inspectable.";
+---
+
+<Layout title="Kaja - The API client for you and your agents" description={tagline}>
+  <section class="pt-14 md:pt-16">
+    <div class:list={[frame, "text-center"]}>
+      <h1
+        class="mx-auto mb-5 max-w-headline animate-rise font-display text-4xl/[1.05] font-bold tracking-hero text-balance opacity-0 md:text-hero"
+        style={{ animationDelay: "0.12s" }}
+      >
+        The API client built for you and your agents.
+      </h1>
+      <p
+        class="mx-auto mb-8 max-w-tagline animate-rise text-intro/[1.55] text-pretty text-muted-foreground opacity-0 md:text-lede"
+        style={{ animationDelay: "0.2s" }}
+      >
+        {tagline}
+      </p>
+      {
+        /* The app is the way in: Apple's own badge is the primary ask, and the
+          demo is the alternative for a look before installing. The demo runs
+          in a browser and is not the whole app. */
+      }
+      <div class="flex animate-rise flex-wrap items-center justify-center gap-3 opacity-0" style={{ animationDelay: "0.28s" }}>
+        <AppStoreBadge href={appStore} />
+        <Button href={demo} variant="outline" size="lg">Try the live demo &rarr;</Button>
+      </div>
+    </div>
+
+    <div class="mt-10 md:mt-12"><Canvas /></div>
+
+    {
+      /* The app itself, once and whole, under the drawing of what it does.
+         Every close-up further down the page is a region of one of the shots,
+         and several of them are regions of this one. */
+    }
+    <div class:list={[frame, "mt-16"]}>
+      <div class="overflow-hidden rounded-xl border border-border bg-card shadow-hero">
+        <img src="/assets/app-hero.png" width="2880" height="1800" alt="Kaja running a script against gRPC, OpenAPI and MCP apps" class="block h-auto w-full" />
+      </div>
+    </div>
+  </section>
+
+  <Section title="Connect. Run. Inspect." lead="One window: your APIs on the left, the script in the middle, and every call it made underneath.">
+    <Flow />
+  </Section>
+
+  <Section
+    title="Agents can do the work without becoming a black box."
+    lead="Let an agent write and run TypeScript against your APIs. Every request it makes appears alongside your own."
+  >
+    <AgentTask />
+  </Section>
+
+  {
+    /* The way out is the way in: the same ask as the hero, in the same order,
+       and no new claim at the foot of the page. */
+  }
+  <section class:list={[frame, "pt-24 pb-24 text-center md:pt-36 md:pb-32"]}>
+    <h2 class="mx-auto max-w-headline font-display text-3xl/[1.1] font-bold tracking-display text-balance md:text-cta">Get Kaja.</h2>
+    <p class="mx-auto mt-4 max-w-tagline text-intro/[1.6] text-pretty text-muted-foreground">
+      Download it for your Mac, or explore an API in the live demo first.
+    </p>
+    <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+      <AppStoreBadge href={appStore} />
+      <Button href={demo} variant="outline" size="lg">Try the live demo &rarr;</Button>
+    </div>
+  </section>
+</Layout>

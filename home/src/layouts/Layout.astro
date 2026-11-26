@@ -1,0 +1,38 @@
+---
+import "../styles/global.css";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+
+interface Props {
+  title: string;
+  description: string;
+}
+
+const { title, description } = Astro.props;
+
+/* Every page points at itself, without whatever query string it was reached
+   with. The two docs pages are two pages and each is its own canonical. */
+const canonical = new URL(Astro.url.pathname, Astro.site);
+
+/* The body clips horizontally rather than hiding: `overflow-x: hidden` here
+   would make the body the scroll container the header sticks to, and the
+   header would stop sticking to the viewport. */
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  </head>
+  <body class="flex min-h-screen flex-col overflow-x-clip bg-background font-sans text-foreground">
+    <Header />
+    <main class="flex flex-1 flex-col"><slot /></main>
+    <Footer />
+  </body>
+</html>

@@ -30,12 +30,10 @@ while read -r app host; do
   flyctl certs add "$host" --app "$app" || true
 done <<'PAIRS'
 kaja-home         kaja.tools
-kaja-demo         demo.kaja.tools
 kaja-theatre      theatre.kaja.tools
-kaja-boxoffice    boxoffice.kaja.tools
 kaja-seating      seating.kaja.tools
-kaja-quirks-grpc  grpc-quirks.kaja.tools
-kaja-quirks-twirp twirp-quirks.kaja.tools
+kaja-concierge    concierge.kaja.tools
+kaja-quirks       quirks.kaja.tools
 PAIRS
 
 # The apex also answers on www.
@@ -50,5 +48,7 @@ Next steps:
        - Subdomains: CNAME <sub>.kaja.tools -> <app>.fly.dev
          (e.g. theatre.kaja.tools -> kaja-theatre.fly.dev)
      Check issuance with: fly certs check <hostname> --app <app>
-  3. Add a FLY_API_TOKEN repo secret for CI (fly tokens create deploy)
+  3. Add a FLY_API_TOKEN repo secret for CI (fly tokens create org personal).
+     An org token, not an app-scoped deploy one: pull request previews create
+     and destroy an app of their own.
 EOF

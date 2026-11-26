@@ -7,34 +7,62 @@ single-domain nginx-ingress that ran on Azure Kubernetes.
 
 ## Apps
 
-| Fly app             | Source           | Public hostname            | Notes                                   |
-| ------------------- | ---------------- | -------------------------- | --------------------------------------- |
-| `kaja-home`         | `apps/home`      | `kaja.tools`, `www`        | static marketing site                   |
-| `kaja-demo`         | `apps/kaja`      | `demo.kaja.tools`          | the IDE                                 |
-| `kaja-theatre`      | `apps/theatre`   | `theatre.kaja.tools`       | OpenAPI (e.g. `/openapi.yaml`, `/events`) |
-| `kaja-boxoffice`    | `apps/boxoffice` | `boxoffice.kaja.tools`     | Twirp under `/twirp`                    |
-| `kaja-seating`      | `apps/seating`   | `seating.kaja.tools`       | gRPC over TLS on :443                    |
-| `kaja-quirks-grpc`  | `apps/quirks`    | `grpc-quirks.kaja.tools`   | gRPC over TLS on :443                    |
-| `kaja-quirks-twirp` | `apps/quirks`    | `twirp-quirks.kaja.tools`  | Twirp under `/twirp`                    |
+| Fly app        | Source         | Public hostname      | Notes                                    |
+| -------------- | -------------- | -------------------- | ---------------------------------------- |
+| `kaja-home`    | `home`         | `kaja.tools`, `www`  | the website — Astro, served by Caddy     |
+| `kaja-theatre` | `apps/theatre` | `theatre.kaja.tools` | OpenAPI (`/movies`, `/theaters`, `/shows`) |
+| `kaja-seating` | `apps/seating` | `seating.kaja.tools` | gRPC over TLS on :443                    |
+| `kaja-concierge` | `apps/concierge` | `concierge.kaja.tools` | MCP over Streamable HTTP at `/mcp`  |
+| `kaja-quirks`  | `apps/quirks`  | `quirks.kaja.tools`  | Twirp under `/twirp`                     |
 
-Each service is served at the root of its own hostname (e.g. the theatre spec
+`theatre`, `seating` and `concierge` are the public demo; `quirks` is the Twirp
+protocol testbed. The website sits at the repository root rather than under `apps/`,
+because `apps/` is the demo services and the website is not one of them.
+
+### The website's image
+
+`home/Dockerfile` is two stages: Node runs `astro build`, then the output is
+copied into a `caddy:alpine` image and Node is discarded. Nothing is rendered
+per request, so the runtime is a file server and a directory — no JavaScript
+runtime ships to production. `home/Caddyfile` holds the serving rules:
+`auto_https off` (Fly terminates TLS at the edge and forwards plain HTTP to
+`internal_port`), long immutable caching for the fingerprinted assets under
+`/_astro`, revalidation for everything else, and 301s from the old `.html`
+URLs to the directory form Astro emits.
+
+**The IDE at `demo.kaja.tools` is not deployed from here.** The `kaja-demo` Fly
+app lives in the same organization, but it is built and deployed by
+[wham/kaja](https://github.com/wham/kaja) on every push to its `main`, from
+that repository's own `workspace/` — the same image its pull-request previews
+run. This repository owns the demo *services* the IDE calls; it no longer holds
+a second copy of the IDE's configuration to keep in step.
+
+Each service is served at the root of its own hostname (e.g. the Theatre spec
 is at `https://theatre.kaja.tools/openapi.yaml`, Twirp uses the standard
-`/twirp/...` prefix). `apps/kaja/kaja.json` and the theatre OpenAPI `servers`
-URL point at these hostnames.
+`/twirp/...` prefix). The Theatre OpenAPI `servers` URL — and the IDE's
+`workspace/kaja.json` over in wham/kaja — point at these hostnames.
 
 ### East-west (service-to-service) traffic
 
-`boxoffice` calls `theatre` (HTTP) and `seating` (gRPC), and `seating` calls
-`theatre` (HTTP). Those calls stay on Fly's private network via `<app>.internal`
-DNS (`kaja-theatre.internal:41530`, `kaja-seating.internal:50053`) — they never
-leave the org, so only public browser/IDE traffic goes through the edge.
+`seating` calls `theatre` (HTTP) to look up which screenings exist, when they
+start and what they cost, and `concierge` calls both — `theatre` for all three
+lists, which it joins into a programme, and `seating` for the live seat map. Those calls stay on Fly's private network via
+`<app>.internal` DNS (`kaja-theatre.internal:41530`,
+`kaja-seating.internal:50053`) — they never leave the org, so only public
+browser/IDE traffic goes through the edge.
+
+### MCP
+
+`concierge` speaks the Model Context Protocol over Streamable HTTP — ordinary
+HTTP/1.1 POSTs of JSON-RPC at `https://concierge.kaja.tools/mcp` — so it needs
+none of the HTTP/2 configuration the gRPC app does.
 
 ### gRPC
 
-gRPC needs HTTP/2 end to end. The gRPC apps (`kaja-seating`, `kaja-quirks-grpc`)
-set `http_options.h2_backend = true` and `tls_options.alpn = ["h2"]` in their
+gRPC needs HTTP/2 end to end. The gRPC app (`kaja-seating`) sets
+`http_options.h2_backend = true` and `tls_options.alpn = ["h2"]` in its
 `fly.toml`, so the Fly edge negotiates HTTP/2 with clients and forwards HTTP/2
-cleartext to the app. Clients dial `seating.kaja.tools:443` (see `kaja.json`).
+cleartext to the app. Clients dial `seating.kaja.tools:443`.
 
 ## First-time setup
 
@@ -50,29 +78,76 @@ scripts/deploy
 #      - Subdomains: CNAME <sub>.kaja.tools -> <app>.fly.dev
 #    Verify with: fly certs check <hostname> --app <app>
 
-# 4. Create a deploy token and add it to the repo as the FLY_API_TOKEN secret
-#    so GitHub Actions can deploy on push to main.
-fly tokens create deploy
+# 4. Create a token and add it to the repo as the FLY_API_TOKEN secret so
+#    GitHub Actions can deploy on push to main. It has to be an org token
+#    rather than the app-scoped deploy one: pull request previews create and
+#    destroy an app of their own, which a deploy token may not do.
+fly tokens create org personal
 ```
 
 ## Ongoing deploys
 
-Pushing to `main` deploys every app via `.github/workflows/main.yml`
-(`FLY_API_TOKEN` repo secret required).
+`.github/workflows/deploy.yml` holds the app matrix and does the deploying. It
+runs two ways, both needing the `FLY_API_TOKEN` repo secret:
 
-To deploy manually:
+- **On push to `main`** — `.github/workflows/main.yml` builds and vets every
+  app, then calls it to deploy all of them. Pull requests only build.
+- **By hand** — Actions → **deploy** → **Run workflow**, then pick an app (or
+  `all`). This skips the build gate, so it also serves as a redeploy button
+  when nothing changed. Note the ref picker deploys whatever branch you choose;
+  leave it on `main` unless you mean otherwise.
+
+There was a third, a daily `schedule`, and it is gone with the demo IDE: it
+existed only so a newly published `kajatools/kaja:latest` reached `kaja-demo`
+without a commit here to deploy against. Every app left is built from this
+repository's own source, so there is nothing to ship on a day nothing changed.
+
+Push deploys are a reusable-workflow call, so they appear as
+`deploy / Deploy <app>` jobs inside the **main** run, not as runs under
+**deploy** in the Actions sidebar — that list shows only manual runs.
+
+Apps deploy in parallel with `fail-fast: false`, so one bad app doesn't block
+the others, and a per-app concurrency group keeps two deploys of the same app
+from overlapping.
+
+To deploy from your own machine instead:
 
 ```bash
 scripts/deploy            # all apps
 scripts/deploy theatre    # a single app
 ```
 
+Adding or renaming an app means updating the `APPS` list in `deploy.yml` (and
+its `workflow_dispatch` options), `scripts/deploy`, and `scripts/fly-setup` —
+then re-running `scripts/fly-setup`, which is idempotent. A Fly app that has
+never been created fails the deploy with `app not found`; the workflow calls
+out which app it was.
+
+## Pull request previews
+
+Every pull request opened from a branch in this repository gets its own copy of
+the **website** running on Fly, at `https://kaja-home-pr-<number>.fly.dev`.
+`.github/workflows/preview.yml` deploys `home` with
+`home/fly.preview.toml` under an app named after the pull request, and a
+sticky comment on the pull request carries the URL. Every push rebuilds it;
+closing the pull request destroys the app and removes the comment.
+
+Only the website is previewed. The demo services (`theatre`, `seating`,
+`concierge`, `quirks`) are stateful, hostname-bound and called by the IDE, so a
+change to one ships when it merges rather than to a throwaway app nothing points
+at.
+
+A preview app runs no machine until someone opens its URL
+(`min_machines_running = 0`), so an idle preview costs nothing. A pull request
+from a fork is skipped: it has no access to the token.
+
 ## Notes
 
-- The kaja demo IDE no longer needs a persistent volume. Its workspace config
-  (`kaja.json`) and demo proto files are baked into the image at build time
-  (`apps/kaja/Dockerfile`), so kaja builds from the repo root:
-  `fly deploy . --config apps/kaja/fly.toml`.
+- The seating service runs the simulated crowd in-process (`CROWD=off` to
+  disable), so the seat map keeps moving without a second app driving it.
+- It also rate limits per caller in memory (`RATE_LIMIT=off` to disable), at 40
+  calls per 10 seconds. Behind the Fly edge a caller is its `Fly-Client-IP`, so
+  everyone sharing a hosted Kaja shares a budget; gRPC reflection is exempt.
 - `primary_region` is set to `sjc` in every `fly.toml`. Change it to match the
   region you host in; keeping all apps in one region keeps the private-network
   (east-west) hops fast.

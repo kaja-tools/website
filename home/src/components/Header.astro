@@ -1,0 +1,31 @@
+---
+/* Sticks to the top of every page. The bar is the page background gone
+   translucent over a blur, so the app screenshot keeps moving underneath it.
+
+   The button is the download, not the demo: the app is the whole of Kaja,
+   so that is the one thing the bar asks for. */
+import Button from "./Button.astro";
+import Icon from "./Icon.astro";
+import Logo from "./Logo.astro";
+
+const link = "text-sm text-muted-foreground transition-colors hover:text-foreground";
+const current = "text-foreground";
+
+const onDocs = Astro.url.pathname.startsWith("/docs");
+---
+
+<header class="sticky top-0 z-50 flex h-14 items-center justify-between border-b border-border bg-background/80 px-6 backdrop-blur-md md:px-8">
+  <Logo />
+  <nav class="flex items-center gap-4 sm:gap-5">
+    <a href="/docs/desktop/" class:list={[link, onDocs && current]} aria-current={onDocs ? "page" : undefined}>Docs</a>
+    <a href="https://demo.kaja.tools/" class:list={[link, "hidden sm:block"]}>Demo</a>
+    <a href="https://github.com/wham/kaja" class:list={[link, "flex items-center gap-2"]} target="_blank" rel="noopener">
+      <Icon name="github" />
+      <span class="hidden sm:inline">GitHub</span>
+    </a>
+    <Button href="https://apps.apple.com/us/app/kaja-for-grpc-and-twirp/id6761604205?mt=12" size="sm" target="_blank" rel="noopener">
+      <Icon name="apple" />
+      Mac App Store
+    </Button>
+  </nav>
+</header>

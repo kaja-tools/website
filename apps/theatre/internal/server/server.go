@@ -1,40 +1,45 @@
 package server
 
 import (
+	"compress/gzip"
+	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/kaja-tools/website/v2/internal/catalog"
 	"github.com/kaja-tools/website/v2/openapi"
 )
 
-// Server exposes the theatre catalog at the root of its host
+// Server publishes the Theatre's three lists at the root of its host
 // (e.g. https://theatre.kaja.tools).
+//
+// The lists are the movie catalog, the theaters, and the schedule that
+// relates them. The schedule carries the two ids and nothing else, so seeing
+// what is on somewhere means joining it against the other two.
 type Server struct {
-	// baseURL is the public base URL of the service, used to build absolute
-	// posterUrl links.
-	baseURL string
-	now     func() time.Time
+	now func() time.Time
 }
 
-func New(baseURL string) *Server {
-	return &Server{baseURL: baseURL, now: time.Now}
+func New() *Server {
+	return &Server{now: time.Now}
 }
 
 func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /openapi.yaml", s.getSpec)
-	mux.HandleFunc("GET /venue", s.getVenue)
-	mux.HandleFunc("GET /events", s.listEvents)
-	mux.HandleFunc("GET /events/{eventId}", s.getEvent)
-	mux.HandleFunc("GET /events/{eventId}/poster.svg", s.getPoster)
-	mux.HandleFunc("GET /performances/{performanceId}", s.getPerformance)
-	return logRequests(mux)
+	mux.HandleFunc("GET /movies", s.listMovies)
+	mux.HandleFunc("GET /theaters", s.listTheaters)
+	mux.HandleFunc("GET /shows", s.listShows)
+	return logRequests(compress(mux))
 }
 
 func logRequests(next http.Handler) http.Handler {
@@ -44,208 +49,292 @@ func logRequests(next http.Handler) http.Handler {
 	})
 }
 
-type eventSummary struct {
-	ID                string  `json:"id"`
-	Title             string  `json:"title"`
-	Genre             string  `json:"genre"`
-	Tagline           string  `json:"tagline"`
-	PosterURL         string  `json:"posterUrl"`
-	NextPerformanceID *string `json:"nextPerformanceId"`
+// compress gzips a list for callers that asked for it. A page is small, but a
+// caller walking the whole catalog fetches a dozen of them and gets about a
+// fifth of the bytes this way.
+func compress(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+			next.ServeHTTP(w, r)
+			return
+		}
+		w.Header().Set("Content-Encoding", "gzip")
+		zip := gzip.NewWriter(w)
+		defer zip.Close()
+		next.ServeHTTP(gzipResponse{ResponseWriter: w, writer: zip}, r)
+	})
 }
 
-type eventFull struct {
-	eventSummary
-	Description  string                `json:"description"`
-	Details      catalog.Details       `json:"details"`
-	Performances []catalog.Performance `json:"performances"`
+type gzipResponse struct {
+	http.ResponseWriter
+	writer io.Writer
 }
 
-type eventPage struct {
-	Items      []eventSummary `json:"items"`
-	Page       int            `json:"page"`
-	PerPage    int            `json:"perPage"`
-	TotalItems int            `json:"totalItems"`
-	TotalPages int            `json:"totalPages"`
-}
-
-func (s *Server) summary(e catalog.Event, now time.Time) eventSummary {
-	return eventSummary{
-		ID:                e.ID,
-		Title:             e.Title,
-		Genre:             e.Genre,
-		Tagline:           e.Tagline,
-		PosterURL:         fmt.Sprintf("%s/events/%s/poster.svg", s.baseURL, e.ID),
-		NextPerformanceID: catalog.NextPerformanceID(e, now),
-	}
-}
+func (g gzipResponse) Write(b []byte) (int, error) { return g.writer.Write(b) }
 
 func (s *Server) getSpec(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/yaml")
 	w.Write(openapi.Spec)
 }
 
-func (s *Server) getVenue(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, http.StatusOK, catalog.TheVenue())
-}
+// A hundred rows is a page and five hundred is the most a caller can ask for
+// in one, which is what makes walking a list of a few thousand a handful of
+// requests rather than a hundred.
+const (
+	defaultLimit = 100
+	maxLimit     = 500
+	// The most ids one ?ids= lookup may name. A page of screenings names at
+	// most a page of films, so this is the same number as maxLimit.
+	maxIDs = maxLimit
+)
 
-func (s *Server) listEvents(w http.ResponseWriter, r *http.Request) {
-	now := s.now().UTC()
-	q := r.URL.Query()
-
-	genre := q.Get("genre")
-	switch genre {
-	case "", "concert", "play", "comedy", "opera":
-	default:
-		problem(w, http.StatusBadRequest, "Invalid genre",
-			fmt.Sprintf("%q is not one of: concert, play, comedy, opera", genre))
-		return
-	}
-
-	var date *time.Time
-	if d := q.Get("date"); d != "" {
-		parsed, err := time.ParseInLocation("2006-01-02", d, time.UTC)
-		if err != nil {
-			problem(w, http.StatusBadRequest, "Invalid date", "date must be formatted YYYY-MM-DD")
-			return
-		}
-		date = &parsed
-	}
-
-	page, err := positiveInt(q.Get("page"), 1)
+// listMovies is the catalog: every film the chain has a print of, whether or
+// not it is on this week. Everything a screening does not say about a film is
+// here, which makes this the other half of every join.
+func (s *Server) listMovies(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+	limit, after, err := s.pageRequest(query)
 	if err != nil {
-		problem(w, http.StatusBadRequest, "Invalid page", "page must be a positive integer")
+		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	perPage, err := positiveInt(q.Get("perPage"), 10)
-	if err != nil || perPage > 50 {
-		problem(w, http.StatusBadRequest, "Invalid perPage", "perPage must be between 1 and 50")
+	ids, err := parseIDs(query.Get("ids"))
+	if err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
+	genre := query.Get("genre")
 
-	var filtered []catalog.Event
-	for _, e := range catalog.Events() {
-		if genre != "" && e.Genre != genre {
+	movies := []catalog.Movie{}
+	for _, m := range catalog.Movies() {
+		if ids != nil && !ids[m.ID] {
 			continue
 		}
-		if date != nil && !performsOn(e, *date, now) {
+		if genre != "" && m.Genre != genre {
 			continue
 		}
-		filtered = append(filtered, e)
-	}
-	sort.Slice(filtered, func(i, j int) bool { return filtered[i].Title < filtered[j].Title })
-
-	totalItems := len(filtered)
-	totalPages := (totalItems + perPage - 1) / perPage
-	start := (page - 1) * perPage
-	end := min(start+perPage, totalItems)
-	items := []eventSummary{}
-	if start < totalItems {
-		for _, e := range filtered[start:end] {
-			items = append(items, s.summary(e, now))
-		}
+		movies = append(movies, m)
 	}
 
-	links := ""
-	if page < totalPages {
-		links = fmt.Sprintf(`<%s/events?page=%d&perPage=%d>; rel="next"`, s.baseURL, page+1, perPage)
-	}
-	if page > 1 {
-		if links != "" {
-			links += ", "
-		}
-		links += fmt.Sprintf(`<%s/events?page=%d&perPage=%d>; rel="prev"`, s.baseURL, page-1, perPage)
-	}
-	if links != "" {
-		w.Header().Set("Link", links)
-	}
-
-	writeJSON(w, http.StatusOK, eventPage{
-		Items:      items,
-		Page:       page,
-		PerPage:    perPage,
-		TotalItems: totalItems,
-		TotalPages: totalPages,
-	})
+	// The catalog is already in id order, which is the order a cursor walks.
+	rows, next := paginate(movies, func(m catalog.Movie) string { return m.ID }, limit, after, s.anchor(after))
+	writeJSON(w, moviePage{Movies: rows, Total: len(movies), NextCursor: next})
 }
 
-func performsOn(e catalog.Event, date time.Time, now time.Time) bool {
-	for _, p := range catalog.PerformancesFor(e, now) {
-		y1, m1, d1 := p.StartsAt.Date()
-		y2, m2, d2 := date.Date()
-		if y1 == y2 && m1 == m2 && d1 == d2 {
-			return true
+// listTheaters is the chain. A dozen houses is small enough to be one
+// response, so this is the one list with no cursor: read it once and keep it
+// as the lookup table it is.
+func (s *Server) listTheaters(w http.ResponseWriter, r *http.Request) {
+	city := strings.ToLower(strings.TrimSpace(r.URL.Query().Get("city")))
+
+	theaters := []catalog.Theater{}
+	for _, t := range catalog.Theaters() {
+		if city != "" && strings.ToLower(t.City) != city {
+			continue
 		}
+		theaters = append(theaters, t)
 	}
-	return false
+	writeJSON(w, theaterList{Theaters: theaters, Total: len(theaters)})
 }
 
-func (s *Server) getEvent(w http.ResponseWriter, r *http.Request) {
-	now := s.now().UTC()
-	e, ok := catalog.EventByID(r.PathValue("eventId"))
-	if !ok {
-		problem(w, http.StatusNotFound, "Event not found",
-			fmt.Sprintf("no event %q — list them at %s/events", r.PathValue("eventId"), s.baseURL))
+// listShows is the schedule and only the schedule: which film plays at which
+// house, when, and for how much. What the film is called and where the house
+// is are the other two lists' to say.
+func (s *Server) listShows(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+	limit, after, err := s.pageRequest(query)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	writeJSON(w, http.StatusOK, eventFull{
-		eventSummary: s.summary(e, now),
-		Description:  e.Description,
-		Details:      e.Details,
-		Performances: catalog.PerformancesFor(e, now),
-	})
-}
+	theaterID, movieID := query.Get("theaterId"), query.Get("movieId")
+	city := strings.ToLower(strings.TrimSpace(query.Get("city")))
 
-func (s *Server) getPoster(w http.ResponseWriter, r *http.Request) {
-	e, ok := catalog.EventByID(r.PathValue("eventId"))
-	if !ok {
-		problem(w, http.StatusNotFound, "Event not found", "")
-		return
+	// Every page of one walk is rendered against the time the walk started,
+	// so a screening cannot roll over into next week half way through and be
+	// served twice.
+	anchor := s.anchor(after)
+
+	shows := []show{}
+	for _, c := range catalog.Shows() {
+		if theaterID != "" && c.TheaterID != theaterID {
+			continue
+		}
+		if movieID != "" && c.MovieID != movieID {
+			continue
+		}
+		if city != "" {
+			t, ok := catalog.TheaterByID(c.TheaterID)
+			if !ok || strings.ToLower(t.City) != city {
+				continue
+			}
+		}
+		shows = append(shows, render(c, anchor))
 	}
-	w.Header().Set("Content-Type", "image/svg+xml")
-	w.Header().Set("Cache-Control", "public, max-age=3600")
-	w.Write(poster(e))
+	sort.Slice(shows, func(i, j int) bool { return shows[i].key() < shows[j].key() })
+
+	rows, next := paginate(shows, show.key, limit, after, anchor)
+	writeJSON(w, showPage{Shows: rows, Total: len(shows), NextCursor: next})
 }
 
-func (s *Server) getPerformance(w http.ResponseWriter, r *http.Request) {
-	id := r.PathValue("performanceId")
-	p, result := catalog.PerformanceByID(id, s.now())
-	switch result {
-	case catalog.LookupFound:
-		writeJSON(w, http.StatusOK, p)
-	case catalog.LookupGone:
-		problem(w, http.StatusGone, "Performance already happened",
-			fmt.Sprintf("%s is in the past; pick an upcoming one from %s/events", id, s.baseURL))
-	default:
-		problem(w, http.StatusNotFound, "Performance not found",
-			fmt.Sprintf("%q does not match any showtime in the next %d days", id, catalog.WindowDays))
+// show is one screening as the schedule publishes it: the two ids it relates,
+// the next time it starts, and what a seat costs.
+type show struct {
+	ID         string    `json:"id"`
+	MovieID    string    `json:"movieId"`
+	TheaterID  string    `json:"theaterId"`
+	StartsAt   time.Time `json:"startsAt"`
+	PriceCents int       `json:"priceCents"`
+}
+
+func render(c catalog.Show, now time.Time) show {
+	return show{
+		ID:         c.ID,
+		MovieID:    c.MovieID,
+		TheaterID:  c.TheaterID,
+		StartsAt:   c.NextStart(now),
+		PriceCents: c.PriceCents,
 	}
 }
 
-func positiveInt(raw string, def int) (int, error) {
+// The schedule's order: soonest first, and by id where two screenings start
+// in the same minute, so that a position in it is a screening rather than a
+// number. Zero-padded because a cursor compares these as text.
+func (s show) key() string {
+	return fmt.Sprintf("%011d:%s", s.StartsAt.Unix(), s.ID)
+}
+
+type moviePage struct {
+	Movies     []catalog.Movie `json:"movies"`
+	Total      int             `json:"total"`
+	NextCursor *string         `json:"nextCursor"`
+}
+
+type theaterList struct {
+	Theaters []catalog.Theater `json:"theaters"`
+	Total    int               `json:"total"`
+}
+
+type showPage struct {
+	Shows      []show  `json:"shows"`
+	Total      int     `json:"total"`
+	NextCursor *string `json:"nextCursor"`
+}
+
+// paginate takes the rows after the cursor, up to limit, and says where to
+// carry on from. items must already be sorted by key.
+func paginate[T any](items []T, key func(T) string, limit int, after *cursor, anchor time.Time) ([]T, *string) {
+	if after != nil {
+		items = items[sort.Search(len(items), func(i int) bool { return key(items[i]) > after.key }):]
+	}
+	if len(items) <= limit {
+		return items, nil
+	}
+	items = items[:limit]
+	next := cursor{anchor: anchor, key: key(items[limit-1])}.encode()
+	return items, &next
+}
+
+func (s *Server) pageRequest(query url.Values) (int, *cursor, error) {
+	limit, err := parseLimit(query.Get("limit"))
+	if err != nil {
+		return 0, nil, err
+	}
+	after, err := parseCursor(query.Get("cursor"), s.now().UTC())
+	if err != nil {
+		return 0, nil, err
+	}
+	return limit, after, nil
+}
+
+// anchor is the moment a walk is rendered against: the one the cursor
+// carries, or now for a walk that is just starting.
+func (s *Server) anchor(after *cursor) time.Time {
+	if after != nil {
+		return after.anchor
+	}
+	return s.now().UTC()
+}
+
+func parseLimit(raw string) (int, error) {
 	if raw == "" {
-		return def, nil
+		return defaultLimit, nil
 	}
-	n, err := strconv.Atoi(raw)
-	if err != nil || n < 1 {
-		return 0, fmt.Errorf("invalid: %q", raw)
+	limit, err := strconv.Atoi(raw)
+	if err != nil || limit < 1 || limit > maxLimit {
+		return 0, fmt.Errorf("limit must be a whole number between 1 and %d", maxLimit)
 	}
-	return n, nil
+	return limit, nil
 }
 
-func writeJSON(w http.ResponseWriter, status int, v any) {
+// parseIDs reads the ?ids= filter. A nil set means the caller did not ask for
+// particular rows, which is different from asking for none.
+func parseIDs(raw string) (map[string]bool, error) {
+	if strings.TrimSpace(raw) == "" {
+		return nil, nil
+	}
+	ids := map[string]bool{}
+	for _, id := range strings.Split(raw, ",") {
+		if id = strings.TrimSpace(id); id != "" {
+			ids[id] = true
+		}
+	}
+	if len(ids) > maxIDs {
+		return nil, fmt.Errorf("ids names %d films; %d is the most in one lookup", len(ids), maxIDs)
+	}
+	return ids, nil
+}
+
+// A cursor is where the last page stopped: the sort key of its final row,
+// plus the moment that walk began. It is opaque on purpose — it says where a
+// walk got to rather than how far in it got, so a list growing underneath a
+// caller neither skips a row nor repeats one.
+type cursor struct {
+	anchor time.Time
+	key    string
+}
+
+// How long a walk may take before it has to start again. A cursor carries the
+// time its walk began, and past this the times in it would be stale.
+const cursorTTL = time.Hour
+
+func (c cursor) encode() string {
+	raw := fmt.Sprintf("%d:%s", c.anchor.Unix(), c.key)
+	return base64.RawURLEncoding.EncodeToString([]byte(raw))
+}
+
+func parseCursor(raw string, now time.Time) (*cursor, error) {
+	if raw == "" {
+		return nil, nil
+	}
+	invalid := errors.New("cursor is not one this service issued — start again without one")
+	decoded, err := base64.RawURLEncoding.DecodeString(raw)
+	if err != nil {
+		return nil, invalid
+	}
+	unix, key, found := strings.Cut(string(decoded), ":")
+	if !found {
+		return nil, invalid
+	}
+	anchor, err := strconv.ParseInt(unix, 10, 64)
+	if err != nil {
+		return nil, invalid
+	}
+	c := cursor{anchor: time.Unix(anchor, 0).UTC(), key: key}
+	if now.Sub(c.anchor) > cursorTTL || c.anchor.After(now) {
+		return nil, errors.New("cursor has expired — start again without one")
+	}
+	return &c, nil
+}
+
+func writeJSON(w http.ResponseWriter, body any) {
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(v)
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(body)
 }
 
-// problem writes an RFC 7807 problem+json error response.
-func problem(w http.ResponseWriter, status int, title, detail string) {
-	w.Header().Set("Content-Type", "application/problem+json")
-	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(map[string]any{
-		"type":   "about:blank",
-		"title":  title,
-		"status": status,
-		"detail": detail,
-	})
+func writeError(w http.ResponseWriter, code int, message string) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+	json.NewEncoder(w).Encode(map[string]string{"message": message})
 }

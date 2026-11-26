@@ -1,0 +1,26 @@
+---
+/* Which build the docs are read for. Two links rather than a switch, because
+   the two builds are two pages: what is picked here is where you are.
+
+   Rendered twice: in the sidebar, and above the copy on a window too narrow
+   to have one. Both are marked `data-platform-pick`, which is how DocsMotion
+   finds them to carry the section being read across the switch. */
+import { builds, platformOf } from "../data/docs";
+
+const current = platformOf(Astro.url);
+---
+
+<div class="flex gap-0.5 rounded-lg border border-border bg-card p-0.75">
+  {
+    builds.map((build) => (
+      <a
+        href={`/docs/${build.id}/`}
+        data-platform-pick
+        aria-current={build.id === current ? "page" : undefined}
+        class="flex h-6.5 flex-1 items-center justify-center rounded-md text-fine font-medium text-muted-foreground transition-colors hover:text-foreground aria-[current=page]:bg-muted aria-[current=page]:text-foreground"
+      >
+        {build.label}
+      </a>
+    ))
+  }
+</div>

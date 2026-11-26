@@ -1,12 +1,15 @@
-// Package store owns live seat state for every performance. Everything is
-// in memory: seat state is disposable by design (holds expire, performances
-// roll off the schedule), so a restart simply resets the house.
+// Package store owns live seat state for every show. Everything is in
+// memory: seat state is disposable by design (holds expire, houses reopen
+// each week), so a restart simply resets the theatre.
 package store
 
 import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"hash/fnv"
+	mathrand "math/rand/v2"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -23,25 +26,40 @@ const (
 	MaxSeatsPerHold = 6
 	// Slow watchers get this much channel buffer before being dropped.
 	watchBuffer = 256
-	// How many recent changes we keep per performance for pollers to catch
-	// up on. A polling client that falls further behind than this gets a
-	// reset and re-fetches the snapshot.
-	changeLogSize = 512
 )
 
-// The house layout. This mirrors GET /venue in the theatre catalog; the two
-// services share the contract, not the code.
+// The house layout. The Theatre service does not publish it — a seat map
+// describes itself, so there is nothing to look up first.
 type layoutSection struct {
 	section  api.Section
-	rows     string // row letters
+	rows     string // row letters, skipping I and O
 	seats    int    // per row
 	priceNum int    // price = base * priceNum / priceDen
 	priceDen int
 }
 
-var layout = []layoutSection{
-	{api.Section_SECTION_ORCHESTRA, "ABCDEFGH", 14, 1, 1},
-	{api.Section_SECTION_BALCONY, "JKLM", 12, 3, 4},
+// Three sizes of house. Which one a theater is, is read off its id: the
+// schedule says which house a screening is at, and that is enough to know
+// that the same film seats a different number of people two towns over. A
+// small house has no balcony at all.
+var layouts = [][]layoutSection{
+	{
+		{api.Section_SECTION_ORCHESTRA, "ABCDEF", 12, 1, 1},
+	},
+	{
+		{api.Section_SECTION_ORCHESTRA, "ABCDEFGH", 14, 1, 1},
+		{api.Section_SECTION_BALCONY, "JKLM", 12, 3, 4},
+	},
+	{
+		{api.Section_SECTION_ORCHESTRA, "ABCDEFGHJK", 16, 1, 1},
+		{api.Section_SECTION_BALCONY, "LMNPQ", 14, 3, 4},
+	},
+}
+
+func layoutFor(theaterID string) []layoutSection {
+	h := fnv.New64a()
+	h.Write([]byte(theaterID))
+	return layouts[h.Sum64()%uint64(len(layouts))]
 }
 
 type seat struct {
@@ -56,70 +74,48 @@ type seat struct {
 
 type hold struct {
 	id      string
-	perfID  string
+	showID  string
 	seatIDs []string
 	total   int32
 	expires time.Time
 }
 
-type performance struct {
-	id       string
-	seats    map[string]*seat
+type show struct {
+	id    string
+	seats map[string]*seat
+	// layout is the house this screening is in, which the schedule's
+	// theaterId decides.
+	layout []layoutSection
+	// startsAt is the curtain-up this house was built for. When the schedule
+	// moves it on to next week, the house reopens.
+	startsAt time.Time
 	watchers map[chan *api.SeatUpdate]struct{}
-	// seq is a monotonic counter; log holds the last changeLogSize changes
-	// in ascending seq order so unary pollers can catch up without a stream.
-	seq int64
-	log []*api.SeatChange
 }
 
 type Store struct {
 	theatre *theatre.Client
 
 	mu    sync.Mutex
-	perfs map[string]*performance
+	shows map[string]*show
 	holds map[string]*hold
 }
 
 func New(theatreClient *theatre.Client) *Store {
 	return &Store{
 		theatre: theatreClient,
-		perfs:   map[string]*performance{},
+		shows:   map[string]*show{},
 		holds:   map[string]*hold{},
 	}
 }
 
-// perf returns the live state for a performance, lazily building the seat
-// map the first time a valid performance is touched. The catalog lookup
-// happens outside the lock.
-func (s *Store) perf(perfID string) (*performance, error) {
-	s.mu.Lock()
-	p, ok := s.perfs[perfID]
-	s.mu.Unlock()
-	if ok {
-		return p, nil
-	}
-
-	info, err := s.theatre.Performance(perfID)
-	if err != nil {
-		return nil, err
-	}
-
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	if p, ok := s.perfs[perfID]; ok {
-		return p, nil
-	}
-	p = &performance{
-		id:       perfID,
-		seats:    map[string]*seat{},
-		watchers: map[chan *api.SeatUpdate]struct{}{},
-	}
+func buildSeats(layout []layoutSection, priceCents int) map[string]*seat {
+	seats := map[string]*seat{}
 	for _, sec := range layout {
-		price := int32(info.BasePriceCents * sec.priceNum / sec.priceDen)
+		price := int32(priceCents * sec.priceNum / sec.priceDen)
 		for _, letter := range strings.Split(sec.rows, "") {
 			for n := 1; n <= sec.seats; n++ {
 				id := fmt.Sprintf("%s%d", letter, n)
-				p.seats[id] = &seat{
+				seats[id] = &seat{
 					id:      id,
 					section: sec.section,
 					row:     letter,
@@ -130,31 +126,87 @@ func (s *Store) perf(perfID string) (*performance, error) {
 			}
 		}
 	}
-	s.perfs[perfID] = p
-	return p, nil
+	return seats
 }
 
-func (p *performance) snapshotLocked() *api.SeatMap {
+// advanceSale fills a freshly built house the way the week already would
+// have. The programme runs to a couple of thousand screenings and the crowd
+// can only be in one house at a time, so a house nobody has opened yet would
+// otherwise be a perfectly empty one — which is the least interesting seat
+// map there is. The sale is seeded from the show and its curtain-up, so a
+// house looks the same every time it opens, different from its neighbour,
+// and fuller the closer the performance is.
+func advanceSale(seats map[string]*seat, showID string, startsAt time.Time) {
+	untilShow := time.Until(startsAt)
+	if untilShow < 0 {
+		untilShow = 0
+	}
+	closeness := 1 - untilShow.Hours()/(7*24)
+	if closeness < 0 {
+		closeness = 0
+	}
+
+	seed := fnv.New64a()
+	seed.Write([]byte(showID))
+	fmt.Fprint(seed, startsAt.Unix())
+	rng := mathrand.New(mathrand.NewPCG(seed.Sum64(), uint64(startsAt.Unix())))
+
+	// How well a screening has been selling is the house's own business —
+	// the store has no opinions about the programme to read it off.
+	sold := (0.15 + 0.5*rng.Float64()) * closeness
+
+	ids := make([]string, 0, len(seats))
+	for id := range seats {
+		ids = append(ids, id)
+	}
+	sort.Strings(ids)
+	rng.Shuffle(len(ids), func(i, j int) { ids[i], ids[j] = ids[j], ids[i] })
+
+	for _, id := range ids[:int(float64(len(ids))*sold)] {
+		seats[id].status = api.SeatStatus_SEAT_STATUS_SOLD
+	}
+}
+
+// state returns the live house for a screening, building it the first time
+// the screening is touched and reopening it once last week's performance is
+// over. The schedule lookup is cached and happens outside the lock.
+func (s *Store) state(showID string) (*show, error) {
+	info, err := s.theatre.Show(showID)
+	if err != nil {
+		return nil, err
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	sh, ok := s.shows[showID]
+	if !ok {
+		sh = &show{id: showID, watchers: map[chan *api.SeatUpdate]struct{}{}}
+		s.shows[showID] = sh
+	}
+	if !sh.startsAt.Equal(info.StartsAt) {
+		sh.startsAt = info.StartsAt
+		sh.layout = layoutFor(info.TheaterID)
+		sh.seats = buildSeats(sh.layout, info.PriceCents)
+		advanceSale(sh.seats, sh.id, sh.startsAt)
+	}
+	return sh, nil
+}
+
+func (sh *show) snapshotLocked() *api.SeatMap {
 	m := &api.SeatMap{
-		PerformanceId:      p.id,
+		ShowId:             sh.id,
 		AvailableBySection: map[string]int32{},
 	}
-	for _, sec := range layout {
+	for _, sec := range sh.layout {
 		sectionMap := &api.SectionMap{Section: sec.section}
 		sectionName := strings.TrimPrefix(sec.section.String(), "SECTION_")
 		m.AvailableBySection[sectionName] = 0
 		for _, letter := range strings.Split(sec.rows, "") {
 			row := &api.Row{Letter: letter}
 			for n := 1; n <= sec.seats; n++ {
-				st := p.seats[fmt.Sprintf("%s%d", letter, n)]
-				row.Seats = append(row.Seats, &api.Seat{
-					Id:         st.id,
-					Section:    st.section,
-					Row:        st.row,
-					Number:     st.number,
-					Status:     st.status,
-					PriceCents: st.price,
-				})
+				st := sh.seats[fmt.Sprintf("%s%d", letter, n)]
+				row.Seats = append(row.Seats, seatProto(st))
 				switch st.status {
 				case api.SeatStatus_SEAT_STATUS_AVAILABLE:
 					m.Available++
@@ -169,118 +221,115 @@ func (p *performance) snapshotLocked() *api.SeatMap {
 		}
 		m.Sections = append(m.Sections, sectionMap)
 	}
-	m.Cursor = p.seq
 	return m
 }
 
-// emitLocked records a seat change in the poll log and fans it out to every
-// watcher. Watchers that cannot keep up are dropped so a stuck stream never
-// blocks the house.
-func (p *performance) emitLocked(seatID string, st api.SeatStatus, reason api.ChangeReason) {
-	p.seq++
-	change := &api.SeatChange{
-		PerformanceId: p.id,
-		SeatId:        seatID,
-		Status:        st,
-		Reason:        reason,
-		ChangedAt:     timestamppb.Now(),
-		Seq:           p.seq,
-	}
-
-	p.log = append(p.log, change)
-	if len(p.log) > changeLogSize {
-		p.log = p.log[len(p.log)-changeLogSize:]
-	}
-
-	update := &api.SeatUpdate{Update: &api.SeatUpdate_Change{Change: change}}
-	for ch := range p.watchers {
+// emitLocked fans a seat change out to every watcher. Watchers that cannot
+// keep up are dropped so a stuck stream never blocks the house.
+func (sh *show) emitLocked(seatID string, st api.SeatStatus, reason api.ChangeReason) {
+	update := &api.SeatUpdate{Update: &api.SeatUpdate_Change{Change: &api.SeatChange{
+		ShowId:    sh.id,
+		SeatId:    seatID,
+		Status:    st,
+		Reason:    reason,
+		ChangedAt: timestamppb.Now(),
+	}}}
+	for ch := range sh.watchers {
 		select {
 		case ch <- update:
 		default:
-			delete(p.watchers, ch)
+			delete(sh.watchers, ch)
 			close(ch)
 		}
 	}
 }
 
-// SeatMap returns a snapshot of a performance's seats.
-func (s *Store) SeatMap(perfID string) (*api.SeatMap, error) {
-	p, err := s.perf(perfID)
+// SeatMap returns a snapshot of a show's seats.
+func (s *Store) SeatMap(showID string) (*api.SeatMap, error) {
+	sh, err := s.state(showID)
 	if err != nil {
 		return nil, err
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	return p.snapshotLocked(), nil
-}
-
-// Changes returns the seat changes after cursor, the current cursor to poll
-// from next, and whether the caller fell behind the retained log (in which
-// case it should re-fetch a snapshot). A cursor of 0 starts from the latest
-// change, returning none. This is the unary, web-friendly counterpart to
-// WatchSeats.
-func (s *Store) Changes(perfID string, cursor int64) (changes []*api.SeatChange, next int64, reset bool, err error) {
-	p, err := s.perf(perfID)
-	if err != nil {
-		return nil, 0, false, err
-	}
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	if cursor == 0 || len(p.log) == 0 {
-		return nil, p.seq, false, nil
-	}
-	// log seqs are contiguous and ascending; if the requested cursor sits
-	// before the oldest retained change, some were evicted — signal a reset.
-	if cursor < p.log[0].Seq-1 {
-		return nil, p.seq, true, nil
-	}
-	for _, c := range p.log {
-		if c.Seq > cursor {
-			changes = append(changes, c)
-		}
-	}
-	return changes, p.seq, false, nil
+	return sh.snapshotLocked(), nil
 }
 
 // Subscribe returns a consistent snapshot plus a channel of every change
 // after it. Call the returned cancel function when done.
-func (s *Store) Subscribe(perfID string) (*api.SeatMap, <-chan *api.SeatUpdate, func(), error) {
-	p, err := s.perf(perfID)
+func (s *Store) Subscribe(showID string) (*api.SeatMap, <-chan *api.SeatUpdate, func(), error) {
+	sh, err := s.state(showID)
 	if err != nil {
 		return nil, nil, nil, err
 	}
 	ch := make(chan *api.SeatUpdate, watchBuffer)
 
 	s.mu.Lock()
-	snapshot := p.snapshotLocked()
-	p.watchers[ch] = struct{}{}
+	snapshot := sh.snapshotLocked()
+	sh.watchers[ch] = struct{}{}
 	s.mu.Unlock()
 
 	cancel := func() {
 		s.mu.Lock()
 		defer s.mu.Unlock()
-		if _, ok := p.watchers[ch]; ok {
-			delete(p.watchers, ch)
+		if _, ok := sh.watchers[ch]; ok {
+			delete(sh.watchers, ch)
 			close(ch)
 		}
 	}
 	return snapshot, ch, cancel, nil
 }
 
-// Hold places a hold on the given seats. All seats must be available;
-// otherwise the caller is told exactly which ones were lost.
-func (s *Store) Hold(perfID string, seatIDs []string) (*api.Hold, error) {
-	if len(seatIDs) == 0 {
-		return nil, status.Error(codes.InvalidArgument, "pick at least one seat")
-	}
-	if len(seatIDs) > MaxSeatsPerHold {
-		return nil, status.Errorf(codes.InvalidArgument, "at most %d seats per hold", MaxSeatsPerHold)
-	}
-
-	p, err := s.perf(perfID)
+// Book sells the given seats outright. It is the only write the service
+// exposes, and it is all or nothing: if somebody took one of the seats first,
+// nothing is sold and the caller is told exactly which ones were lost.
+//
+// Holding is still how the house works — the crowd holds seats and thinks
+// about them, so the map keeps moving — but a hold is not something a caller
+// has to carry around between two calls to buy a ticket.
+func (s *Store) Book(showID string, seatIDs []string) (*api.BookSeatsResponse, error) {
+	sh, ids, err := s.claim(showID, seatIDs)
 	if err != nil {
 		return nil, err
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	var seats []*api.Seat
+	var total int32
+	for _, id := range ids {
+		st := sh.seats[id]
+		st.status = api.SeatStatus_SEAT_STATUS_SOLD
+		st.holdID = ""
+		total += st.price
+		sh.emitLocked(id, api.SeatStatus_SEAT_STATUS_SOLD, api.ChangeReason_CHANGE_REASON_PURCHASE)
+		seats = append(seats, seatProto(st))
+	}
+
+	return &api.BookSeatsResponse{
+		BookingId:       "bk_" + randomID(),
+		Seats:           seats,
+		TotalPriceCents: total,
+		BookedAt:        timestamppb.Now(),
+	}, nil
+}
+
+// claim normalizes the requested seat ids and checks that every one of them is
+// free, leaving the caller to decide what to do with them under a fresh lock.
+// The seats are not reserved by this — a race is still possible and still
+// normal — but every rejection a caller can hit is decided in one place.
+func (s *Store) claim(showID string, seatIDs []string) (*show, []string, error) {
+	if len(seatIDs) == 0 {
+		return nil, nil, status.Error(codes.InvalidArgument, "pick at least one seat")
+	}
+	if len(seatIDs) > MaxSeatsPerHold {
+		return nil, nil, status.Errorf(codes.InvalidArgument, "at most %d seats at a time", MaxSeatsPerHold)
+	}
+
+	sh, err := s.state(showID)
+	if err != nil {
+		return nil, nil, err
 	}
 
 	s.mu.Lock()
@@ -294,47 +343,65 @@ func (s *Store) Hold(perfID string, seatIDs []string) (*api.Hold, error) {
 			continue
 		}
 		seen[id] = true
-		if _, ok := p.seats[id]; !ok {
-			return nil, status.Errorf(codes.InvalidArgument, "there is no seat %q in the house", raw)
+		if _, ok := sh.seats[id]; !ok {
+			return nil, nil, status.Errorf(codes.InvalidArgument, "there is no seat %q in the house", raw)
 		}
 		ids = append(ids, id)
 	}
 
 	var taken []string
-	var total int32
 	for _, id := range ids {
-		if p.seats[id].status != api.SeatStatus_SEAT_STATUS_AVAILABLE {
+		if sh.seats[id].status != api.SeatStatus_SEAT_STATUS_AVAILABLE {
 			taken = append(taken, id)
 		}
-		total += p.seats[id].price
 	}
 	if len(taken) > 0 {
 		verb := "was"
 		if len(taken) > 1 {
 			verb = "were"
 		}
-		return nil, status.Errorf(codes.AlreadyExists, "seat %s %s just taken", strings.Join(taken, ", "), verb)
+		return nil, nil, status.Errorf(codes.AlreadyExists, "seat %s %s just taken", strings.Join(taken, ", "), verb)
+	}
+	return sh, ids, nil
+}
+
+// Hold places a hold on the given seats and returns its id. Not exposed over
+// gRPC — buying is one call — but the crowd holds seats and lets them go,
+// which is what keeps the seat map moving while you read it.
+func (s *Store) Hold(showID string, seatIDs []string) (string, error) {
+	sh, ids, err := s.claim(showID, seatIDs)
+	if err != nil {
+		return "", err
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	var total int32
+	for _, id := range ids {
+		total += sh.seats[id].price
 	}
 
 	h := &hold{
 		id:      "hold_" + randomID(),
-		perfID:  perfID,
+		showID:  showID,
 		seatIDs: ids,
 		total:   total,
 		expires: time.Now().Add(HoldTTL),
 	}
 	s.holds[h.id] = h
 	for _, id := range ids {
-		p.seats[id].status = api.SeatStatus_SEAT_STATUS_HELD
-		p.seats[id].holdID = h.id
-		p.emitLocked(id, api.SeatStatus_SEAT_STATUS_HELD, api.ChangeReason_CHANGE_REASON_HOLD)
+		sh.seats[id].status = api.SeatStatus_SEAT_STATUS_HELD
+		sh.seats[id].holdID = h.id
+		sh.emitLocked(id, api.SeatStatus_SEAT_STATUS_HELD, api.ChangeReason_CHANGE_REASON_HOLD)
 	}
 	time.AfterFunc(HoldTTL, func() { s.expire(h.id) })
 
-	return holdProto(h), nil
+	return h.id, nil
 }
 
-// Confirm turns a hold into sold seats.
+// Confirm turns a hold into sold seats. Not exposed over gRPC either; it is
+// how the crowd finishes what it started.
 func (s *Store) Confirm(holdID string) ([]*api.Seat, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -343,28 +410,22 @@ func (s *Store) Confirm(holdID string) ([]*api.Seat, error) {
 	if !ok {
 		return nil, status.Errorf(codes.NotFound, "hold %q not found — it may have expired", holdID)
 	}
-	p := s.perfs[h.perfID]
+	sh := s.shows[h.showID]
 	delete(s.holds, holdID)
 
 	var seats []*api.Seat
 	for _, id := range h.seatIDs {
-		st := p.seats[id]
+		st := sh.seats[id]
 		st.status = api.SeatStatus_SEAT_STATUS_SOLD
 		st.holdID = ""
-		p.emitLocked(id, api.SeatStatus_SEAT_STATUS_SOLD, api.ChangeReason_CHANGE_REASON_PURCHASE)
-		seats = append(seats, &api.Seat{
-			Id:         st.id,
-			Section:    st.section,
-			Row:        st.row,
-			Number:     st.number,
-			Status:     st.status,
-			PriceCents: st.price,
-		})
+		sh.emitLocked(id, api.SeatStatus_SEAT_STATUS_SOLD, api.ChangeReason_CHANGE_REASON_PURCHASE)
+		seats = append(seats, seatProto(st))
 	}
 	return seats, nil
 }
 
-// Release frees a hold's seats early.
+// Release frees a hold's seats early. Not exposed over gRPC — holds expire
+// on their own — but the crowd uses it to put seats back.
 func (s *Store) Release(holdID string) error {
 	return s.release(holdID, api.ChangeReason_CHANGE_REASON_RELEASE)
 }
@@ -384,24 +445,25 @@ func (s *Store) release(holdID string, reason api.ChangeReason) error {
 		}
 		return status.Errorf(codes.NotFound, "hold %q not found — it may have expired", holdID)
 	}
-	p := s.perfs[h.perfID]
+	sh := s.shows[h.showID]
 	delete(s.holds, holdID)
 
 	for _, id := range h.seatIDs {
-		p.seats[id].status = api.SeatStatus_SEAT_STATUS_AVAILABLE
-		p.seats[id].holdID = ""
-		p.emitLocked(id, api.SeatStatus_SEAT_STATUS_AVAILABLE, reason)
+		sh.seats[id].status = api.SeatStatus_SEAT_STATUS_AVAILABLE
+		sh.seats[id].holdID = ""
+		sh.emitLocked(id, api.SeatStatus_SEAT_STATUS_AVAILABLE, reason)
 	}
 	return nil
 }
 
-func holdProto(h *hold) *api.Hold {
-	return &api.Hold{
-		Id:              h.id,
-		PerformanceId:   h.perfID,
-		SeatIds:         h.seatIDs,
-		TotalPriceCents: h.total,
-		ExpiresAt:       timestamppb.New(h.expires),
+func seatProto(st *seat) *api.Seat {
+	return &api.Seat{
+		Id:         st.id,
+		Section:    st.section,
+		Row:        st.row,
+		Number:     st.number,
+		Status:     st.status,
+		PriceCents: st.price,
 	}
 }
 

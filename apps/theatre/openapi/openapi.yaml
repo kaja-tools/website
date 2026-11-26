@@ -1,397 +1,329 @@
 openapi: 3.1.0
 info:
-  title: The Kaja Theatre
-  version: 1.0.0
+  title: Theatre
+  version: 4.0.0
   description: |
-    The public catalog of **The Kaja Theatre** — a fictional venue used to demo
-    [kaja](https://kaja.tools).
+    A chain of a dozen repertory cinemas, used to demo
+    [kaja](https://kaja.tools). The films are real; the cinemas are not.
 
-    Browse events and showtimes here, then:
-    - watch the live seat map over gRPC (`seating.Seating/WatchSeats`)
-    - buy tickets over Twirp (`boxoffice.BoxOffice/Reserve` + `Purchase`)
+    Three lists, and only the third relates anything:
 
-    Performance IDs returned by this API are the input to both other services.
+    1. `GET /movies` — the catalog. Everything about a film.
+    2. `GET /theaters` — the chain. A dozen houses, one response, no cursor.
+    3. `GET /shows` — the schedule. A movie id, a theater id, a time and a
+       price, and nothing else.
+
+    So seeing what is on tonight in Chicago is a join: `GET /shows?city=Chicago`
+    for the screenings, then `GET /movies?ids=…` and `GET /theaters` to find
+    out what they are and where. Seats are not part of this API — they live in
+    the seating gRPC service, which owns live seat state. Copy any screening's
+    `id` and pass it there as `showId`.
+
+    The house is busy: other customers are buying these seats while you read
+    this, so calling `GetSeatMap` twice gives you two different answers.
 servers:
   - url: https://theatre.kaja.tools
-tags:
-  - name: venue
-  - name: events
-  - name: performances
 
 paths:
-  /venue:
+  /movies:
     get:
-      operationId: getVenue
-      summary: The theatre and its seating layout
-      tags: [venue]
-      responses:
-        "200":
-          description: The venue.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Venue"
+      operationId: listMovies
+      summary: The movie catalog
+      description: |
+        Every film the chain has a print of, in id order, whether or not it is
+        screening this week. This is the half of the join that says what a
+        screening actually is.
 
-  /events:
-    get:
-      operationId: listEvents
-      summary: Browse events
-      tags: [events]
+        The catalog runs to a bit over a thousand films. Call this with no
+        parameters for the first hundred, then pass the `nextCursor` you got
+        back as `cursor` for the next page, until `nextCursor` is `null`.
+
+        To fill in a page of screenings, don't walk it: pass the screenings'
+        `movieId`s to `ids` and get exactly those films back in one call.
       parameters:
+        - name: ids
+          in: query
+          required: false
+          description: |
+            Only these films, as a comma-separated list of ids. This is how a
+            page of screenings is joined to the catalog in one request.
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: false
+          example: [dune-part-two, the-thing]
         - name: genre
           in: query
-          description: Only events of this genre.
-          schema:
-            $ref: "#/components/schemas/Genre"
-        - name: date
-          in: query
-          description: Only events with a performance on this date.
+          required: false
+          description: Only films of this genre.
           schema:
             type: string
-            format: date
-        - name: page
+            enum: [action, animation, comedy, drama, horror, romance, sci-fi, thriller]
+        - name: limit
           in: query
+          required: false
+          description: How many films to return. A hundred by default, five hundred at the most.
           schema:
             type: integer
             minimum: 1
-            default: 1
-        - name: perPage
+            maximum: 500
+            default: 100
+        - name: cursor
           in: query
+          required: false
+          description: The `nextCursor` of the page before this one. Omit for the first page.
           schema:
-            type: integer
-            minimum: 1
-            maximum: 50
-            default: 10
+            type: string
       responses:
         "200":
-          description: A page of events.
-          headers:
-            Link:
-              description: RFC 8288 pagination links (`next`, `prev`).
-              schema:
-                type: string
+          description: One page of the catalog.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EventPage"
+                $ref: "#/components/schemas/MoviePage"
         "400":
-          $ref: "#/components/responses/BadRequest"
-
-  /events/{eventId}:
-    get:
-      operationId: getEvent
-      summary: Everything about one event
-      tags: [events]
-      parameters:
-        - $ref: "#/components/parameters/EventId"
-      responses:
-        "200":
-          description: The event, including upcoming performances.
+          description: The `limit` is out of range, `ids` names too many films, or the `cursor` is unreadable or expired.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Event"
-        "404":
-          $ref: "#/components/responses/NotFound"
+                $ref: "#/components/schemas/Error"
 
-  /events/{eventId}/poster.svg:
+  /theaters:
     get:
-      operationId: getEventPoster
-      summary: The event's poster image
-      tags: [events]
+      operationId: listTheaters
+      summary: The houses in the chain
+      description: |
+        A dozen cinemas in a dozen American cities. Small enough to come back
+        in one response, so there is no cursor here: read it once and keep it
+        as the lookup table it is.
       parameters:
-        - $ref: "#/components/parameters/EventId"
+        - name: city
+          in: query
+          required: false
+          description: Only houses in this city. Matched whole and case-insensitively.
+          schema:
+            type: string
+          example: Chicago
       responses:
         "200":
-          description: The poster.
+          description: The chain.
           content:
-            image/svg+xml:
+            application/json:
               schema:
-                type: string
-        "404":
-          $ref: "#/components/responses/NotFound"
+                $ref: "#/components/schemas/TheaterList"
 
-  /performances/{performanceId}:
+  /shows:
     get:
-      operationId: getPerformance
-      summary: One showtime
+      operationId: listShows
+      summary: What is playing where, and when
       description: |
-        Seat availability is not part of this API — it lives in the seating
-        gRPC service, which owns live seat state. Pass this performance's `id`
-        to `seating.Seating/GetSeatMap` or `WatchSeats`.
-      tags: [performances]
+        The schedule, soonest first, a page at a time. A screening is a movie
+        at a theater at a time for a price — it carries the two ids and
+        nothing else, so a programme worth reading is this list joined against
+        `/movies` and `/theaters`.
+
+        Every film screens weekly at the houses that have it, so this list
+        never empties and every `id` in it is always bookable. Narrow it with
+        `theaterId`, `movieId` or `city`; `total` counts what matched, not the
+        whole schedule.
+
+        Call this with no parameters for the first hundred, then follow
+        `nextCursor` until it is `null`. A cursor is a position in the
+        schedule rather than a page number, so a screening is never skipped or
+        repeated. It is tied to the moment the walk started and stops working
+        an hour later; start again without one if that happens.
       parameters:
-        - name: performanceId
-          in: path
-          required: true
+        - name: theaterId
+          in: query
+          required: false
+          description: Only screenings at this house.
+          schema:
+            type: string
+          example: the-lantern
+        - name: movieId
+          in: query
+          required: false
+          description: Only screenings of this film — where in the chain it is playing.
+          schema:
+            type: string
+          example: dune-part-two
+        - name: city
+          in: query
+          required: false
+          description: Only screenings in this city. Matched whole and case-insensitively.
+          schema:
+            type: string
+          example: Chicago
+        - name: limit
+          in: query
+          required: false
+          description: How many screenings to return. A hundred by default, five hundred at the most.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 500
+            default: 100
+        - name: cursor
+          in: query
+          required: false
+          description: The `nextCursor` of the page before this one. Omit for the first page.
           schema:
             type: string
       responses:
         "200":
-          description: The performance.
+          description: One page of the schedule.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Performance"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "410":
-          description: This performance already happened.
+                $ref: "#/components/schemas/ShowPage"
+        "400":
+          description: The `limit` is out of range, or the `cursor` is unreadable or expired.
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/Error"
 
 components:
-  parameters:
-    EventId:
-      name: eventId
-      in: path
-      required: true
-      schema:
-        type: string
-      example: neon-meridian
-
-  responses:
-    NotFound:
-      description: No such resource.
-      content:
-        application/problem+json:
-          schema:
-            $ref: "#/components/schemas/Problem"
-    BadRequest:
-      description: Invalid request parameters.
-      content:
-        application/problem+json:
-          schema:
-            $ref: "#/components/schemas/Problem"
-
   schemas:
-    Genre:
-      type: string
-      enum: [concert, play, comedy, opera]
-
-    Venue:
+    MoviePage:
+      description: One page of the movie catalog.
       type: object
-      required: [name, address, capacity, sections]
+      required: [movies, total, nextCursor]
       properties:
-        name:
-          type: string
-          example: The Kaja Theatre
-        address:
-          type: string
-        capacity:
-          type: integer
-        sections:
+        movies:
           type: array
           items:
-            $ref: "#/components/schemas/VenueSection"
-
-    VenueSection:
+            $ref: "#/components/schemas/Movie"
+        total:
+          type: integer
+          description: How many films matched, not just how many are on this page.
+          example: 1283
+        nextCursor:
+          type: [string, "null"]
+          description: Pass this back as `cursor` for the next page. `null` on the last page.
+          example: MTc4Njc3NzExMDoxMi1hbmdyeS1tZW4
+    TheaterList:
+      description: The whole chain, in one response.
       type: object
-      required: [name, priceMultiplier, rows]
+      required: [theaters, total]
       properties:
-        name:
-          type: string
-          enum: [ORCHESTRA, BALCONY]
-        priceMultiplier:
-          type: number
-          description: Seat price = performance base price × this multiplier.
-          example: 1.0
-        rows:
+        theaters:
           type: array
           items:
-            $ref: "#/components/schemas/VenueRow"
-
-    VenueRow:
-      type: object
-      required: [letter, seats]
-      properties:
-        letter:
-          type: string
-          example: F
-        seats:
+            $ref: "#/components/schemas/Theater"
+        total:
           type: integer
-          description: Number of seats in the row, numbered from 1.
-          example: 14
-
-    EventSummary:
+          example: 12
+    ShowPage:
+      description: One page of the schedule.
       type: object
-      required: [id, title, genre, tagline, posterUrl, nextPerformanceId]
+      required: [shows, total, nextCursor]
+      properties:
+        shows:
+          type: array
+          items:
+            $ref: "#/components/schemas/Show"
+        total:
+          type: integer
+          description: How many screenings matched, not just how many are on this page.
+          example: 2534
+        nextCursor:
+          type: [string, "null"]
+          description: Pass this back as `cursor` for the next page. `null` on the last page.
+          example: MTc4Njc3NzExMDowMTc4NjgwNjAwMDpkdW5lLXBhcnQtdHdvQHN1bnNldC1yZWVs
+    Error:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+          example: cursor has expired — start again without one
+    Movie:
+      description: One film in the catalog. It says nothing about when or where it is playing.
+      type: object
+      required: [id, title, director, year, runtimeMinutes, genre, language, synopsis]
       properties:
         id:
           type: string
-          example: neon-meridian
+          description: What a screening's `movieId` refers to.
+          example: dune-part-two
         title:
           type: string
-          example: "Neon Meridian: World Tour"
-        genre:
-          $ref: "#/components/schemas/Genre"
-        tagline:
-          type: string
-        posterUrl:
-          type: string
-          format: uri
-        nextPerformanceId:
-          type: [string, "null"]
-          description: The soonest upcoming performance, or null if none remain this week.
-
-    Event:
-      description: A full event is its summary plus details and showtimes.
-      allOf:
-        - $ref: "#/components/schemas/EventSummary"
-        - type: object
-          required: [description, details, performances]
-          properties:
-            description:
-              type: string
-              description: Markdown.
-            details:
-              $ref: "#/components/schemas/EventDetails"
-            performances:
-              type: array
-              items:
-                $ref: "#/components/schemas/Performance"
-
-    EventDetails:
-      description: Genre-specific details.
-      oneOf:
-        - $ref: "#/components/schemas/ConcertDetails"
-        - $ref: "#/components/schemas/PlayDetails"
-        - $ref: "#/components/schemas/ComedyDetails"
-        - $ref: "#/components/schemas/OperaDetails"
-      discriminator:
-        propertyName: type
-        mapping:
-          concert: "#/components/schemas/ConcertDetails"
-          play: "#/components/schemas/PlayDetails"
-          comedy: "#/components/schemas/ComedyDetails"
-          opera: "#/components/schemas/OperaDetails"
-
-    ConcertDetails:
-      type: object
-      required: [type, headliner]
-      properties:
-        type:
-          type: string
-          const: concert
-        headliner:
-          type: string
-        supportActs:
-          type: array
-          items:
-            type: string
-        durationMinutes:
-          type: integer
-
-    PlayDetails:
-      type: object
-      required: [type, playwright, cast]
-      properties:
-        type:
-          type: string
-          const: play
-        playwright:
-          type: string
+          example: "Dune: Part Two"
         director:
           type: string
-        cast:
-          type: array
-          items:
-            $ref: "#/components/schemas/CastMember"
-
-    CastMember:
-      type: object
-      required: [actor, role]
-      properties:
-        actor:
+          example: Denis Villeneuve
+        year:
+          type: integer
+          description: Year of the film's original release.
+          example: 2024
+        runtimeMinutes:
+          type: integer
+          example: 165
+        genre:
           type: string
-        role:
-          type: string
-
-    ComedyDetails:
-      type: object
-      required: [type, comedian]
-      properties:
-        type:
-          type: string
-          const: comedy
-        comedian:
-          type: string
-        openers:
-          type: array
-          items:
-            type: string
-
-    OperaDetails:
-      type: object
-      required: [type, composer, language]
-      properties:
-        type:
-          type: string
-          const: opera
-        composer:
-          type: string
+          enum: [action, animation, comedy, drama, horror, romance, sci-fi, thriller]
         language:
           type: string
-        surtitles:
-          type: boolean
-          description: Whether English surtitles are projected.
-
-    Performance:
+          description: The language the film is screened in. Subtitled where it is not English.
+          example: English
+        synopsis:
+          type: string
+    Theater:
+      description: One house in the chain.
       type: object
-      required: [id, eventId, eventTitle, startsAt, doorsOpenAt, basePriceCents, status]
+      required: [id, name, city, state, address, timeZone]
       properties:
         id:
           type: string
-          description: Pass this to the seating and boxoffice services.
-          example: neon-meridian-20260710-1930
-        eventId:
+          description: What a screening's `theaterId` refers to.
+          example: the-lantern
+        name:
           type: string
-        eventTitle:
+          example: The Lantern
+        city:
           type: string
+          example: Chicago
+        state:
+          type: string
+          description: Two-letter US state code.
+          example: IL
+        address:
+          type: string
+          example: 2233 North Lincoln Avenue
+        timeZone:
+          type: string
+          description: |
+            IANA name for the city this house is in. Every showtime is written
+            with this house's own offset, so half past seven is half past
+            seven wherever the ticket was bought.
+          example: America/Chicago
+    Show:
+      description: |
+        One weekly screening: a movie, at a theater, at a time, for a price.
+        Everything else about either is in `/movies` and `/theaters`.
+      type: object
+      required: [id, movieId, theaterId, startsAt, priceCents]
+      properties:
+        id:
+          type: string
+          description: Pass this to the seating service as `showId`.
+          example: dune-part-two@the-lantern
+        movieId:
+          type: string
+          description: Look this up in `/movies`.
+          example: dune-part-two
+        theaterId:
+          type: string
+          description: Look this up in `/theaters`.
+          example: the-lantern
         startsAt:
           type: string
           format: date-time
-        doorsOpenAt:
-          type: string
-          format: date-time
-        basePriceCents:
+          description: The next weekly screening, in the theater's own local time.
+        priceCents:
           type: integer
-          example: 6500
-        status:
-          type: string
-          enum: [onSale, past]
-
-    EventPage:
-      type: object
-      required: [items, page, perPage, totalItems, totalPages]
-      properties:
-        items:
-          type: array
-          items:
-            $ref: "#/components/schemas/EventSummary"
-        page:
-          type: integer
-        perPage:
-          type: integer
-        totalItems:
-          type: integer
-        totalPages:
-          type: integer
-
-    Problem:
-      description: RFC 7807 problem details.
-      type: object
-      required: [title, status]
-      properties:
-        type:
-          type: string
-          format: uri
-          default: about:blank
-        title:
-          type: string
-        status:
-          type: integer
-        detail:
-          type: string
+          description: Orchestra seat price, in US cents. Balcony seats go for three quarters of it.
+          example: 1975

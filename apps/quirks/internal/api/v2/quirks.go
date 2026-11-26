@@ -4,9 +4,7 @@ import (
 	"context"
 )
 
-type QuirksService struct {
-	UnimplementedQuirksServer
-}
+type QuirksService struct{}
 
 func (s *QuirksService) Sum(ctx context.Context, req *SumIntsRequest) (*SumIntsResponse, error) {
 	return &SumIntsResponse{

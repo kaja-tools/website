@@ -1,0 +1,22 @@
+---
+/* The brand mark on its own — the one non-neutral colour on the site. Inline
+   rather than an <img> so it can be sized and repeated; each instance carries
+   its own gradient because a gradient is addressed by an id, and an id has to
+   be unique in the document. */
+interface Props {
+  id?: string;
+  class?: string;
+}
+
+const { id = "kaja-mark", class: className } = Astro.props;
+---
+
+<svg viewBox="0 8 48 32" fill="none" class={className} aria-hidden="true">
+  <defs>
+    <linearGradient id={id} x1="4" y1="24" x2="44" y2="24" gradientUnits="userSpaceOnUse">
+      <stop stop-color="var(--color-brand-warm)"></stop>
+      <stop offset="1" stop-color="var(--color-brand-cool)"></stop>
+    </linearGradient>
+  </defs>
+  <path d="M4 29 H13 L19 13 L28 35 L33 24 H44" stroke={`url(#${id})`} stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>

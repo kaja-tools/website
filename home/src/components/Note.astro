@@ -1,0 +1,25 @@
+---
+/* An aside in the docs: a plain one states how the platform you picked
+   differs, a `watch` one marks the difference that will surprise you. Amber
+   is the app's own warning colour and the site's `approve` token, which is
+   the only other place the site uses it. */
+interface Props {
+  variant?: keyof typeof variants;
+  /* The words in front, run into the sentence rather than set above it. */
+  lead?: string;
+}
+
+const variants = {
+  default: { box: "border-border bg-card", lead: "text-foreground" },
+  watch: { box: "border-approve/40 bg-approve/10", lead: "text-approve-foreground" },
+};
+
+const { variant = "default", lead } = Astro.props;
+const { box, lead: leadClass } = variants[variant];
+---
+
+<div class:list={["rounded-lg border px-4 py-3.5", box]}>
+  <p class="text-sm/[1.6] text-muted-foreground">
+    {lead && <span class:list={["font-medium", leadClass]}>{lead}</span>}{lead && " "}<slot />
+  </p>
+</div>
